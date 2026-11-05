@@ -1,6 +1,6 @@
-// TradeLedger Service Worker - Offline PWA Engine
-const CACHE_NAME = 'tradeledger-v1.0.2';
-const RUNTIME_CACHE = 'tradeledger-runtime-v1.0.2';
+// Trade Diary Service Worker - Offline PWA Engine
+const CACHE_NAME = 'tradediary-v1.0.3';
+const RUNTIME_CACHE = 'tradediary-runtime-v1.0.3';
 
 const STATIC_ASSETS = [
   './',

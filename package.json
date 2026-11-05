@@ -1,7 +1,7 @@
 {
-  "name": "tradeledger-pwa",
-  "version": "2.4.0",
-  "description": "Deterministic NSE brokerage tariff calculator, swing trade journal, EOD portfolio tracker and quantitative analytics PWA.",
+  "name": "trade-diary",
+  "version": "1.0.0",
+  "description": "Deterministic NSE brokerage tariff calculator, swing trade journal, EOD portfolio tracker and quantitative analytics PWA for iPhone.",
   "scripts": {
     "start": "npx serve -s . -l 3000",
     "serve": "npx serve -s . -l 3000",

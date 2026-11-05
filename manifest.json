@@ -1,6 +1,6 @@
 {
-  "name": "TradeLedger - Swing Trading & Brokerage OS",
-  "short_name": "TradeLedger",
+  "name": "Trade Diary",
+  "short_name": "Trade Diary",
   "description": "Deterministic NSE brokerage tariff calculator, swing trade journal, EOD portfolio tracker and analytics engine with 100% offline IndexedDB persistence.",
   "start_url": "./",
   "scope": "./",
