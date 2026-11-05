@@ -1,0 +1,68 @@
+{
+  "name": "TradeLedger - Swing Trading & Brokerage OS",
+  "short_name": "TradeLedger",
+  "description": "Deterministic NSE brokerage tariff calculator, swing trade journal, EOD portfolio tracker and analytics engine with 100% offline IndexedDB persistence.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0d11",
+  "theme_color": "#0d0d11",
+  "categories": ["finance", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "NSE Calculator",
+      "short_name": "Calculator",
+      "description": "Calculate Groww & Zerodha brokerage, STT and breakeven",
+      "url": "./#nse-calculator",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Trade Journal",
+      "short_name": "Journal",
+      "description": "Log completed swing trades and view trade metrics",
+      "url": "./#trade-journal",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Portfolio Tracker",
+      "short_name": "Portfolio",
+      "description": "Record daily EOD mark-to-market valuations",
+      "url": "./#portfolio-tracker",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Analytics",
+      "short_name": "Analytics",
+      "description": "Quantitative swing metrics and equity curve",
+      "url": "./#analytics",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

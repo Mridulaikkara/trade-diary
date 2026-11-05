@@ -1,0 +1,201 @@
+/* ==========================================================================
+   TradeLedger Mobile PWA Core Stylesheet
+   Designed for iPhone 17 Pro & OLED Neo-Fintech Aesthetic
+   Palette: Deep Dark (#0d0d11), Soft Lilac (#cfc2fc), Matcha Mint (#d5f6be)
+   ========================================================================== */
+
+:root {
+  --canvas: #0d0d11;
+  --card-bg: #191920;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --lilac: #cfc2fc;
+  --lilac-dark: #181328;
+  --mint: #d5f6be;
+  --mint-dark: #142809;
+  --text-main: #f5f5f7;
+  --text-muted: #8e8e98;
+  --sat: env(safe-area-inset-top, 52px);
+  --sab: env(safe-area-inset-bottom, 34px);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #050507;
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+  min-height: 100vh;
+}
+
+/* Luxury Serif Typography for Currencies & Headlines */
+.font-serif {
+  font-family: 'Newsreader', 'Playfair Display', Georgia, serif;
+}
+
+/* Enforce tabular numerals on all numeric readouts to eliminate layout shift */
+.tabular-nums,
+[data-mono],
+.font-mono {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Native-feel smooth scroll without visible bars */
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+* {
+  scrollbar-width: none;
+}
+
+/* iPhone 17 Pro Container Shell */
+.iphone-frame {
+  max-width: 440px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background-color: var(--canvas);
+  position: relative;
+  overflow-x: hidden;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dynamic Island Desktop Simulator (hidden on standalone iOS where hardware island exists) */
+@media (min-width: 640px) {
+  .dynamic-island-sim {
+    position: sticky;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 124px;
+    height: 35px;
+    background: #000000;
+    border-radius: 20px;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    pointer-events: auto;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .dynamic-island-sim:active {
+    width: 220px;
+    height: 48px;
+  }
+}
+@media (max-width: 639px) {
+  .dynamic-island-sim {
+    display: none;
+  }
+}
+
+/* Smooth view transitions */
+.view-panel {
+  display: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.22s ease-out, transform 0.22s ease-out;
+}
+.view-panel.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* iOS Bottom Dock Nav */
+.bottom-dock {
+  background: rgba(24, 24, 30, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
+}
+
+.dock-item {
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dock-item:active {
+  transform: scale(0.92);
+}
+.dock-item.active .dock-icon-box {
+  background-color: #2b2b35;
+  color: #ffffff;
+}
+
+/* Floating Action Center Button (+) */
+.center-action-btn {
+  background-color: var(--lilac);
+  color: var(--lilac-dark);
+  box-shadow: 0 6px 20px rgba(207, 194, 252, 0.32);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.center-action-btn:hover {
+  background-color: #dcd3fc;
+  box-shadow: 0 8px 24px rgba(207, 194, 252, 0.45);
+}
+.center-action-btn:active {
+  transform: scale(0.92);
+}
+
+/* iOS Action Sheet Modal */
+.action-sheet-overlay {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease-out;
+}
+.action-sheet-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.action-sheet-container {
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.action-sheet-overlay.open .action-sheet-container {
+  transform: translateY(0);
+}
+
+/* Toast alert */
+.toast-container {
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out;
+}
+.toast-container.show {
+  pointer-events: auto;
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Number input spinners hide */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Pulsing dot */
+@keyframes softPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.92); }
+}
+.animate-soft-pulse {
+  animation: softPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

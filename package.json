@@ -1,0 +1,23 @@
+{
+  "name": "tradeledger-pwa",
+  "version": "2.4.0",
+  "description": "Deterministic NSE brokerage tariff calculator, swing trade journal, EOD portfolio tracker and quantitative analytics PWA.",
+  "scripts": {
+    "start": "npx serve -s . -l 3000",
+    "serve": "npx serve -s . -l 3000",
+    "deploy": "npx vercel --prod"
+  },
+  "keywords": [
+    "pwa",
+    "fintech",
+    "nse",
+    "brokerage-calculator",
+    "swing-trading",
+    "trade-journal",
+    "zerodha",
+    "groww",
+    "offline-first"
+  ],
+  "author": "Antigravity FinTech Engine",
+  "license": "MIT"
+}
