@@ -403,16 +403,13 @@
     svg.innerHTML = `
       <defs>
         <linearGradient id="dashGrowthGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#F4EDE0" stop-opacity="0.32"/>
-          <stop offset="100%" stop-color="#F4EDE0" stop-opacity="0.0"/>
+          <stop offset="0%" stop-color="#F4EDE0" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#F4EDE0" stop-opacity="0.02"/>
         </linearGradient>
-        <filter id="dashGlow" x="-10%" y="-20%" width="120%" height="150%">
-          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#F4EDE0" flood-opacity="0.25"/>
-        </filter>
       </defs>
       ${gridLines}
       <path d="${areaD}" fill="url(#dashGrowthGrad)"/>
-      <path d="${pathD}" fill="none" stroke="#F4EDE0" stroke-width="2.5" stroke-linecap="round" filter="url(#dashGlow)"/>
+      <path d="${pathD}" fill="none" stroke="#F4EDE0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
       ${circlesSvg}
     `;
 
@@ -423,7 +420,7 @@
       labelsEl.innerHTML = `
         <span>${first.date} (${fmtINR(first.combinedTotal, false)})</span>
         <span>${mid.date} (${fmtINR(mid.combinedTotal, false)})</span>
-        <span class="font-semibold text-primary">${last.date} (${fmtINR(last.combinedTotal, false)})</span>
+        <span class="font-semibold text-[#F4EDE0]">${last.date} (${fmtINR(last.combinedTotal, false)})</span>
       `;
     }
   }
