@@ -95,7 +95,7 @@ button:active, [data-action]:active, [data-path]:active {
   top: 0;
   left: 0;
   right: 0;
-  /* respect Dynamic Island / notch */
+  /* respect Dynamic Island / notch: adds safe-area-inset-top + 10px breathing room */
   padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
   padding-bottom: 10px;
   padding-left: 16px;
@@ -143,21 +143,28 @@ button:active, [data-action]:active, [data-path]:active {
   }
 }
 
+/* Dynamic Island iPhones: extra top margin for scrollable content */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .app-scrollable-content {
+    margin-top: calc(env(safe-area-inset-top, 0px) + 56px);
+  }
+}
+
 /* ─── LAYER 2: Scrollable Main Content ─── */
 /* Top margin clears the fixed header; bottom padding clears the fixed nav bar */
 .app-scrollable-content {
   /* 
-   * margin-top pushes content below the fixed header.
-   * We use max() to handle iPhones with Dynamic Island (more top safe area).
-   * 56px = default header height for a normal iPhone; 100px covers DI models.
+   * On iPhone 17 Pro with Dynamic Island, safe-area-inset-top ≈ 59px.
+   * Header itself is ~56px including the inset.
+   * We add both to push content below the entire fixed header bar.
+   * 110px safely covers Dynamic Island iPhones.
    */
-  margin-top: max(env(safe-area-inset-top, 0px) + 56px, 56px);
-  /* padding-bottom clears nav bar + home indicator */
-  padding-bottom: max(env(safe-area-inset-bottom, 0px) + 80px, 90px);
-  padding-top: 16px;
+  margin-top: 56px; /* fallback for all phones */
+  padding-top: env(safe-area-inset-top, 0px);
+  /* padding-bottom: nav bar (64px) + home indicator (safe area bottom, ~34px on iPhone) */
+  padding-bottom: 100px;
   padding-left: 16px;
   padding-right: 16px;
-  min-height: calc(100vh - 56px);
   /* smooth momentum scrolling on iOS */
   -webkit-overflow-scrolling: touch;
   max-width: 440px;
