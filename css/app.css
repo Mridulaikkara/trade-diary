@@ -1,16 +1,18 @@
 /* ==========================================================================
-   Trade Diary — Warm Luxury Palette
-   Colors:
-     Canvas:    #1F1D20   Dark Charcoal / Black-Plum
-     Burgundy:  #46232A   Deep Wine
-     Rust:      #803E2F   Primary Warm Accent
-     Sand:      #A79986   Secondary Warm Accent
-     Mocha:     #362F2E   Subtle Dark Neutral
-     Slate:     #3E3D38   Card Surface & Borders
-     Text:      #F6F4F1   Warm Ivory White
-     Muted:     #8E8780   Muted Warm Taupe
-     Gain:      #82D172
-     Loss:      #E05D4D
+   Trade Diary — Warm Luxury Native Mobile Stylesheet
+   Palette:
+     Canvas:      #1F1D20 (Dark Charcoal Black-Plum)
+     Burgundy:    #46232A (Deep Wine)
+     Rust:        #803E2F (Primary Warm Accent)
+     Sand:        #A79986 (Secondary Warm Accent)
+     Mocha:       #362F2E (Card Surface / Buttons)
+     Slate:       #3E3D38 (Borders & Surfaces)
+     Text White:  #FFFFFF (Headings & Hero Numbers)
+     Text Primary:#F6F4F1 (Warm Ivory)
+     Text Sand:   #A79986 (Metadata & Labels)
+     Text Muted:  #8E8780 (Subtle)
+     Gain:        #82D172 (Green)
+     Loss:        #E05D4D (Red)
    ========================================================================== */
 
 :root {
@@ -25,32 +27,32 @@
   --mocha: #362F2E;
   --slate: #3E3D38;
   --text-main: #F6F4F1;
+  --text-white: #FFFFFF;
   --text-sand: #A79986;
   --text-muted: #8E8780;
   --gain: #82D172;
   --loss: #E05D4D;
 }
 
-/* ── Reset ── */
-*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
 html {
-  height: 100%;
-  height: -webkit-fill-available;
-  background: var(--canvas);
+  background-color: #1F1D20 !important;
+  color: #F6F4F1 !important;
+  min-height: 100%;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-  min-height: -webkit-fill-available;
-  background: var(--canvas);
-  color: var(--text-main);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 100% !important;
+  background-color: #1F1D20 !important;
+  color: #F6F4F1 !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* NO overflow:hidden on body — kills fixed positioning in Safari */
 }
 
 /* Touch responsiveness */
@@ -58,230 +60,209 @@ button, a, input, select, [role="button"], [data-action], [data-path] {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;
 }
-input, select, textarea {
-  -webkit-user-select: text;
-  user-select: text;
-  cursor: text;
-}
+
 button:active, [data-action]:active, [data-path]:active {
   transform: scale(0.96);
   transition: transform 0.08s ease;
 }
 
-/* Serif font */
 .font-serif {
   font-family: 'Newsreader', 'Playfair Display', Georgia, serif;
 }
-.tabular-nums { font-variant-numeric: tabular-nums lining-nums; }
 
-/* Hide scrollbars */
+.tabular-nums {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
 ::-webkit-scrollbar { display: none; }
 * { scrollbar-width: none; }
 
-/* ==========================================================================
-   FIXED-POSITION NATIVE APP SHELL
-   ── Top bar: position:fixed; top:0
-   ── Bottom nav: position:fixed; bottom:0
-   ── Main content: margin-top / padding-bottom to clear both bars
-   This is the ONLY approach that works 100% reliably in Safari PWA mode.
-   ========================================================================== */
-
-/* ─── LAYER 1: Fixed Top Header ─── */
+/* ─── LAYER 1: Permanently Fixed Top Header ─── */
 .app-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  /* respect Dynamic Island / notch: adds safe-area-inset-top + 10px breathing room */
-  padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
-  padding-bottom: 10px;
-  padding-left: 16px;
-  padding-right: 16px;
-  background: rgba(31, 29, 32, 0.96);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--card-border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  z-index: 100;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  margin: 0 auto !important;
+  z-index: 9999 !important;
+  background-color: #1F1D20 !important;
+  background: rgba(31, 29, 32, 0.96) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(167, 153, 134, 0.16) !important;
+  padding-top: max(env(safe-area-inset-top, 44px), 14px) !important;
+  padding-bottom: 10px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
 }
 
-/* ─── LAYER 3: Fixed Bottom Navigation ─── */
+/* ─── LAYER 3: Permanently Fixed Bottom Navigation Bar ─── */
 .app-bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  /* respect home-indicator bar */
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
-  padding-top: 10px;
-  padding-left: 20px;
-  padding-right: 20px;
-  background: rgba(26, 23, 26, 0.97);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-top: 1px solid var(--card-border);
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  z-index: 100;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
-}
-
-/* Desktop: center the fixed bars inside a max-width column */
-@media (min-width: 441px) {
-  .app-header,
-  .app-bottom-nav {
-    left: 50%;
-    transform: translateX(-50%);
-    right: auto;
-    width: 440px;
-  }
-}
-
-/* Dynamic Island iPhones: extra top margin for scrollable content */
-@supports (padding-top: env(safe-area-inset-top)) {
-  .app-scrollable-content {
-    margin-top: calc(env(safe-area-inset-top, 0px) + 56px);
-  }
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  margin: 0 auto !important;
+  z-index: 9999 !important;
+  background-color: #1A181A !important;
+  background: rgba(26, 24, 26, 0.97) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  backdrop-filter: blur(24px) !important;
+  border-top: 1px solid rgba(167, 153, 134, 0.18) !important;
+  padding-top: 8px !important;
+  padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px) !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-around !important;
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.7) !important;
 }
 
 /* ─── LAYER 2: Scrollable Main Content ─── */
-/* Top margin clears the fixed header; bottom padding clears the fixed nav bar */
 .app-scrollable-content {
-  /* 
-   * On iPhone 17 Pro with Dynamic Island, safe-area-inset-top ≈ 59px.
-   * Header itself is ~56px including the inset.
-   * We add both to push content below the entire fixed header bar.
-   * 110px safely covers Dynamic Island iPhones.
-   */
-  margin-top: 56px; /* fallback for all phones */
-  padding-top: env(safe-area-inset-top, 0px);
-  /* padding-bottom: nav bar (64px) + home indicator (safe area bottom, ~34px on iPhone) */
-  padding-bottom: 100px;
-  padding-left: 16px;
-  padding-right: 16px;
-  /* smooth momentum scrolling on iOS */
-  -webkit-overflow-scrolling: touch;
-  max-width: 440px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100% !important;
+  max-width: 480px !important;
+  margin: 0 auto !important;
+  padding-top: calc(max(env(safe-area-inset-top, 44px), 14px) + 54px) !important;
+  padding-bottom: calc(max(env(safe-area-inset-bottom, 20px), 16px) + 72px) !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  min-height: 100vh !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
-/* ─── Nav Tab Buttons ─── */
+/* ─── Bottom Nav Tab Items ─── */
 .nav-tab-item {
-  flex: 1;
+  width: 48px;
   height: 44px;
   border-radius: 999px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
+  color: #8E8780;
   background: transparent;
   border: none;
   outline: none;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition: all 0.15s ease;
   position: relative;
 }
-.nav-tab-item .material-symbols-outlined {
-  font-size: 24px;
-  line-height: 1;
-}
+
 .nav-tab-item.active {
-  color: var(--sand);
+  color: #A79986;
 }
+
 .nav-tab-item.active::after {
   content: '';
   position: absolute;
-  bottom: -4px;
+  bottom: 0px;
   left: 50%;
   transform: translateX(-50%);
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--rust);
+  background-color: #803E2F;
+  box-shadow: 0 0 8px #803E2F;
 }
 
-/* Center Action (+) Button */
+/* Center Highlight (+) Button */
 .nav-center-action-btn {
-  width: 52px;
-  height: 52px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  background: var(--rust);
-  color: #fff;
+  background: #803E2F;
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   outline: none;
-  box-shadow: 0 4px 20px rgba(128, 62, 47, 0.55);
+  box-shadow: 0 4px 18px rgba(128, 62, 47, 0.6);
   flex-shrink: 0;
-  margin-top: -10px; /* Slight float above nav bar */
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: transform 0.1s ease, background-color 0.15s ease;
 }
-.nav-center-action-btn .material-symbols-outlined { font-size: 28px; }
-.nav-center-action-btn:active { transform: scale(0.9) !important; }
+
+.nav-center-action-btn:hover {
+  background-color: #964a38;
+}
+
+.nav-center-action-btn:active {
+  transform: scale(0.92) !important;
+}
 
 /* ─── View Panels ─── */
-.view-panel { display: none; }
+.view-panel {
+  display: none;
+}
+
 .view-panel.active {
   display: block;
   animation: fadeInPanel 0.18s ease-out;
 }
+
 @keyframes fadeInPanel {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ─── iOS Action Sheet Modal ─── */
 .action-sheet-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 8, 10, 0.78);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  z-index: 200;
+  background: rgba(14, 12, 14, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 10000;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   padding: 16px;
-  padding-bottom: calc(var(--sab) + 16px);
+  padding-bottom: calc(max(env(safe-area-inset-bottom, 20px), 16px) + 12px);
 }
-.action-sheet-overlay.hidden { display: none !important; }
+
+.action-sheet-overlay.hidden {
+  display: none !important;
+}
 
 .action-sheet-container {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   margin: 0 auto;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background-color: #2B272A;
+  border: 1px solid rgba(167, 153, 134, 0.2);
   border-radius: 24px;
   padding: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
-  animation: slideUpSheet 0.24s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes slideUpSheet {
-  from { transform: translateY(110%); }
-  to   { transform: translateY(0); }
+  animation: slideUpSheet 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ─── Toast Notification ─── */
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* ─── Toast Container ─── */
 .toast-container {
   position: fixed;
-  bottom: calc(var(--sab) + var(--nav-h) + 12px);
+  bottom: calc(max(env(safe-area-inset-bottom, 20px), 16px) + 72px);
   left: 50%;
   transform: translateX(-50%) translateY(80px);
   opacity: 0;
   pointer-events: none;
-  z-index: 300;
+  z-index: 10001;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
   white-space: nowrap;
 }
+
 .toast-container.show {
   transform: translateX(-50%) translateY(0);
   opacity: 1;
@@ -289,7 +270,7 @@ button:active, [data-action]:active, [data-path]:active {
 
 /* ─── Modals ─── */
 #deleteModal, #delete-snapshot-modal {
-  z-index: 200;
+  z-index: 10000;
 }
 #deleteModal.hidden, #delete-snapshot-modal.hidden {
   display: none !important;
@@ -298,24 +279,14 @@ button:active, [data-action]:active, [data-path]:active {
 /* ─── Pulse animation ─── */
 @keyframes softPulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(0.85); }
+  50% { opacity: 0.55; transform: scale(0.9); }
 }
-.animate-soft-pulse { animation: softPulse 2s ease-in-out infinite; }
+.animate-soft-pulse { animation: softPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
-/* ─── Clean number inputs ─── */
+/* Clean number inputs */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 input[type="number"] { -moz-appearance: textfield; }
-
-/* ─── Desktop frame ─── */
-@media (min-width: 641px) {
-  body { background: #111013; }
-  .app-scrollable-content {
-    max-width: 440px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}

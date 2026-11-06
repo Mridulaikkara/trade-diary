@@ -1,6 +1,6 @@
 // Trade Diary Service Worker - Offline PWA Engine
-const CACHE_NAME = 'tradediary-v1.0.7';
-const RUNTIME_CACHE = 'tradediary-runtime-v1.0.7';
+const CACHE_NAME = 'tradediary-v1.0.8';
+const RUNTIME_CACHE = 'tradediary-runtime-v1.0.8';
 
 const STATIC_ASSETS = [
   './',
@@ -31,6 +31,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((name) => {
           if (name !== CACHE_NAME && name !== RUNTIME_CACHE) {
+            console.log('Purging old SW cache:', name);
             return caches.delete(name);
           }
         })
@@ -39,14 +40,15 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch: Stale-While-Revalidate for app assets; Cache-First for CDNs & fonts
+// Fetch Strategy:
+// 1. CDNs & Google Fonts: Cache-First with background revalidation
+// 2. App Assets (HTML, CSS, JS): Network-First with Offline Cache Fallback
 self.addEventListener('fetch', (event) => {
-  // Only process GET requests
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
 
-  // Strategy for Google Fonts & CDN assets (Tailwind, Material Symbols)
+  // Strategy for Google Fonts & CDN assets
   if (url.origin.includes('fonts.googleapis.com') ||
       url.origin.includes('fonts.gstatic.com') ||
       url.origin.includes('cdn.tailwindcss.com')) {
@@ -54,12 +56,11 @@ self.addEventListener('fetch', (event) => {
       caches.open(RUNTIME_CACHE).then(async (cache) => {
         const cachedResponse = await cache.match(event.request);
         if (cachedResponse) {
-          // Asynchronously update in background if online
           fetch(event.request).then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
               cache.put(event.request, networkResponse.clone());
             }
-          }).catch(() => {/* ignore background fetch errors */});
+          }).catch(() => {});
           return cachedResponse;
         }
 
@@ -70,38 +71,32 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         } catch (err) {
-          return cachedResponse || new Response('', { status: 408, statusText: 'Offline' });
+          return cachedResponse || new Response('', { status: 408 });
         }
       })
     );
     return;
   }
 
-  // Strategy for local application assets: Stale-While-Revalidate with offline fallback
+  // Network-First for core application files
   event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      const cachedResponse = await cache.match(event.request);
-
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
+    fetch(event.request)
+      .then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
-          cache.put(event.request, networkResponse.clone());
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return networkResponse;
-      }).catch(() => {
-        // Network failed (offline)
-        if (cachedResponse) return cachedResponse;
-        // If navigating to an HTML page, return index.html
+      })
+      .catch(async () => {
+        // Network offline: fall back to cache
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(event.request);
+        if (cached) return cached;
         if (event.request.mode === 'navigate') {
-          return cache.match('./index.html');
+          return cache.match('./index.html') || cache.match('/');
         }
-        return new Response('Offline: resource not available', {
-          status: 503,
-          statusText: 'Service Unavailable',
-          headers: new Headers({ 'Content-Type': 'text/plain' })
-        });
-      });
-
-      return cachedResponse || fetchPromise;
-    })
+        return new Response('', { status: 408, statusText: 'Offline' });
+      })
   );
 });
