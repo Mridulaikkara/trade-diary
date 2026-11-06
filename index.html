@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
   <title>Trade Diary</title>
 
-  <!-- Instant Inline Cache-Purging & Fail-Safe Navigation Engine (Frame 0 Execution) -->
+  <!-- Instant Inline Navigation Engine (Zero-Latency Frame 0 Execution) -->
   <script>
     // 1. Force purge any lingering service worker caches immediately
     if ('serviceWorker' in navigator) {
@@ -19,12 +19,12 @@
       }).catch(function(){});
     }
 
-    // 2. Global immediate controller: ensures 100% responsive touches even before scripts load
+    // 2. Global immediate controller: ensures 100% responsive touches
     window.App = window.App || {};
 
     window.App.switchView = function(viewName) {
       if (!viewName) viewName = 'dashboard';
-      var valid = ['dashboard', 'trade-journal', 'portfolio-tracker', 'analytics', 'nse-calculator', 'settings-and-backup'];
+      var valid = ['dashboard', 'portfolio-tracker', 'nse-calculator', 'settings-and-backup'];
       if (valid.indexOf(viewName) === -1) viewName = 'dashboard';
 
       // Update panels display
@@ -40,7 +40,7 @@
       }
 
       // Update bottom dock tab highlights
-      var tabs = document.querySelectorAll('.nav-tab-item, .dock-item');
+      var tabs = document.querySelectorAll('.nav-tab-item');
       for (var j = 0; j < tabs.length; j++) {
         if (tabs[j].getAttribute('data-path') === viewName) {
           tabs[j].classList.add('active');
@@ -51,13 +51,7 @@
         }
       }
 
-      // Close open modals
-      window.App.closeActionSheet();
-      var delTradeModal = document.getElementById('deleteModal');
-      if (delTradeModal) {
-        delTradeModal.style.setProperty('display', 'none', 'important');
-        delTradeModal.style.setProperty('pointer-events', 'none', 'important');
-      }
+      // Close open snapshot delete modal if open
       var delSnapModal = document.getElementById('delete-snapshot-modal');
       if (delSnapModal) {
         delSnapModal.style.setProperty('display', 'none', 'important');
@@ -74,26 +68,7 @@
       }
     };
 
-    window.App.openActionSheet = function() {
-      var sheet = document.getElementById('action-sheet-overlay');
-      if (!sheet) return;
-      sheet.classList.remove('hidden');
-      sheet.style.setProperty('display', 'flex', 'important');
-      sheet.style.setProperty('pointer-events', 'auto', 'important');
-    };
-
-    window.App.closeActionSheet = function(e) {
-      if (e && e.target && e.target.closest && e.target.closest('.action-sheet-container') && !e.target.closest('button')) {
-        return;
-      }
-      var sheet = document.getElementById('action-sheet-overlay');
-      if (!sheet) return;
-      sheet.classList.add('hidden');
-      sheet.style.setProperty('display', 'none', 'important');
-      sheet.style.setProperty('pointer-events', 'none', 'important');
-    };
-
-    // Instant mobile glass touch capture (Zero 300ms delay, immune to touch cancellation)
+    // Instant mobile glass touch capture
     document.addEventListener('pointerup', function(e) {
       var nav = e.target.closest('[data-path]');
       if (nav) {
@@ -104,15 +79,12 @@
       var act = e.target.closest('[data-action]');
       if (act) {
         var a = act.getAttribute('data-action');
-        if (a === 'open-action-sheet') window.App.openActionSheet();
-        else if (a === 'close-action-sheet') window.App.closeActionSheet();
-        else if (a === 'quick-calc') window.App.switchView('nse-calculator');
-        else if (a === 'open-settings') window.App.switchView('settings-and-backup');
+        if (a === 'open-settings') window.App.switchView('settings-and-backup');
       }
     }, { passive: true });
   </script>
 
-  <!-- PWA & Mobile Meta for iOS / iPhone -->
+  <!-- PWA & Mobile Meta for iOS / Android -->
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#14213D"/>
   <meta name="mobile-web-app-capable" content="yes"/>
@@ -128,7 +100,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
-  <!-- Core Embedded Styles (Navy & Cream Aesthetic Design System) -->
+  <!-- Core Embedded Styles (Navy & Cream Design System) -->
   <style>
     :root {
       --canvas: #0D1527;
@@ -161,7 +133,7 @@
       -webkit-tap-highlight-color: transparent;
       cursor: pointer;
     }
-    button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .nav-center-action-btn:active {
+    button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
       opacity: 0.72 !important;
       transform: none !important;
     }
@@ -195,7 +167,7 @@
       justify-content: space-between !important;
     }
 
-    /* Fixed Bottom Nav */
+    /* Fixed Bottom Nav (3 Tabs) */
     .app-bottom-nav {
       position: fixed !important;
       bottom: 0 !important;
@@ -213,8 +185,8 @@
       border-top: 1px solid rgba(244, 237, 224, 0.14) !important;
       padding-top: 8px !important;
       padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px) !important;
-      padding-left: 12px !important;
-      padding-right: 12px !important;
+      padding-left: 20px !important;
+      padding-right: 20px !important;
       display: flex !important;
       align-items: center !important;
       justify-content: space-around !important;
@@ -235,13 +207,14 @@
     }
 
     .nav-tab-item {
-      width: 48px;
-      height: 44px;
-      border-radius: 999px;
+      width: 76px;
+      height: 46px;
+      border-radius: 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 2px;
       color: rgba(244, 237, 224, 0.45);
       background: transparent;
       border: none;
@@ -250,7 +223,13 @@
       position: relative;
       cursor: pointer;
     }
+    .nav-tab-item .nav-tab-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
     .nav-tab-item.active { color: #F4EDE0; }
+    .nav-tab-item.active .nav-tab-label { font-weight: 600; }
     .nav-tab-item.active::after {
       content: '';
       position: absolute;
@@ -263,61 +242,12 @@
       background-color: #F4EDE0;
       box-shadow: 0 0 8px #F4EDE0;
     }
-    .nav-center-action-btn {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: #F4EDE0;
-      color: #14213D;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      outline: none;
-      box-shadow: 0 4px 18px rgba(244, 237, 224, 0.35);
-      flex-shrink: 0;
-      cursor: pointer;
-      transition: opacity 0.15s ease, background-color 0.15s ease;
-    }
-    .nav-center-action-btn:hover {
-      background-color: #E8DFCF;
-    }
 
     .view-panel { display: none; }
     .view-panel.active { display: block; animation: fadeInPanel 0.18s ease-out; }
     @keyframes fadeInPanel {
       from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
-    }
-
-    .action-sheet-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(10, 17, 32, 0.82);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 16px;
-      padding-bottom: calc(max(env(safe-area-inset-bottom, 20px), 16px) + 12px);
-    }
-    .action-sheet-overlay.hidden { display: none !important; pointer-events: none !important; }
-    .action-sheet-container {
-      width: 100%;
-      max-width: 440px;
-      margin: 0 auto;
-      background-color: #14213D;
-      border: 1px solid rgba(244, 237, 224, 0.18);
-      border-radius: 24px;
-      padding: 20px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
-      animation: slideUpSheet 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes slideUpSheet {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
     }
 
     .toast-container {
@@ -338,7 +268,7 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
-    #deleteModal.hidden, #delete-snapshot-modal.hidden { display: none !important; pointer-events: none !important; }
+    #delete-snapshot-modal.hidden { display: none !important; pointer-events: none !important; }
   </style>
 
   <!-- Tailwind CSS Engine -->
@@ -375,11 +305,11 @@
 
   <!-- LAYER 1: FIXED TOP HEADER -->
   <header class="app-header fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2.5 bg-[#14213D] border-b border-[rgba(244,237,224,0.14)] max-w-[480px] mx-auto" style="padding-top: max(env(safe-area-inset-top, 44px), 14px);">
-    <!-- Left: Quick Calc Pill -->
-    <button type="button" onclick="window.App.switchView('nse-calculator')" data-action="quick-calc" class="flex items-center gap-1.5 bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] px-3 py-1.5 rounded-full text-xs font-semibold text-[#F4EDE0] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all">
-      <span class="material-symbols-outlined text-[15px] text-[#F4EDE0]">add</span>
-      <span>Quick Calc</span>
-    </button>
+    <!-- Left: Brand Logo / Title -->
+    <div class="flex items-center gap-2 cursor-pointer" onclick="window.App.switchView('dashboard')">
+      <span class="font-serif text-[19px] font-semibold text-[#F4EDE0] tracking-tight">Trade Diary</span>
+      <span class="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0]/75 font-semibold">Portfolio</span>
+    </div>
 
     <!-- Center: Live Session Status -->
     <div id="market-session-status" class="flex items-center gap-1.5">
@@ -387,7 +317,7 @@
       <span class="text-[11px] font-medium text-[#F4EDE0]/70">NSE Live</span>
     </div>
 
-    <!-- Right: Settings Avatar Button -->
+    <!-- Right: Settings Button -->
     <button type="button" onclick="window.App.switchView('settings-and-backup')" data-action="open-settings" class="w-9 h-9 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] flex items-center justify-center text-[#F4EDE0] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all" title="Settings" aria-label="Settings">
       <span class="material-symbols-outlined text-[18px]">settings</span>
     </button>
@@ -397,15 +327,15 @@
   <main class="app-scrollable-content w-full max-w-[480px] mx-auto px-4 pb-28" id="main-content-scroll" style="padding-top: calc(max(env(safe-area-inset-top, 44px), 14px) + 54px);">
 
     <!-- ====================================================================
-         VIEW 1: DASHBOARD
+         VIEW 1: DASHBOARD (PORTFOLIO VALUE & GROWTH INSIGHTS)
          ==================================================================== -->
     <section id="view-dashboard" class="view-panel active space-y-4">
       <!-- Hero Balance -->
       <div class="pt-2 pb-1">
         <div class="flex items-center gap-1.5 text-xs text-[#F4EDE0]/70 font-medium tracking-wide">
-          <span>Total balance</span>
+          <span>Total portfolio</span>
           <span>·</span>
-          <span>All time</span>
+          <span>Mark-to-market</span>
         </div>
         <div class="mt-1 flex items-baseline">
           <span id="dash-total-val" class="font-serif text-[42px] leading-tight font-semibold text-[#F4EDE0] tracking-tight tabular-nums drop-shadow-sm">
@@ -428,16 +358,21 @@
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-xs font-medium text-[#F4EDE0]/70">Groww</span>
-              <span id="dash-groww-share" class="px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.12)] text-[#F4EDE0] text-[10px] font-bold">+0.8%</span>
+              <span id="dash-groww-share" class="px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.12)] text-[#F4EDE0] text-[10px] font-bold">82.1%</span>
             </div>
             <div id="dash-groww-val" class="font-serif text-[21px] font-normal text-[#F4EDE0] tabular-nums leading-tight">
               ₹ 2,24,226.00
             </div>
           </div>
-          <div class="pt-2.5 border-t border-[rgba(244,237,224,0.10)] mt-2.5 flex items-center justify-between text-[11px] text-[#F4EDE0]/70">
-            <span>Invested:</span>
-            <span id="dash-groww-inv" class="text-[#F4EDE0] font-medium tabular-nums">₹ 2,04,226</span>
-            <span id="dash-groww-cash" class="hidden">₹ 20,000</span>
+          <div class="pt-2.5 border-t border-[rgba(244,237,224,0.10)] mt-2.5 space-y-1 text-[11px] text-[#F4EDE0]/70">
+            <div class="flex items-center justify-between">
+              <span>Invested:</span>
+              <span id="dash-groww-inv" class="text-[#F4EDE0] font-medium tabular-nums">₹ 2,04,226</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Cash:</span>
+              <span id="dash-groww-cash" class="text-[#F4EDE0] font-medium tabular-nums">₹ 20,000</span>
+            </div>
           </div>
         </div>
 
@@ -446,320 +381,97 @@
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-xs font-medium text-[#F4EDE0]/70">Zerodha Kite</span>
-              <span id="dash-kite-share" class="px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.12)] text-[#F4EDE0] text-[10px] font-bold">+1.2%</span>
+              <span id="dash-kite-share" class="px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.12)] text-[#F4EDE0] text-[10px] font-bold">17.9%</span>
             </div>
             <div id="dash-kite-val" class="font-serif text-[21px] font-normal text-[#F4EDE0] tabular-nums leading-tight">
               ₹ 48,862.00
             </div>
           </div>
-          <div class="pt-2.5 border-t border-[rgba(244,237,224,0.10)] mt-2.5 flex items-center justify-between text-[11px] text-[#F4EDE0]/70">
-            <span>Invested:</span>
-            <span id="dash-kite-inv" class="text-[#F4EDE0] font-medium tabular-nums">₹ 15,792</span>
-            <span id="dash-kite-cash" class="hidden">₹ 33,070</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Highlight Card 1: Editorial Inverted Showcase (Solid Cream Card with Deep Navy Typography) -->
-      <div class="bg-[#F4EDE0] text-[#14213D] rounded-2xl p-4 relative overflow-hidden shadow-xl">
-        <div class="flex items-center justify-between mb-1">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-[#14213D]/80">
-            <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
-            <span>Swing Summary</span>
-          </div>
-        </div>
-
-        <div class="font-serif text-[18px] text-[#14213D] font-normal leading-snug pr-20">
-          Win Rate <strong id="dash-win-rate" class="text-[#14213D] font-extrabold">75.0%</strong> across <strong id="dash-trade-count">12</strong> trades
-        </div>
-
-        <div class="text-[11px] text-[#14213D]/75 mt-1">
-          Realised P&L: <span id="dash-realised-pnl" class="font-bold text-[#14213D]">+₹ 32,294.30</span>
-          <span id="dash-realised-roi" class="ml-1 font-semibold">(+3.5% ROI)</span>
-        </div>
-
-        <button type="button" onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="absolute right-4 bottom-4 bg-[#14213D] text-[#F4EDE0] px-3.5 py-1.5 rounded-full text-xs font-bold shadow-md hover:bg-[#1C2C4E] transition-all">
-          Find out
-        </button>
-      </div>
-
-      <!-- Highlight Card 2: Royal Navy Today's Gain Delta -->
-      <div class="bg-[#162544] text-[#F4EDE0] border border-[rgba(244,237,224,0.16)] rounded-2xl p-4 relative overflow-hidden shadow-lg">
-        <div class="flex items-center justify-between mb-1">
-          <span class="text-xs font-bold tracking-wide text-[#F4EDE0]/90">✦ Today's Gain Delta</span>
-          <span id="dash-today-delta-pct" class="text-xs font-bold bg-[#0D1527] text-[#7AD9A5] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full">+0.79%</span>
-        </div>
-        <div class="font-serif text-[22px] font-normal leading-tight">
-          Today's Change: <span id="dash-today-delta" class="font-bold text-[#F4EDE0]">+₹ 2,140.00</span>
-        </div>
-        <div class="text-[11px] text-[#F4EDE0]/75 mt-1 flex items-center justify-between">
-          <span id="dash-prev-close">Prev Close: ₹ 2,70,948.00</span>
-          <span class="font-semibold text-[#F4EDE0]/90">EOD Reconciled</span>
-        </div>
-      </div>
-
-      <!-- Recent Trades List -->
-      <div class="pt-1">
-        <div class="flex items-center justify-between mb-3 px-1">
-          <h3 class="font-serif text-[20px] text-[#F4EDE0]">Recent Trades</h3>
-          <span class="px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.15)] text-xs font-bold text-[#F4EDE0]">
-            3
-          </span>
-        </div>
-
-        <div class="space-y-2.5">
-          <!-- Trade 1 -->
-          <div onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-3.5 hover:border-[rgba(244,237,224,0.3)] transition-all cursor-pointer">
+          <div class="pt-2.5 border-t border-[rgba(244,237,224,0.10)] mt-2.5 space-y-1 text-[11px] text-[#F4EDE0]/70">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-[#1C2C4E] border border-[rgba(244,237,224,0.15)] flex items-center justify-center text-[#F4EDE0]">
-                  <span class="material-symbols-outlined text-[20px] text-[#7AD9A5]">trending_up</span>
-                </div>
-                <div>
-                  <h4 class="font-serif text-[16px] text-[#F4EDE0] leading-tight">Tata Power Company</h4>
-                  <span class="text-[11px] text-[#F4EDE0]/70">TATAPOWER · Groww · Breakout</span>
-                </div>
-              </div>
-              <div class="text-right">
-                <div class="font-serif text-[15px] font-semibold text-[#7AD9A5]">+₹ 2,444.20</div>
-                <span class="text-[10px] text-[#7AD9A5] font-bold">+5.92%</span>
-              </div>
+              <span>Invested:</span>
+              <span id="dash-kite-inv" class="text-[#F4EDE0] font-medium tabular-nums">₹ 15,792</span>
             </div>
-            <div class="mt-2.5 w-full bg-[#0B1220] h-1 rounded-full overflow-hidden">
-              <div class="bg-[#7AD9A5] h-full rounded-full" style="width: 70%"></div>
-            </div>
-          </div>
-
-          <!-- Trade 2 -->
-          <div onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-3.5 hover:border-[rgba(244,237,224,0.3)] transition-all cursor-pointer">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-[#1C2C4E] border border-[rgba(244,237,224,0.15)] flex items-center justify-center text-[#F4EDE0]">
-                  <span class="material-symbols-outlined text-[20px] text-[#7AD9A5]">bolt</span>
-                </div>
-                <div>
-                  <h4 class="font-serif text-[16px] text-[#F4EDE0] leading-tight">State Bank of India</h4>
-                  <span class="text-[11px] text-[#F4EDE0]/70">SBIN · Zerodha · Swing</span>
-                </div>
-              </div>
-              <div class="text-right">
-                <div class="font-serif text-[15px] font-semibold text-[#7AD9A5]">+₹ 1,820.00</div>
-                <span class="text-[10px] text-[#7AD9A5] font-bold">+3.40%</span>
-              </div>
-            </div>
-            <div class="mt-2.5 w-full bg-[#0B1220] h-1 rounded-full overflow-hidden">
-              <div class="bg-[#7AD9A5] h-full rounded-full" style="width: 55%"></div>
-            </div>
-          </div>
-
-          <!-- Trade 3 -->
-          <div onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-3.5 hover:border-[rgba(244,237,224,0.3)] transition-all cursor-pointer">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-[#1C2C4E] border border-[rgba(244,237,224,0.15)] flex items-center justify-center text-[#F4EDE0]">
-                  <span class="material-symbols-outlined text-[20px] text-[#F87171]">trending_down</span>
-                </div>
-                <div>
-                  <h4 class="font-serif text-[16px] text-[#F4EDE0] leading-tight">HDFC Bank Limited</h4>
-                  <span class="text-[11px] text-[#F4EDE0]/70">HDFCBANK · Groww · Pullback</span>
-                </div>
-              </div>
-              <div class="text-right">
-                <div class="font-serif text-[15px] font-semibold text-[#F87171]">-₹ 640.00</div>
-                <span class="text-[10px] text-[#F87171] font-bold">-1.20%</span>
-              </div>
-            </div>
-            <div class="mt-2.5 w-full bg-[#0B1220] h-1 rounded-full overflow-hidden">
-              <div class="bg-[#F87171] h-full rounded-full" style="width: 25%"></div>
+              <span>Cash:</span>
+              <span id="dash-kite-cash" class="text-[#F4EDE0] font-medium tabular-nums">₹ 33,070</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Hidden state elements -->
-      <div class="hidden">
-        <div id="dash-bar-win"></div>
-        <div id="dash-bar-loss"></div>
-      </div>
-    </section>
-
-    <!-- ====================================================================
-         VIEW 2: TRADE JOURNAL
-         ==================================================================== -->
-    <section id="view-trade-journal" class="view-panel space-y-4">
-      <div class="flex items-center justify-between pt-1">
-        <div>
-          <span class="text-xs text-[#F4EDE0]/70">History & Entries</span>
-          <h2 class="font-serif text-[28px] text-[#F4EDE0] leading-tight">Trade Journal</h2>
-        </div>
-        <button type="button" onclick="window.App.exportJournalCSV()" data-action="export-journal-csv" class="p-2.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] text-[#F4EDE0] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all" title="Export CSV" aria-label="Export CSV">
-          <span class="material-symbols-outlined text-[18px]">download</span>
-        </button>
-      </div>
-
-      <!-- 4 KPI Cards -->
-      <div class="grid grid-cols-2 gap-2.5">
-        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-[#F4EDE0]/70">Today's P&L</span>
-          <div id="journal-kpi-today-pnl" class="font-serif text-[22px] font-normal leading-tight my-1 tabular-nums text-[#F4EDE0]">+₹0.00</div>
-          <span id="journal-kpi-today-count" class="text-[10px] font-bold text-[#F4EDE0]/70">0 Closed</span>
-        </div>
-
-        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
-          <span class="text-[11px] text-[#F4EDE0]/70 uppercase tracking-wider font-semibold">Total P&L</span>
-          <div id="journal-kpi-monthly-pnl" class="font-serif text-[22px] font-normal text-[#F4EDE0] leading-tight my-1 tabular-nums">+₹0.00</div>
-          <span class="text-[10px] text-[#F4EDE0]/70">Verified Closed</span>
-        </div>
-
-        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
-          <span class="text-[11px] text-[#F4EDE0]/70 uppercase tracking-wider font-semibold">Win Rate</span>
-          <div id="journal-kpi-winrate" class="font-serif text-[22px] font-normal text-[#F4EDE0] leading-tight my-1 tabular-nums">0.0%</div>
-          <div class="w-full bg-[#0B1220] h-1 rounded-full overflow-hidden flex">
-            <div id="journal-kpi-bar-win" class="bg-[#7AD9A5] h-full" style="width: 50%"></div>
-            <div id="journal-kpi-bar-loss" class="bg-[#F87171] h-full" style="width: 50%"></div>
+      <!-- Growth & Performance Insight Cards -->
+      <div class="space-y-2.5">
+        <!-- Daily Performance Card (Today's DoD Delta) -->
+        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.16)] rounded-2xl p-4 relative overflow-hidden shadow-sm">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold tracking-wide text-[#F4EDE0]/85">✦ Daily Performance (DoD)</span>
+            <span id="dash-today-delta-pct" class="text-xs font-bold bg-[#0D1527] text-[#7AD9A5] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full">+0.79%</span>
           </div>
-          <span id="journal-kpi-winloss-ratio" class="hidden"></span>
-        </div>
-
-        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
-          <span class="text-[11px] text-[#F4EDE0]/70 uppercase tracking-wider font-semibold">Total Taxes</span>
-          <div id="journal-kpi-friction" class="font-serif text-[22px] font-normal text-[#F4EDE0] leading-tight my-1 tabular-nums">₹0.00</div>
-          <span class="text-[10px] text-[#F4EDE0]/70">NSE & Brokerage</span>
-        </div>
-      </div>
-
-      <!-- Log Trade Card / Form -->
-      <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-4 shadow-sm">
-        <div class="flex items-center justify-between pb-2 mb-3 border-b border-[rgba(244,237,224,0.12)]">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px] text-[#F4EDE0]">add_circle</span>
-            <h3 id="btnSaveTradeTextHeader" class="font-serif text-[18px] text-[#F4EDE0]">Log Swing Trade</h3>
+          <div class="font-serif text-[22px] font-normal leading-tight">
+            Today's Change: <span id="dash-today-delta" class="font-bold text-[#F4EDE0]">+₹ 2,140.00</span>
           </div>
-          <button id="btnClearTrade" type="button" onclick="window.App.resetTradeForm()" data-action="reset-trade" class="text-xs text-[#F4EDE0]/70 hover:text-[#F4EDE0] transition-all">Reset</button>
+          <div class="text-[11px] text-[#F4EDE0]/70 mt-1.5 flex items-center justify-between">
+            <span id="dash-prev-close">Prev Close: ₹ 2,70,948.00</span>
+            <span id="dash-organic-today" class="font-medium text-[#7AD9A5]">Organic Market Gain: +₹ 2,140</span>
+          </div>
         </div>
 
-        <form id="tradeForm" onsubmit="event.preventDefault();" class="space-y-3">
-          <div class="grid grid-cols-2 gap-2.5">
+        <!-- Monthly Performance Card (MTD / 30-Day Insight) -->
+        <div class="bg-[#162544] border border-[rgba(244,237,224,0.16)] rounded-2xl p-4 relative overflow-hidden shadow-sm">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-[#F4EDE0]/90">
+              <span class="material-symbols-outlined text-[16px] text-[#7AD9A5]">insights</span>
+              <span>Monthly Growth & Capital Flows</span>
+            </div>
+            <span id="dash-monthly-pct" class="text-xs font-bold bg-[#0D1527] text-[#7AD9A5] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full">+13.5% MTD</span>
+          </div>
+          <div class="font-serif text-[20px] font-normal leading-snug mt-1">
+            Portfolio Growth: <span id="dash-monthly-val" class="font-bold text-[#F4EDE0]">+₹ 32,600.00</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-[rgba(244,237,224,0.10)] text-[11px]">
             <div>
-              <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="tradeDate">Date</label>
-              <input id="tradeDate" type="date" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-2 text-xs text-[#F4EDE0] focus:outline-none focus:border-[#F4EDE0]"/>
+              <span class="text-[#F4EDE0]/65 block">Net Deposits:</span>
+              <span id="dash-monthly-deposits" class="font-medium text-[#F4EDE0]">₹ 0.00</span>
             </div>
             <div>
-              <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="stockSymbol">Symbol (NSE)</label>
-              <input id="stockSymbol" type="text" placeholder="TATAPOWER" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-2 text-xs text-[#F4EDE0] uppercase focus:outline-none focus:border-[#F4EDE0]"/>
+              <span class="text-[#F4EDE0]/65 block">Organic Market Return:</span>
+              <span id="dash-monthly-organic" class="font-semibold text-[#7AD9A5]">+₹ 32,600.00</span>
             </div>
           </div>
-
-          <div>
-            <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="stockName">Company Name</label>
-            <input id="stockName" type="text" placeholder="Tata Power Company" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-2 text-xs text-[#F4EDE0] focus:outline-none focus:border-[#F4EDE0]"/>
-          </div>
-
-          <!-- Broker Toggle -->
-          <div>
-            <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1">Broker</label>
-            <div class="grid grid-cols-2 p-1 bg-[#0B1220] rounded-xl border border-[rgba(244,237,224,0.14)] gap-1">
-              <button type="button" id="brokerGrowwBtn" onclick="window.App.selectJournalBroker('groww')" class="py-1.5 text-xs rounded-lg font-semibold bg-[#F4EDE0] text-[#14213D] transition-all">Groww</button>
-              <button type="button" id="brokerZerodhaBtn" onclick="window.App.selectJournalBroker('zerodha')" class="py-1.5 text-xs rounded-lg font-semibold text-[#F4EDE0]/70 transition-all">Zerodha</button>
-            </div>
-            <input id="selectedBroker" type="hidden" value="groww"/>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="buyPrice">Buy (₹)</label>
-              <input id="buyPrice" type="number" step="0.05" inputmode="decimal" value="412.50" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2 py-2 text-xs text-[#F4EDE0] text-right font-medium tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
-            </div>
-            <div>
-              <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="sellPrice">Sell (₹)</label>
-              <input id="sellPrice" type="number" step="0.05" inputmode="decimal" value="438.00" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2 py-2 text-xs text-[#F4EDE0] text-right font-medium tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
-            </div>
-            <div>
-              <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="tradeQty">Quantity</label>
-              <input id="tradeQty" type="number" min="1" inputmode="numeric" value="100" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2 py-2 text-xs text-[#F4EDE0] text-right font-medium tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="tradeStrategy">Strategy</label>
-              <input id="tradeStrategy" type="text" value="Breakout" placeholder="Breakout" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-1.5 text-xs text-[#F4EDE0] focus:outline-none"/>
-            </div>
-            <div>
-              <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="tradeNotes">Notes</label>
-              <input id="tradeNotes" type="text" placeholder="Optional" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-1.5 text-xs text-[#F4EDE0] focus:outline-none"/>
-            </div>
-          </div>
-
-          <!-- Live P&L Calculation Banner -->
-          <div class="bg-[#0B1220] border border-[rgba(244,237,224,0.16)] rounded-xl p-3 flex items-center justify-between">
-            <div>
-              <span class="text-[10px] text-[#F4EDE0]/70 block">Net Realised P&L</span>
-              <span id="liveNetPnL" class="font-serif text-[20px] font-semibold text-[#7AD9A5] tabular-nums">+₹ 2,444.20</span>
-            </div>
-            <div class="text-right">
-              <span id="liveOutcomeStatus" class="px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.15)] text-[#7AD9A5] text-[10px] font-bold block mb-0.5">WIN</span>
-              <span id="liveNetRoi" class="text-xs text-[#7AD9A5] font-medium">+5.92% ROI</span>
-            </div>
-          </div>
-
-          <div class="hidden">
-            <span id="liveGrossPnL"></span>
-            <span id="liveTaxesCharges"></span>
-          </div>
-
-          <button id="btnSaveTrade" type="button" onclick="window.App.handleSaveTrade()" data-action="save-trade" class="w-full py-3 rounded-xl bg-[#F4EDE0] hover:bg-[#E8DFCF] text-[#14213D] font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[rgba(244,237,224,0.15)] transition-all">
-            <span class="material-symbols-outlined text-[16px]">save</span>
-            <span id="btnSaveTradeText">Save Trade</span>
-          </button>
-        </form>
-      </div>
-
-      <!-- Filter & Search -->
-      <div class="space-y-2">
-        <div class="relative">
-          <span class="material-symbols-outlined text-[18px] text-[#F4EDE0]/60 absolute left-3 top-2.5">search</span>
-          <input id="searchInput" type="text" placeholder="Search trades..." class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-full pl-9 pr-4 py-2 text-xs text-[#F4EDE0] placeholder-[#F4EDE0]/40 focus:outline-none focus:border-[#F4EDE0]"/>
         </div>
 
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-          <button id="fltBrokerAll" onclick="window.App.setJournalBrokerFilter('all')" class="px-3 py-1 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap">All Brokers</button>
-          <button id="fltBrokerGroww" onclick="window.App.setJournalBrokerFilter('groww')" class="px-3 py-1 rounded-full bg-[#14213D] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0]/70 whitespace-nowrap">Groww</button>
-          <button id="fltBrokerZerodha" onclick="window.App.setJournalBrokerFilter('zerodha')" class="px-3 py-1 rounded-full bg-[#14213D] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0]/70 whitespace-nowrap">Zerodha</button>
-          <button id="fltOutAll" onclick="window.App.setJournalOutcomeFilter('all')" class="px-3 py-1 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap">All</button>
-          <button id="fltOutWin" onclick="window.App.setJournalOutcomeFilter('win')" class="px-3 py-1 rounded-full bg-[#14213D] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0]/70 whitespace-nowrap">Wins</button>
-          <button id="fltOutLoss" onclick="window.App.setJournalOutcomeFilter('loss')" class="px-3 py-1 rounded-full bg-[#14213D] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0]/70 whitespace-nowrap">Losses</button>
-          <select id="sortSelect" class="bg-[#14213D] border border-[rgba(244,237,224,0.18)] text-[#F4EDE0] rounded-full px-2 py-1 text-xs focus:outline-none">
-            <option value="date-desc">Newest</option>
-            <option value="date-asc">Oldest</option>
-            <option value="pnl-desc">P&L High</option>
-            <option value="pnl-asc">P&L Low</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Trade List -->
-      <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl overflow-hidden shadow-sm">
-        <div class="p-3 border-b border-[rgba(244,237,224,0.12)] flex items-center justify-between text-xs text-[#F4EDE0]/70">
-          <span id="footerCount">0 Records</span>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
-            <tbody id="tradeTableBody">
-              <!-- Injected via JavaScript -->
-            </tbody>
-          </table>
+        <!-- Asset Allocation Insight -->
+        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-4 shadow-sm">
+          <div class="flex items-center justify-between text-xs text-[#F4EDE0]/70 mb-2">
+            <span class="font-semibold text-[#F4EDE0]">Asset Allocation</span>
+            <span id="dash-allocation-ratio">Invested 80.6% · Cash 19.4%</span>
+          </div>
+          <div class="w-full bg-[#0B1220] h-2 rounded-full overflow-hidden flex">
+            <div id="dash-alloc-bar-inv" class="bg-[#F4EDE0] h-full" style="width: 80.6%"></div>
+            <div id="dash-alloc-bar-cash" class="bg-[#7AD9A5] h-full" style="width: 19.4%"></div>
+          </div>
+          <div class="flex items-center justify-between mt-2 text-[11px] text-[#F4EDE0]/70">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-[#F4EDE0]"></span>
+              <span>Total Invested: <strong id="dash-total-inv" class="text-[#F4EDE0]">₹ 2,20,018</strong></span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-[#7AD9A5]"></span>
+              <span>Cash Buffer: <strong id="dash-total-cash" class="text-[#F4EDE0]">₹ 53,070</strong></span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- ====================================================================
-         VIEW 3: PORTFOLIO TRACKER
+         VIEW 2: PORTFOLIO TRACKER
          ==================================================================== -->
     <section id="view-portfolio-tracker" class="view-panel space-y-4">
       <div class="flex items-center justify-between pt-1">
         <div>
-          <span class="text-xs text-[#F4EDE0]/70">Capital Allocation</span>
+          <span class="text-xs text-[#F4EDE0]/70">Mark-to-Market Ledger</span>
           <h2 class="font-serif text-[28px] text-[#F4EDE0] leading-tight">Portfolio Tracker</h2>
         </div>
         <button type="button" onclick="window.App.exportPortfolioCSV()" data-action="export-portfolio-csv" class="p-2.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] text-[#F4EDE0] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all" title="Export CSV" aria-label="Export CSV">
@@ -771,52 +483,71 @@
       <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-4 shadow-sm">
         <div class="flex items-center justify-between pb-2 mb-3 border-b border-[rgba(244,237,224,0.12)]">
           <h3 class="font-serif text-[18px] text-[#F4EDE0]">Record Daily Valuation</h3>
-          <input id="snapshot-date" type="date" class="bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-lg px-2 py-1 text-xs text-[#F4EDE0] focus:outline-none"/>
+          <input id="snapshot-date" type="date" class="bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1 text-xs text-[#F4EDE0] focus:outline-none"/>
         </div>
 
         <div class="space-y-3">
+          <!-- Groww Inputs -->
           <div class="bg-[#0B1220] rounded-xl p-3 border border-[rgba(244,237,224,0.12)]">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-semibold text-[#F4EDE0]">Groww</span>
+              <span class="text-xs font-semibold text-[#F4EDE0]">Groww Valuation</span>
               <span id="groww-subtotal" class="font-serif text-[15px] font-semibold text-[#F4EDE0] tabular-nums">₹2,24,226.00</span>
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5">Available Cash</label>
-                <input id="groww-cash" type="number" step="any" inputmode="decimal" value="20000" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="groww-cash">Available Cash (₹)</label>
+                <input id="groww-cash" type="number" step="any" inputmode="decimal" value="20000" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
               <div>
-                <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5">Invested Value</label>
-                <input id="groww-invested" type="number" step="any" inputmode="decimal" value="204226" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="groww-invested">Invested Value (₹)</label>
+                <input id="groww-invested" type="number" step="any" inputmode="decimal" value="204226" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
             </div>
           </div>
 
+          <!-- Zerodha Kite Inputs -->
           <div class="bg-[#0B1220] rounded-xl p-3 border border-[rgba(244,237,224,0.12)]">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-semibold text-[#F4EDE0]">Zerodha Kite</span>
+              <span class="text-xs font-semibold text-[#F4EDE0]">Zerodha Kite Valuation</span>
               <span id="kite-subtotal" class="font-serif text-[15px] font-semibold text-[#F4EDE0] tabular-nums">₹48,862.00</span>
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5">Available Cash</label>
-                <input id="kite-cash" type="number" step="any" inputmode="decimal" value="33070" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="kite-cash">Available Cash (₹)</label>
+                <input id="kite-cash" type="number" step="any" inputmode="decimal" value="33070" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
               <div>
-                <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5">Invested Value</label>
-                <input id="kite-invested" type="number" step="any" inputmode="decimal" value="15792" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="kite-invested">Invested Value (₹)</label>
+                <input id="kite-invested" type="number" step="any" inputmode="decimal" value="15792" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
             </div>
           </div>
 
-          <div class="bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] rounded-xl p-3 flex items-center justify-between">
-            <div>
-              <span class="text-[10px] text-[#F4EDE0]/70 uppercase tracking-wider block">Combined Portfolio</span>
-              <span id="combined-total-value" class="font-serif text-[22px] font-semibold text-[#F4EDE0] tabular-nums">₹2,73,088.00</span>
+          <!-- Capital Flow Inflow/Outflow Field -->
+          <div class="bg-[#0B1220] rounded-xl p-3 border border-[rgba(244,237,224,0.12)]">
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-semibold text-[#F4EDE0]" for="snapshot-deposit">Net Deposit / Withdrawal Today (₹)</label>
+              <span class="text-[10px] text-[#F4EDE0]/60">Positive = Deposit, Negative = Withdrawal</span>
             </div>
-            <div class="text-right">
-              <span class="text-[10px] text-[#F4EDE0]/70 uppercase tracking-wider block">DoD Delta</span>
-              <span id="combined-dod-delta" class="text-xs font-bold text-[#7AD9A5] tabular-nums">+₹2,140.00 (+0.79%)</span>
+            <input id="snapshot-deposit" type="number" step="any" inputmode="decimal" value="0" placeholder="0" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+            <p class="text-[10px] text-[#F4EDE0]/60 mt-1">Deducts deposits from portfolio growth to calculate true organic market returns.</p>
+          </div>
+
+          <!-- Combined Calculation Preview Banner -->
+          <div class="bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] rounded-xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[10px] text-[#F4EDE0]/70 uppercase tracking-wider block">Combined Valuation</span>
+                <span id="combined-total-value" class="font-serif text-[22px] font-semibold text-[#F4EDE0] tabular-nums">₹2,73,088.00</span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-[#F4EDE0]/70 uppercase tracking-wider block">DoD Value Delta</span>
+                <span id="combined-dod-delta" class="text-xs font-bold text-[#7AD9A5] tabular-nums">+₹2,140.00 (+0.79%)</span>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-[rgba(244,237,224,0.10)] flex items-center justify-between text-xs">
+              <span class="text-[#F4EDE0]/70">True Organic Market Return:</span>
+              <span id="combined-organic-return" class="font-bold text-[#7AD9A5] tabular-nums">+₹2,140.00</span>
             </div>
           </div>
 
@@ -829,8 +560,9 @@
 
       <!-- Snapshots Table -->
       <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl overflow-hidden shadow-sm">
-        <div class="p-3 border-b border-[rgba(244,237,224,0.12)]">
-          <h3 class="font-serif text-[16px] text-[#F4EDE0]">Snapshot History</h3>
+        <div class="p-3 border-b border-[rgba(244,237,224,0.12)] flex items-center justify-between">
+          <h3 class="font-serif text-[16px] text-[#F4EDE0]">Valuation History & Returns</h3>
+          <span id="snapshot-count-badge" class="text-xs text-[#F4EDE0]/70">12 Snapshots</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs border-collapse">
@@ -840,7 +572,8 @@
                 <th class="p-2.5 text-right">Groww</th>
                 <th class="p-2.5 text-right">Zerodha</th>
                 <th class="p-2.5 text-right">Total</th>
-                <th class="p-2.5 text-right">Delta</th>
+                <th class="p-2.5 text-right">DoD Delta</th>
+                <th class="p-2.5 text-right">Market Gain</th>
                 <th class="p-2.5 text-right">Act</th>
               </tr>
             </thead>
@@ -853,99 +586,7 @@
     </section>
 
     <!-- ====================================================================
-         VIEW 4: ANALYTICS
-         ==================================================================== -->
-    <section id="view-analytics" class="view-panel space-y-4">
-      <div class="pt-1">
-        <span class="text-xs text-[#F4EDE0]/70">Metrics & Edge</span>
-        <h2 class="font-serif text-[28px] text-[#F4EDE0] leading-tight">Analytics & Stats</h2>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2.5">
-        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-4 flex flex-col justify-between shadow-sm">
-          <div>
-            <div class="flex items-center justify-between text-xs text-[#F4EDE0]/70 mb-1">
-              <span>Net Realised P&L</span>
-              <span class="material-symbols-outlined text-[15px] text-[#7AD9A5]">trending_up</span>
-            </div>
-            <div id="analytics-total-val" class="font-serif text-[24px] font-normal text-[#F4EDE0] leading-tight tabular-nums">+₹32,294.30</div>
-            <div id="analytics-abs-gain" class="text-[11px] font-bold text-[#7AD9A5] mt-1">+3.5% ROI</div>
-          </div>
-          <button type="button" onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="mt-3 bg-[#1C2C4E] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0] py-1 px-3 rounded-full text-[10px] font-bold self-start transition-all">
-            View Log
-          </button>
-        </div>
-
-        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-4 flex flex-col justify-between shadow-sm">
-          <div>
-            <div class="flex items-center justify-between text-xs text-[#F4EDE0]/70 mb-1">
-              <span>Today's Change</span>
-              <span class="material-symbols-outlined text-[15px] text-[#F4EDE0]/70">info</span>
-            </div>
-            <div class="font-serif text-[24px] font-normal text-[#F4EDE0] leading-tight tabular-nums">+₹2,140.00</div>
-            <div class="text-[11px] text-[#7AD9A5] font-bold mt-1">+0.79% DoD</div>
-          </div>
-          <div class="text-[10px] text-[#F4EDE0]/70 mt-3">EOD Reconciled</div>
-        </div>
-
-        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-4 flex flex-col justify-between shadow-sm">
-          <div class="flex items-center justify-between text-xs text-[#F4EDE0]/70 mb-1">
-            <span>Hit Rate</span>
-            <span id="analytics-hit-rate" class="text-[#7AD9A5] font-bold">75%</span>
-          </div>
-          <div id="analytics-win-ratio-bar" class="w-full bg-[#0B1220] h-1.5 rounded-full overflow-hidden flex my-2"></div>
-          <div id="analytics-win-ratio-details" class="text-[10px] text-[#F4EDE0]/70 flex justify-between"></div>
-          <div class="text-[10px] text-[#F4EDE0]/70 mt-2 flex justify-between">
-            <span>Payoff:</span>
-            <span id="analytics-payoff-ratio" class="text-[#F4EDE0] font-medium">1.15 : 1</span>
-          </div>
-        </div>
-
-        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-4 flex flex-col justify-between shadow-sm">
-          <div class="flex items-center justify-between text-xs text-[#F4EDE0]/70 mb-1">
-            <span>Profit Factor</span>
-            <span class="material-symbols-outlined text-[15px] text-[#7AD9A5]">trending_up</span>
-          </div>
-          <div id="analytics-profit-factor" class="font-serif text-[24px] font-normal text-[#F4EDE0] leading-tight tabular-nums">2.85</div>
-          <div class="text-[10px] text-[#F4EDE0]/70 mt-2 flex justify-between">
-            <span id="analytics-gross-wins" class="text-[#7AD9A5] font-semibold">+₹0</span>
-            <span id="analytics-gross-losses" class="text-[#F87171] font-semibold">-₹0</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="hidden">
-        <span id="analytics-invested-base"></span>
-        <span id="analytics-avg-win"></span>
-        <span id="analytics-avg-loss"></span>
-      </div>
-
-      <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-4 space-y-2 shadow-sm">
-        <div class="flex items-center justify-between">
-          <h3 class="font-serif text-[18px] text-[#F4EDE0]">Equity Curve</h3>
-          <span id="analytics-total-charges" class="text-[10px] text-[#F4EDE0]/70">Charges: ₹0.00</span>
-        </div>
-        <div class="relative w-full h-44 overflow-hidden rounded-xl bg-[#0B1220] p-2 border border-[rgba(244,237,224,0.12)]">
-          <svg id="analytics-equity-svg" class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 900 240"></svg>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2.5">
-        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-3 shadow-sm">
-          <span class="text-[10px] text-[#F4EDE0]/70 uppercase tracking-wider block font-semibold mb-1">Best Winner</span>
-          <span id="analytics-max-win-symbol" class="px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.12)] text-[#7AD9A5] text-[10px] font-bold inline-block mb-1">-</span>
-          <div id="analytics-max-win-val" class="font-serif text-[18px] text-[#7AD9A5] font-normal tabular-nums">+₹0.00</div>
-        </div>
-        <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-3 shadow-sm">
-          <span class="text-[10px] text-[#F4EDE0]/70 uppercase tracking-wider block font-semibold mb-1">Worst Loser</span>
-          <span id="analytics-max-loss-symbol" class="px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.12)] text-[#F87171] text-[10px] font-bold inline-block mb-1">-</span>
-          <div id="analytics-max-loss-val" class="font-serif text-[18px] text-[#F87171] font-normal tabular-nums">-₹0.00</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ====================================================================
-         VIEW 5: NSE CALCULATOR
+         VIEW 3: NSE CALCULATOR
          ==================================================================== -->
     <section id="view-nse-calculator" class="view-panel space-y-4">
       <div class="flex items-center justify-between pt-1">
@@ -953,8 +594,8 @@
           <span class="text-xs text-[#F4EDE0]/70">Deterministic Tariff Engine</span>
           <h2 class="font-serif text-[28px] text-[#F4EDE0] leading-tight">NSE Calculator</h2>
         </div>
-        <button type="button" onclick="window.App.transferCalculatorToJournal()" data-action="transfer-calc" class="p-2.5 rounded-full bg-[#F4EDE0] text-[#14213D] hover:bg-[#E8DFCF] transition-all" title="Transfer to Trade Journal" aria-label="Transfer to Journal">
-          <span class="material-symbols-outlined text-[18px]">send</span>
+        <button type="button" onclick="window.App.copyCalculatorSummary()" data-action="copy-calc" class="p-2.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] text-[#F4EDE0] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all" title="Copy Calculation Summary" aria-label="Copy Summary">
+          <span class="material-symbols-outlined text-[18px]">content_copy</span>
         </button>
       </div>
 
@@ -1110,7 +751,7 @@
     </section>
 
     <!-- ====================================================================
-         VIEW 6: SETTINGS & BACKUP
+         VIEW 4: SETTINGS & BACKUP
          ==================================================================== -->
     <section id="view-settings-and-backup" class="view-panel space-y-4">
       <div class="pt-1">
@@ -1159,107 +800,26 @@
 
   </main>
 
-  <!-- LAYER 3: FIXED BOTTOM NAVIGATION - Permanently docked at the bottom of the screen -->
-  <nav class="app-bottom-nav fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-3 py-2 bg-[#0E182B] border-t border-[rgba(244,237,224,0.14)] max-w-[480px] mx-auto shadow-2xl" style="padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px);">
-    <!-- 1: Dashboard (Home) -->
-    <button type="button" onclick="window.App.switchView('dashboard')" class="nav-tab-item active" data-path="dashboard" aria-label="Dashboard" title="Dashboard">
+  <!-- LAYER 3: SIMPLIFIED FIXED BOTTOM NAVIGATION (Home · Portfolio · Calculator) -->
+  <nav class="app-bottom-nav fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-5 py-2 bg-[#0E182B] border-t border-[rgba(244,237,224,0.14)] max-w-[480px] mx-auto shadow-2xl" style="padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px);">
+    <!-- 1: Home -->
+    <button type="button" onclick="window.App.switchView('dashboard')" class="nav-tab-item active" data-path="dashboard" aria-label="Home" title="Home">
       <span class="material-symbols-outlined text-[24px]">home</span>
+      <span class="nav-tab-label">Home</span>
     </button>
 
-    <!-- 2: Journal (Search) -->
-    <button type="button" onclick="window.App.switchView('trade-journal')" class="nav-tab-item" data-path="trade-journal" aria-label="Trade Journal" title="Journal">
-      <span class="material-symbols-outlined text-[22px]">search</span>
-    </button>
-
-    <!-- 3: Center Highlight Action Button (+) -->
-    <button type="button" onclick="window.App.openActionSheet()" class="nav-center-action-btn" data-action="open-action-sheet" aria-label="Quick Actions" title="Actions">
-      <span class="material-symbols-outlined text-[28px]">add</span>
-    </button>
-
-    <!-- 4: Portfolio Tracker (Wallet) -->
+    <!-- 2: Portfolio Tracker -->
     <button type="button" onclick="window.App.switchView('portfolio-tracker')" class="nav-tab-item" data-path="portfolio-tracker" aria-label="Portfolio Tracker" title="Portfolio">
-      <span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
+      <span class="material-symbols-outlined text-[24px]">account_balance_wallet</span>
+      <span class="nav-tab-label">Portfolio</span>
     </button>
 
-    <!-- 5: NSE Calculator (Exchange/Arrows) -->
+    <!-- 3: NSE Calculator -->
     <button type="button" onclick="window.App.switchView('nse-calculator')" class="nav-tab-item" data-path="nse-calculator" aria-label="NSE Calculator" title="Calculator">
-      <span class="material-symbols-outlined text-[22px]">swap_horiz</span>
+      <span class="material-symbols-outlined text-[24px]">calculate</span>
+      <span class="nav-tab-label">Calculator</span>
     </button>
   </nav>
-
-  <!-- ====================================================================
-       iOS ACTION SHEET MODAL
-       ==================================================================== -->
-  <div id="action-sheet-overlay" class="action-sheet-overlay hidden" style="display: none !important; pointer-events: none !important;" data-action="close-action-sheet" onclick="window.App.closeActionSheet()">
-    <div class="action-sheet-container" onclick="event.stopPropagation()">
-      <div class="flex items-center justify-between pb-3 border-b border-[rgba(244,237,224,0.14)]">
-        <span class="font-serif text-[22px] text-[#F4EDE0]">Quick Actions</span>
-        <button type="button" onclick="window.App.closeActionSheet()" data-action="close-action-sheet" class="w-8 h-8 rounded-full bg-[#1C2C4E] flex items-center justify-center text-[#F4EDE0]" aria-label="Close">
-          <span class="material-symbols-outlined text-[18px]">close</span>
-        </button>
-      </div>
-
-      <div class="space-y-2 pt-3">
-        <button type="button" onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="w-full bg-[#1C2C4E] hover:bg-[#233760] text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-all text-left border border-[rgba(244,237,224,0.12)]">
-          <div class="w-10 h-10 rounded-xl bg-[#0D1527] border border-[rgba(244,237,224,0.15)] text-[#F4EDE0] flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-[22px]">add_box</span>
-          </div>
-          <div>
-            <div class="text-sm font-semibold text-[#F4EDE0]">Log New Trade</div>
-            <div class="text-[11px] text-[#F4EDE0]/70">Record completed swing trade with P&L</div>
-          </div>
-        </button>
-
-        <button type="button" onclick="window.App.switchView('nse-calculator')" data-path="nse-calculator" class="w-full bg-[#1C2C4E] hover:bg-[#233760] text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-all text-left border border-[rgba(244,237,224,0.12)]">
-          <div class="w-10 h-10 rounded-xl bg-[#0D1527] border border-[rgba(244,237,224,0.15)] text-[#F4EDE0] flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-[22px]">calculate</span>
-          </div>
-          <div>
-            <div class="text-sm font-semibold text-[#F4EDE0]">Calculate NSE Charges</div>
-            <div class="text-[11px] text-[#F4EDE0]/70">Check breakeven & brokerage before entry</div>
-          </div>
-        </button>
-
-        <button type="button" onclick="window.App.switchView('portfolio-tracker')" data-path="portfolio-tracker" class="w-full bg-[#1C2C4E] hover:bg-[#233760] text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-all text-left border border-[rgba(244,237,224,0.12)]">
-          <div class="w-10 h-10 rounded-xl bg-[#0D1527] border border-[rgba(244,237,224,0.15)] text-[#F4EDE0] flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-[22px]">calendar_today</span>
-          </div>
-          <div>
-            <div class="text-sm font-semibold text-[#F4EDE0]">Record Daily Valuation</div>
-            <div class="text-[11px] text-[#F4EDE0]/70">Update Groww & Zerodha EOD balances</div>
-          </div>
-        </button>
-
-        <button type="button" onclick="window.App.switchView('analytics')" data-path="analytics" class="w-full bg-[#1C2C4E] hover:bg-[#233760] text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-all text-left border border-[rgba(244,237,224,0.12)]">
-          <div class="w-10 h-10 rounded-xl bg-[#0D1527] border border-[rgba(244,237,224,0.15)] text-[#F4EDE0] flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-[22px]">insights</span>
-          </div>
-          <div>
-            <div class="text-sm font-semibold text-[#F4EDE0]">View Analytics & Win Rate</div>
-            <div class="text-[11px] text-[#F4EDE0]/70">Inspect equity curve & performance stats</div>
-          </div>
-        </button>
-      </div>
-
-      <button type="button" onclick="window.App.closeActionSheet()" data-action="close-action-sheet" class="w-full py-3 mt-3 rounded-xl bg-[#1C2C4E] text-[#F4EDE0]/70 font-semibold text-xs text-center hover:bg-[#233760] transition-all border border-[rgba(244,237,224,0.14)]">
-        Cancel
-      </button>
-    </div>
-  </div>
-
-  <!-- Delete Trade Modal -->
-  <div id="deleteModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 p-4" style="display: none !important; pointer-events: none !important;">
-    <div class="bg-[#14213D] border border-[rgba(244,237,224,0.2)] max-w-sm w-full rounded-2xl p-5 shadow-2xl mx-auto mt-32">
-      <h3 class="font-serif text-[20px] text-[#F4EDE0] mb-1">Delete Trade?</h3>
-      <p class="text-xs text-[#F4EDE0]/70 mb-4">
-        Permanently remove trade record for <strong id="deleteStockName" class="text-[#F4EDE0]">STOCK</strong>.
-      </p>
-      <div class="flex items-center justify-end gap-2">
-        <button onclick="window.App.closeDeleteModal()" class="px-4 py-2 rounded-xl bg-[#1C2C4E] text-[#F4EDE0] text-xs font-semibold">Cancel</button>
-        <button onclick="window.App.executeDeleteTrade()" class="px-4 py-2 rounded-xl bg-[#F87171] text-white text-xs font-bold">Delete</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Delete Snapshot Modal -->
   <div id="delete-snapshot-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 p-4" style="display: none !important; pointer-events: none !important;">
@@ -1282,8 +842,8 @@
   </div>
 
   <!-- Application Engine Scripts (Cache-Busted for Guaranteed Immediate Update) -->
-  <script src="js/calculator.js?v=20261106_1400"></script>
-  <script src="js/db.js?v=20261106_1400"></script>
-  <script src="js/app.js?v=20261106_1400"></script>
+  <script src="js/calculator.js?v=20261106_1500"></script>
+  <script src="js/db.js?v=20261106_1500"></script>
+  <script src="js/app.js?v=20261106_1500"></script>
 </body>
 </html>

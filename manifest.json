@@ -1,13 +1,13 @@
 {
   "name": "Trade Diary",
   "short_name": "Trade Diary",
-  "description": "Deterministic NSE brokerage tariff calculator, swing trade journal, EOD portfolio tracker and analytics engine with 100% offline IndexedDB persistence.",
+  "description": "Deterministic NSE brokerage tariff calculator, EOD portfolio tracker and performance analytics with 100% offline IndexedDB persistence.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0d0d11",
-  "theme_color": "#0d0d11",
+  "background_color": "#0D1527",
+  "theme_color": "#14213D",
   "categories": ["finance", "productivity", "utilities"],
   "icons": [
     {
@@ -37,31 +37,17 @@
   ],
   "shortcuts": [
     {
-      "name": "NSE Calculator",
-      "short_name": "Calculator",
-      "description": "Calculate Groww & Zerodha brokerage, STT and breakeven",
-      "url": "./#nse-calculator",
-      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Trade Journal",
-      "short_name": "Journal",
-      "description": "Log completed swing trades and view trade metrics",
-      "url": "./#trade-journal",
-      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
-    },
-    {
       "name": "Portfolio Tracker",
       "short_name": "Portfolio",
-      "description": "Record daily EOD mark-to-market valuations",
+      "description": "Record and compare daily Groww & Zerodha valuations",
       "url": "./#portfolio-tracker",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Analytics",
-      "short_name": "Analytics",
-      "description": "Quantitative swing metrics and equity curve",
-      "url": "./#analytics",
+      "name": "NSE Calculator",
+      "short_name": "Calculator",
+      "description": "Calculate Groww & Zerodha brokerage, STT and breakeven",
+      "url": "./#nse-calculator",
       "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]

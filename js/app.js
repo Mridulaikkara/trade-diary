@@ -1,6 +1,6 @@
 /**
- * TradeLedger Main Application Orchestrator
- * Single-Page Architecture, Reactive State, IndexedDB Sync & Offline PWA Controller
+ * Trade Diary — Core Application Engine
+ * High-performance, offline-first portfolio tracker and deterministic NSE brokerage calculator.
  */
 
 (function() {
@@ -9,39 +9,33 @@
   // Application State
   const AppState = {
     currentView: 'dashboard',
-    trades: (typeof TradeDB !== 'undefined' && typeof TradeDB.getInitialTrades === 'function') ? TradeDB.getInitialTrades() : [],
-    snapshots: (typeof TradeDB !== 'undefined' && typeof TradeDB.getInitialSnapshots === 'function') ? TradeDB.getInitialSnapshots() : [],
+    snapshots: [],
     settings: {
       defaultBroker: 'groww',
       customDp: 13.50
     },
-    editingTradeId: null,
-    deletingTradeId: null,
-    deletingSnapshotDate: null,
     calculatorState: {
       broker: 'groww',
-      segment: 'delivery',
-      buyPrice: 1450.00,
-      sellPrice: 1530.00,
-      qty: 100
+      segment: 'delivery'
     },
-    journalFilter: {
-      search: '',
-      broker: 'all',
-      outcome: 'all',
-      sort: 'date-desc'
-    },
-    analyticsTimeframe: 'FY24-25',
-    dashboardInterval: '1M',
+    deletingSnapshotDate: null,
     deferredInstallPrompt: null
   };
 
-  // Helper: Format INR
+  // Format currency in Indian Numbering System (e.g. ₹2,73,088.00)
   function fmtINR(val, includeDecimals = true) {
-    return NSECalculator.formatINR(val, includeDecimals);
+    if (val === undefined || val === null || isNaN(val)) return '₹0.00';
+    const num = Number(val);
+    const isNegative = num < 0;
+    const absVal = Math.abs(num);
+    const formatted = absVal.toLocaleString('en-IN', {
+      minimumFractionDigits: includeDecimals ? 2 : 0,
+      maximumFractionDigits: includeDecimals ? 2 : 0
+    });
+    return (isNegative ? '-₹ ' : '₹ ') + formatted;
   }
 
-  // Toast Notification System
+  // Toast Notification
   function showToast(message, type = 'info') {
     const toast = document.getElementById('global-toast');
     const toastText = document.getElementById('global-toast-text');
@@ -64,7 +58,6 @@
     }
 
     toast.classList.add('show');
-
     clearTimeout(toast._timeout);
     toast._timeout = setTimeout(() => {
       toast.classList.remove('show');
@@ -77,11 +70,10 @@
     if (!el) return;
 
     const now = new Date();
-    // Convert to IST
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const istDate = new Date(utc + (3600000 * 5.5));
 
-    const day = istDate.getDay(); // 0 is Sunday, 6 is Saturday
+    const day = istDate.getDay();
     const hours = istDate.getHours();
     const minutes = istDate.getMinutes();
     const timeVal = hours * 60 + minutes;
@@ -92,10 +84,10 @@
     if (isLive) {
       el.innerHTML = `
         <span class="w-2 h-2 rounded-full bg-[#7AD9A5] animate-pulse"></span>
-        <span class="text-xs text-[#7AD9A5] font-semibold">NSE Live Session</span>
+        <span class="text-xs text-[#7AD9A5] font-semibold">NSE Live</span>
       `;
     } else {
-      const label = (day === 0 || day === 6) ? 'NSE Weekend (Closed)' : 'NSE Market Closed';
+      const label = (day === 0 || day === 6) ? 'NSE Weekend' : 'NSE Closed';
       el.innerHTML = `
         <span class="w-2 h-2 rounded-full bg-[#F4EDE0]/40"></span>
         <span class="text-xs text-[#F4EDE0]/70 font-medium">${label}</span>
@@ -105,299 +97,106 @@
 
   // Connectivity Listener
   function initConnectivityMonitor() {
-    const offlineIcon = document.getElementById('pwa-offline-icon');
-    const syncStatusText = document.getElementById('sync-status-text');
-
     function updateStatus() {
-      if (navigator.onLine) {
-        if (offlineIcon) {
-          offlineIcon.textContent = 'offline_bolt';
-          offlineIcon.className = 'material-symbols-outlined text-[16px] text-[#7AD9A5]';
-          offlineIcon.title = 'PWA Offline Native (Connected)';
-        }
-        if (syncStatusText) {
-          syncStatusText.innerHTML = `
-            <span class="w-2 h-2 rounded-full bg-[#7AD9A5]"></span>
-            <span class="text-xs text-[#F4EDE0]/70 font-medium tracking-wide uppercase">Local Storage • Sync Active • All data stored in browser IndexedDB</span>
-          `;
-        }
-      } else {
-        if (offlineIcon) {
-          offlineIcon.textContent = 'cloud_off';
-          offlineIcon.className = 'material-symbols-outlined text-[16px] text-amber-500 animate-pulse';
-          offlineIcon.title = 'Offline - Running on local IndexedDB';
-        }
-        if (syncStatusText) {
-          syncStatusText.innerHTML = `
-            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-            <span class="font-label-sm text-label-sm text-amber-700 font-medium tracking-wide uppercase">Offline Mode • IndexedDB Local Engine Active</span>
-          `;
-        }
-        showToast('Offline Mode: Operating with local cached data', 'info');
+      if (!navigator.onLine) {
+        showToast('Operating offline with IndexedDB local cache', 'info');
       }
     }
-
     window.addEventListener('online', () => {
-      updateStatus();
-      showToast('Back online • Synced', 'success');
+      showToast('Connection restored: IndexedDB storage synchronized', 'success');
     });
-    window.addEventListener('offline', () => {
-      updateStatus();
-    });
-
-    updateStatus();
+    window.addEventListener('offline', updateStatus);
   }
 
-  // Navigation / View Switching
+  // Synchronous State Reload from IndexedDB
+  async function reloadAllData() {
+    try {
+      const snaps = await TradeDB.getAllSnapshots();
+      // Sort snapshots chronologically
+      snaps.sort((a, b) => a.date.localeCompare(b.date));
+      AppState.snapshots = snaps;
+
+      const brokerSetting = await TradeDB.getSetting('defaultBroker');
+      const dpSetting = await TradeDB.getSetting('customDp');
+      if (brokerSetting) AppState.settings.defaultBroker = brokerSetting;
+      if (dpSetting) AppState.settings.customDp = parseFloat(dpSetting) || 13.50;
+
+      // Sync calculator state default
+      AppState.calculatorState.broker = AppState.settings.defaultBroker || 'groww';
+    } catch (err) {
+      console.warn('Data reload fallback:', err);
+    }
+  }
+
+  // Navigation Switcher (Instant response)
   function switchView(viewName) {
     if (!viewName) viewName = 'dashboard';
-
-    const validViews = ['dashboard', 'trade-journal', 'portfolio-tracker', 'analytics', 'nse-calculator', 'settings-and-backup'];
-    if (!validViews.includes(viewName)) {
-      viewName = 'dashboard';
-    }
+    const validViews = ['dashboard', 'portfolio-tracker', 'nse-calculator', 'settings-and-backup'];
+    if (!validViews.includes(viewName)) viewName = 'dashboard';
 
     AppState.currentView = viewName;
-    window.location.hash = viewName;
 
     // Toggle panels
     document.querySelectorAll('.view-panel').forEach(panel => {
       panel.classList.remove('active');
+      panel.style.display = 'none';
     });
-    const targetPanel = document.getElementById(`view-${viewName}`);
-    if (targetPanel) {
-      targetPanel.classList.add('active');
+
+    const target = document.getElementById(`view-${viewName}`);
+    if (target) {
+      target.classList.add('active');
+      target.style.display = 'block';
     }
 
-    // Toggle nav active classes for bottom dock
-    document.querySelectorAll('.nav-tab-item, .dock-item').forEach(link => {
-      if (link.getAttribute('data-path') === viewName) {
-        link.classList.add('active');
-        link.setAttribute('aria-current', 'page');
+    // Toggle bottom dock items
+    document.querySelectorAll('.nav-tab-item').forEach(tab => {
+      if (tab.getAttribute('data-path') === viewName) {
+        tab.classList.add('active');
+        tab.setAttribute('aria-current', 'page');
       } else {
-        link.classList.remove('active');
-        link.removeAttribute('aria-current');
+        tab.classList.remove('active');
+        tab.removeAttribute('aria-current');
       }
     });
 
     // Close any open modals
-    closeActionSheet();
-    closeMobileSidebar();
+    closeDeleteSnapshotModal();
 
-    // Trigger specific view refreshes
-    if (viewName === 'dashboard') renderDashboard();
-    if (viewName === 'trade-journal') renderJournal();
-    if (viewName === 'portfolio-tracker') renderPortfolio();
-    if (viewName === 'analytics') renderAnalytics();
-    if (viewName === 'nse-calculator') calculateAllCalculator();
-    if (viewName === 'settings-and-backup') renderSettings();
-
-    // Scroll page to top
+    try { history.replaceState(null, '', `#${viewName}`); } catch(e){}
     window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-  }
 
-  function toggleMobileSidebar() {
-    const sidebar = document.getElementById('app-sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    if (!sidebar) return;
-
-    if (sidebar.classList.contains('open')) {
-      closeMobileSidebar();
-    } else {
-      sidebar.classList.add('open');
-      if (overlay) overlay.classList.remove('hidden');
-    }
-  }
-
-  function closeMobileSidebar() {
-    const sidebar = document.getElementById('app-sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    if (sidebar) sidebar.classList.remove('open');
-    if (overlay) overlay.classList.add('hidden');
-  }
-
-  // iOS Action Sheet Modal Controls
-  function openActionSheet() {
-    const sheet = document.getElementById('action-sheet-overlay');
-    if (!sheet) return;
-    sheet.classList.remove('hidden');
-    sheet.style.display = 'flex';
-    requestAnimationFrame(() => {
-      sheet.classList.add('open');
-    });
-  }
-
-  function closeActionSheet(e) {
-    if (e && e.target && e.target.closest && e.target.closest('.action-sheet-container') && !e.target.closest('button')) {
-      return;
-    }
-    const sheet = document.getElementById('action-sheet-overlay');
-    if (!sheet) return;
-    sheet.classList.remove('open');
-    setTimeout(() => {
-      sheet.classList.add('hidden');
-      sheet.style.display = 'none';
-    }, 200);
-  }
-
-  // Keyboard navigation shortcuts: F1 to F6
-  function initKeyboardShortcuts() {
-    window.addEventListener('keydown', (e) => {
-      // Don't trigger if user is typing in an input
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
-        if (e.key === 'Escape') {
-          document.activeElement.blur();
-        }
-        return;
-      }
-
-      switch (e.key) {
-        case 'F1':
-          e.preventDefault();
-          switchView('dashboard');
-          break;
-        case 'F2':
-          e.preventDefault();
-          switchView('trade-journal');
-          break;
-        case 'F3':
-          e.preventDefault();
-          switchView('portfolio-tracker');
-          break;
-        case 'F4':
-          e.preventDefault();
-          switchView('analytics');
-          break;
-        case 'F5':
-          e.preventDefault();
-          switchView('nse-calculator');
-          break;
-        case 'F6':
-          e.preventDefault();
-          switchView('settings-and-backup');
-          break;
-      }
-    });
-  }
-
-  // Load All Data from IndexedDB (preserves memory state if empty)
-  async function reloadAllData() {
-    try {
-      const dbTrades = await TradeDB.getTrades();
-      if (Array.isArray(dbTrades) && dbTrades.length > 0) {
-        AppState.trades = dbTrades;
-      }
-      const dbSnapshots = await TradeDB.getSnapshots();
-      if (Array.isArray(dbSnapshots) && dbSnapshots.length > 0) {
-        AppState.snapshots = dbSnapshots;
-      }
-      const b = await TradeDB.getSetting('defaultBroker');
-      if (b) AppState.settings.defaultBroker = b;
-      const dp = await TradeDB.getSetting('customDp');
-      if (dp) AppState.settings.customDp = Number(dp);
-
-      updateGlobalHeaderValuation();
-    } catch (err) {
-      console.warn('Data reload non-blocking warning:', err);
-    }
-  }
-
-  function updateGlobalHeaderValuation() {
-    const totalValEl = document.getElementById('header-total-valuation');
-    if (!totalValEl) return;
-
-    if (AppState.snapshots.length > 0) {
-      const latest = AppState.snapshots[AppState.snapshots.length - 1];
-      totalValEl.textContent = fmtINR(latest.combinedTotal);
-    } else {
-      totalValEl.textContent = '₹0.00';
-    }
+    // Render active view
+    if (viewName === 'dashboard') renderDashboard();
+    else if (viewName === 'portfolio-tracker') renderPortfolio();
+    else if (viewName === 'nse-calculator') calculateAllCalculator();
+    else if (viewName === 'settings-and-backup') renderSettings();
   }
 
   /* ==========================================================================
-     VIEW 1: DASHBOARD
+     VIEW 1: DASHBOARD (PORTFOLIO VALUE & GROWTH INSIGHTS)
      ========================================================================== */
   function renderDashboard() {
     const snapshots = AppState.snapshots;
-    const trades = AppState.trades;
-
-    // 1. Total Portfolio Value
     const latestSnapshot = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
     const prevSnapshot = snapshots.length > 1 ? snapshots[snapshots.length - 2] : null;
 
-    const totalVal = latestSnapshot ? latestSnapshot.combinedTotal : 0;
+    // 1. Hero Total Valuation
+    const totalVal = latestSnapshot ? (Number(latestSnapshot.combinedTotal) || 0) : 273088;
     const totalValEl = document.getElementById('dash-total-val');
+    const headerValEl = document.getElementById('header-total-valuation');
+
     if (totalValEl) totalValEl.innerHTML = fmtINR(totalVal);
+    if (headerValEl) headerValEl.textContent = fmtINR(totalVal);
 
-    // 2. Today's Change
-    const deltaVal = latestSnapshot ? (latestSnapshot.dodDelta || (prevSnapshot ? latestSnapshot.combinedTotal - prevSnapshot.combinedTotal : 0)) : 0;
-    const deltaPct = latestSnapshot && prevSnapshot && prevSnapshot.combinedTotal > 0
-      ? ((deltaVal / prevSnapshot.combinedTotal) * 100).toFixed(2)
-      : '0.00';
-
-    const todayDeltaEl = document.getElementById('dash-today-delta');
-    const todayDeltaPctEl = document.getElementById('dash-today-delta-pct');
-    const prevCloseEl = document.getElementById('dash-prev-close');
-
-    if (todayDeltaEl) {
-      todayDeltaEl.className = 'font-bold';
-      todayDeltaEl.textContent = (deltaVal >= 0 ? '+' : '') + fmtINR(deltaVal);
-    }
-    if (todayDeltaPctEl) {
-      todayDeltaPctEl.className = 'text-xs font-bold bg-[#0D1527] text-[#7AD9A5] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full';
-      todayDeltaPctEl.textContent = (deltaVal >= 0 ? '+' : '') + deltaPct + '%';
-    }
-    if (prevCloseEl && prevSnapshot) {
-      prevCloseEl.textContent = `Prev Close: ${fmtINR(prevSnapshot.combinedTotal)}`;
-    }
-
-    // 3. Total Realised P&L
-    let realisedPnL = 0;
-    let winCount = 0;
-    let lossCount = 0;
-    let totalInvestedCost = 0;
-
-    trades.forEach(t => {
-      realisedPnL += Number(t.netPnL || 0);
-      if (t.netPnL > 0) winCount++;
-      else if (t.netPnL < 0) lossCount++;
-      totalInvestedCost += (Number(t.buyPrice || 0) * Number(t.qty || 0));
-    });
-
-    const totalRealisedEl = document.getElementById('dash-realised-pnl');
-    const realisedRoiEl = document.getElementById('dash-realised-roi');
-    if (totalRealisedEl) {
-      totalRealisedEl.className = realisedPnL >= 0 ? 'font-bold text-[#7AD9A5]' : 'font-bold text-[#F87171]';
-      totalRealisedEl.textContent = (realisedPnL >= 0 ? '+' : '') + fmtINR(realisedPnL);
-    }
-    if (realisedRoiEl && totalInvestedCost > 0) {
-      const roi = (realisedPnL / totalInvestedCost) * 100;
-      realisedRoiEl.textContent = `ROI ${(roi >= 0 ? '+' : '')}${roi.toFixed(1)}%`;
-    }
-
-    // 4. Trade Execution Stats
-    const totalTrades = trades.length;
-    const winRate = totalTrades > 0 ? ((winCount / totalTrades) * 100).toFixed(1) : '0.0';
-    const winLossEl = document.getElementById('dash-trade-count');
-    const winRateEl = document.getElementById('dash-win-rate');
-    const barWin = document.getElementById('dash-bar-win');
-    const barLoss = document.getElementById('dash-bar-loss');
-    const winDetailsEl = document.getElementById('dash-win-details');
-
-    if (winLossEl) winLossEl.textContent = totalTrades;
-    if (winRateEl) winRateEl.textContent = `${winRate}%`;
-    if (barWin) barWin.style.width = `${winRate}%`;
-    if (barLoss) barLoss.style.width = `${(100 - Number(winRate)).toFixed(1)}%`;
-    if (winDetailsEl) {
-      winDetailsEl.innerHTML = `<span>${winCount} Profitable</span><span>${lossCount} Losses</span>`;
-    }
-
-    // Broker Cards: Groww vs Zerodha
+    // 2. Dual Broker Cards (Groww & Zerodha Kite)
     if (latestSnapshot) {
-      const gVal = latestSnapshot.growwTotal || 0;
-      const kVal = latestSnapshot.kiteTotal || 0;
+      const gVal = Number(latestSnapshot.growwTotal) || 0;
+      const kVal = Number(latestSnapshot.kiteTotal) || 0;
+      const gInv = Number(latestSnapshot.growwInvested) || 0;
+      const kInv = Number(latestSnapshot.kiteInvested) || 0;
+      const gCash = Number(latestSnapshot.growwCash) || 0;
+      const kCash = Number(latestSnapshot.kiteCash) || 0;
+
       const gShare = totalVal > 0 ? ((gVal / totalVal) * 100).toFixed(1) : '0.0';
       const kShare = totalVal > 0 ? ((kVal / totalVal) * 100).toFixed(1) : '0.0';
 
@@ -408,8 +207,8 @@
 
       if (gShareEl) gShareEl.textContent = `${gShare}%`;
       if (gValEl) gValEl.innerHTML = fmtINR(gVal);
-      if (gInvEl) gInvEl.innerHTML = fmtINR(latestSnapshot.growwInvested || 0);
-      if (gCashEl) gCashEl.innerHTML = fmtINR(latestSnapshot.growwCash || 0);
+      if (gInvEl) gInvEl.innerHTML = fmtINR(gInv);
+      if (gCashEl) gCashEl.innerHTML = fmtINR(gCash);
 
       const kShareEl = document.getElementById('dash-kite-share');
       const kValEl = document.getElementById('dash-kite-val');
@@ -418,11 +217,121 @@
 
       if (kShareEl) kShareEl.textContent = `${kShare}%`;
       if (kValEl) kValEl.innerHTML = fmtINR(kVal);
-      if (kInvEl) kInvEl.innerHTML = fmtINR(latestSnapshot.kiteInvested || 0);
-      if (kCashEl) kCashEl.innerHTML = fmtINR(latestSnapshot.kiteCash || 0);
+      if (kInvEl) kInvEl.innerHTML = fmtINR(kInv);
+      if (kCashEl) kCashEl.innerHTML = fmtINR(kCash);
+
+      // Asset Allocation Breakdown
+      const totalInv = gInv + kInv;
+      const totalCash = gCash + kCash;
+      const invPct = totalVal > 0 ? ((totalInv / totalVal) * 100).toFixed(1) : '0.0';
+      const cashPct = totalVal > 0 ? ((totalCash / totalVal) * 100).toFixed(1) : '0.0';
+
+      const ratioEl = document.getElementById('dash-allocation-ratio');
+      const barInvEl = document.getElementById('dash-alloc-bar-inv');
+      const barCashEl = document.getElementById('dash-alloc-bar-cash');
+      const totalInvEl = document.getElementById('dash-total-inv');
+      const totalCashEl = document.getElementById('dash-total-cash');
+
+      if (ratioEl) ratioEl.textContent = `Invested ${invPct}% · Cash ${cashPct}%`;
+      if (barInvEl) barInvEl.style.width = `${invPct}%`;
+      if (barCashEl) barCashEl.style.width = `${cashPct}%`;
+      if (totalInvEl) totalInvEl.textContent = fmtINR(totalInv);
+      if (totalCashEl) totalCashEl.textContent = fmtINR(totalCash);
     }
 
-    // Render Growth SVG Chart
+    // 3. Daily Performance (DoD)
+    let deltaVal = 0;
+    let deltaPct = '0.00';
+    let depositToday = 0;
+    let organicToday = 0;
+
+    if (latestSnapshot && prevSnapshot) {
+      deltaVal = Number(latestSnapshot.combinedTotal) - Number(prevSnapshot.combinedTotal);
+      deltaPct = prevSnapshot.combinedTotal > 0
+        ? ((deltaVal / prevSnapshot.combinedTotal) * 100).toFixed(2)
+        : '0.00';
+      depositToday = Number(latestSnapshot.deposit || 0);
+      organicToday = deltaVal - depositToday;
+    } else if (latestSnapshot) {
+      deltaVal = Number(latestSnapshot.dodDelta || 0);
+      deltaPct = Number(latestSnapshot.dodDeltaPct || 0).toFixed(2);
+      depositToday = Number(latestSnapshot.deposit || 0);
+      organicToday = deltaVal - depositToday;
+    }
+
+    const todayDeltaEl = document.getElementById('dash-today-delta');
+    const todayDeltaPctEl = document.getElementById('dash-today-delta-pct');
+    const prevCloseEl = document.getElementById('dash-prev-close');
+    const organicTodayEl = document.getElementById('dash-organic-today');
+
+    if (todayDeltaEl) {
+      todayDeltaEl.textContent = (deltaVal >= 0 ? '+' : '') + fmtINR(deltaVal);
+    }
+    if (todayDeltaPctEl) {
+      const isUp = deltaVal >= 0;
+      todayDeltaPctEl.className = isUp
+        ? 'text-xs font-bold bg-[#0D1527] text-[#7AD9A5] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full'
+        : 'text-xs font-bold bg-[#0D1527] text-[#F87171] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full';
+      todayDeltaPctEl.textContent = (isUp ? '+' : '') + deltaPct + '%';
+    }
+    if (prevCloseEl && prevSnapshot) {
+      prevCloseEl.textContent = `Prev Close: ${fmtINR(prevSnapshot.combinedTotal)}`;
+    }
+    if (organicTodayEl) {
+      if (depositToday !== 0) {
+        organicTodayEl.textContent = `Capital Inflow: ${fmtINR(depositToday)} | Market Gain: ${(organicToday >= 0 ? '+' : '')}${fmtINR(organicToday)}`;
+      } else {
+        organicTodayEl.textContent = `Organic Market Return: ${(organicToday >= 0 ? '+' : '')}${fmtINR(organicToday)}`;
+      }
+    }
+
+    // 4. Monthly Performance (MTD / 30-Day Growth & Capital Inflows)
+    if (snapshots.length >= 2) {
+      const latestDate = new Date(latestSnapshot.date);
+      const currentMonth = latestDate.getMonth();
+      const currentYear = latestDate.getFullYear();
+
+      // Find earliest snapshot in this month (or earliest in dataset)
+      const monthSnaps = snapshots.filter(s => {
+        const d = new Date(s.date);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      });
+
+      const baseSnap = monthSnaps.length > 0 ? monthSnaps[0] : snapshots[0];
+      const monthlyTotalGrowth = Number(latestSnapshot.combinedTotal) - Number(baseSnap.combinedTotal);
+      const monthlyGrowthPct = baseSnap.combinedTotal > 0
+        ? ((monthlyTotalGrowth / baseSnap.combinedTotal) * 100).toFixed(1)
+        : '0.0';
+
+      // Sum all recorded deposits in this period
+      let monthlyDeposits = 0;
+      (monthSnaps.length > 0 ? monthSnaps : snapshots).forEach(s => {
+        monthlyDeposits += Number(s.deposit || 0);
+      });
+
+      const monthlyOrganic = monthlyTotalGrowth - monthlyDeposits;
+
+      const monthlyValEl = document.getElementById('dash-monthly-val');
+      const monthlyPctEl = document.getElementById('dash-monthly-pct');
+      const monthlyDepEl = document.getElementById('dash-monthly-deposits');
+      const monthlyOrgEl = document.getElementById('dash-monthly-organic');
+
+      if (monthlyValEl) monthlyValEl.textContent = (monthlyTotalGrowth >= 0 ? '+' : '') + fmtINR(monthlyTotalGrowth);
+      if (monthlyPctEl) {
+        const isUp = monthlyTotalGrowth >= 0;
+        monthlyPctEl.className = isUp
+          ? 'text-xs font-bold bg-[#0D1527] text-[#7AD9A5] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full'
+          : 'text-xs font-bold bg-[#0D1527] text-[#F87171] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full';
+        monthlyPctEl.textContent = `${(isUp ? '+' : '')}${monthlyGrowthPct}% MTD`;
+      }
+      if (monthlyDepEl) monthlyDepEl.textContent = fmtINR(monthlyDeposits);
+      if (monthlyOrgEl) {
+        monthlyOrgEl.className = monthlyOrganic >= 0 ? 'font-semibold text-[#7AD9A5]' : 'font-semibold text-[#F87171]';
+        monthlyOrgEl.textContent = (monthlyOrganic >= 0 ? '+' : '') + fmtINR(monthlyOrganic);
+      }
+    }
+
+    // 5. Render SVG Growth Curve
     renderDashboardChart();
   }
 
@@ -433,7 +342,6 @@
 
     let snapshots = AppState.snapshots;
     if (!snapshots || snapshots.length < 2) {
-      // Default sample trajectory for continuous elegant mountain curve
       snapshots = [
         { date: '01 May', combinedTotal: 240488 },
         { date: '05 May', combinedTotal: 244350 },
@@ -444,7 +352,6 @@
       ];
     }
 
-    // Width: 1000, Height: 240
     const W = 1000;
     const H = 220;
     const padX = 20;
@@ -455,7 +362,6 @@
     const maxVal = Math.max(...values) * 1.02;
     const range = (maxVal - minVal) || 1;
 
-    // Generate Points
     const n = snapshots.length;
     const points = snapshots.map((s, idx) => {
       const x = padX + (idx / (n - 1)) * (W - 2 * padX);
@@ -464,7 +370,6 @@
       return { x, y, val, date: s.date };
     });
 
-    // Path string
     let pathD = `M ${points[0].x},${points[0].y}`;
     for (let i = 1; i < points.length; i++) {
       const prev = points[i - 1];
@@ -511,7 +416,6 @@
       ${circlesSvg}
     `;
 
-    // Render Axis Labels
     if (labelsEl && n >= 2) {
       const first = snapshots[0];
       const mid = snapshots[Math.floor(n / 2)];
@@ -525,428 +429,13 @@
   }
 
   /* ==========================================================================
-     VIEW 2: TRADE JOURNAL
-     ========================================================================== */
-  function renderJournal() {
-    renderJournalSummaryKPIs();
-    renderJournalTable();
-  }
-
-  function renderJournalSummaryKPIs() {
-    const trades = AppState.trades;
-    let totalRealised = 0;
-    let winCount = 0;
-    let lossCount = 0;
-    let totalFriction = 0;
-    let sttTotal = 0;
-    let dpTotal = 0;
-    let otherTaxTotal = 0;
-
-    // Filter today's trades
-    const todayStr = new Date().toISOString().split('T')[0];
-    let todayRealised = 0;
-    let todayClosedCount = 0;
-
-    trades.forEach(t => {
-      const net = Number(t.netPnL || 0);
-      const charges = Number(t.totalCharges || 0);
-
-      totalRealised += net;
-      totalFriction += charges;
-
-      if (net > 0) winCount++;
-      else if (net < 0) lossCount++;
-
-      if (t.date === todayStr) {
-        todayRealised += net;
-        todayClosedCount++;
-      }
-
-      // Estimate statutory buckets
-      sttTotal += charges * 0.62;
-      dpTotal += charges * 0.12;
-      otherTaxTotal += charges * 0.26;
-    });
-
-    const totalTrades = trades.length;
-    const winRate = totalTrades > 0 ? ((winCount / totalTrades) * 100).toFixed(1) : '0.0';
-
-    // Update KPI UI
-    const todayEl = document.getElementById('journal-kpi-today-pnl');
-    const todayCountEl = document.getElementById('journal-kpi-today-count');
-    if (todayEl) {
-      todayEl.className = todayRealised >= 0
-        ? 'font-serif text-[22px] font-normal leading-tight my-1 tabular-nums text-[#7AD9A5]'
-        : 'font-serif text-[22px] font-normal leading-tight my-1 tabular-nums text-[#F87171]';
-      todayEl.textContent = (todayRealised >= 0 ? '+' : '') + fmtINR(todayRealised);
-    }
-    if (todayCountEl) todayCountEl.textContent = `${todayClosedCount} Closed`;
-
-    const monthlyEl = document.getElementById('journal-kpi-monthly-pnl');
-    if (monthlyEl) {
-      monthlyEl.className = totalRealised >= 0
-        ? 'font-serif text-[22px] font-normal text-[#F4EDE0] leading-tight my-1 tabular-nums'
-        : 'font-serif text-[22px] font-normal text-[#F87171] leading-tight my-1 tabular-nums';
-      monthlyEl.textContent = (totalRealised >= 0 ? '+' : '') + fmtINR(totalRealised);
-    }
-
-    const winRateEl = document.getElementById('journal-kpi-winrate');
-    const winRateRatioEl = document.getElementById('journal-kpi-winloss-ratio');
-    const barWin = document.getElementById('journal-kpi-bar-win');
-    const barLoss = document.getElementById('journal-kpi-bar-loss');
-
-    if (winRateEl) winRateEl.textContent = `${winRate}%`;
-    if (winRateRatioEl) winRateRatioEl.textContent = `${winCount}W : ${lossCount}L (${totalTrades} Trades)`;
-    if (barWin) barWin.style.width = `${winRate}%`;
-    if (barLoss) barLoss.style.width = `${(100 - Number(winRate)).toFixed(1)}%`;
-
-    const frictionEl = document.getElementById('journal-kpi-friction');
-    if (frictionEl) frictionEl.textContent = fmtINR(totalFriction);
-  }
-
-  function renderJournalTable() {
-    const tbody = document.getElementById('tradeTableBody');
-    const footerCount = document.getElementById('footerCount');
-    if (!tbody) return;
-
-    let list = [...AppState.trades];
-
-    // Filter by search
-    const query = AppState.journalFilter.search.trim().toLowerCase();
-    if (query) {
-      list = list.filter(t => 
-        (t.stockName && t.stockName.toLowerCase().includes(query)) ||
-        (t.stockSymbol && t.stockSymbol.toLowerCase().includes(query)) ||
-        (t.strategy && t.strategy.toLowerCase().includes(query)) ||
-        (t.notes && t.notes.toLowerCase().includes(query))
-      );
-    }
-
-    // Filter by broker
-    if (AppState.journalFilter.broker !== 'all') {
-      list = list.filter(t => t.broker === AppState.journalFilter.broker);
-    }
-
-    // Filter by outcome
-    if (AppState.journalFilter.outcome !== 'all') {
-      list = list.filter(t => t.outcome === AppState.journalFilter.outcome);
-    }
-
-    // Sort
-    const sortVal = AppState.journalFilter.sort;
-    list.sort((a, b) => {
-      if (sortVal === 'date-desc') return b.date.localeCompare(a.date);
-      if (sortVal === 'date-asc') return a.date.localeCompare(b.date);
-      if (sortVal === 'pnl-desc') return Number(b.netPnL || 0) - Number(a.netPnL || 0);
-      if (sortVal === 'pnl-asc') return Number(a.netPnL || 0) - Number(b.netPnL || 0);
-      return 0;
-    });
-
-    if (footerCount) footerCount.textContent = `${list.length} Records`;
-
-    if (list.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="7" class="p-6 text-center text-[#F4EDE0]/50 text-xs">
-            No matching trades found. Log a completed swing trade above.
-          </td>
-        </tr>
-      `;
-      return;
-    }
-
-    tbody.innerHTML = list.map(t => {
-      const isWin = Number(t.netPnL || 0) >= 0;
-      const pnlColor = isWin ? 'text-[#7AD9A5]' : 'text-[#F87171]';
-      const pnlBg = isWin ? 'bg-[#1C2C4E] text-[#7AD9A5] border border-[rgba(244,237,224,0.12)]' : 'bg-[#1C2C4E] text-[#F87171] border border-[rgba(244,237,224,0.12)]';
-      const brokerBadge = t.broker === 'zerodha'
-        ? `<span class="px-2 py-0.5 rounded-full bg-[#0B1220] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0] text-[10px] font-semibold">Zerodha</span>`
-        : `<span class="px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0] text-[10px] font-semibold">Groww</span>`;
-
-      const buyTurnover = Number(t.buyPrice || 0) * Number(t.qty || 0);
-
-      return `
-        <tr class="hover:bg-white/5 transition-colors border-b border-[rgba(244,237,224,0.08)]" data-id="${t.id}">
-          <td class="p-2.5 text-[#F4EDE0]/65 whitespace-nowrap text-[11px]">
-            ${t.date}
-          </td>
-          <td class="p-2.5">
-            <div>
-              <span class="font-serif text-[15px] font-semibold text-[#F4EDE0] block leading-tight">${t.stockSymbol}</span>
-              <span class="text-[10px] text-[#F4EDE0]/65">${t.stockName || ''}</span>
-            </div>
-            ${t.strategy ? `<span class="inline-block mt-0.5 px-1.5 py-0.2 rounded bg-[#1C2C4E] border border-[rgba(244,237,224,0.12)] text-[#F4EDE0]/70 text-[9px]">${t.strategy}</span>` : ''}
-          </td>
-          <td class="p-2.5 whitespace-nowrap">
-            ${brokerBadge}
-          </td>
-          <td class="p-2.5 text-right tabular-nums">
-            <div class="text-[#F4EDE0] font-medium text-[11px]">${fmtINR(t.buyPrice)}</div>
-            <div class="text-[#F4EDE0]/60 text-[10px]">${t.qty} sh</div>
-          </td>
-          <td class="p-2.5 text-right tabular-nums">
-            <div class="text-[#F4EDE0] font-medium text-[11px]">${fmtINR(t.sellPrice)}</div>
-            <div class="text-[#F4EDE0]/60 text-[10px]">${fmtINR(buyTurnover, false)}</div>
-          </td>
-          <td class="p-2.5 text-right tabular-nums whitespace-nowrap">
-            <div class="font-serif text-[14px] font-semibold ${pnlColor}">
-              ${(isWin ? '+' : '') + fmtINR(t.netPnL)}
-            </div>
-            <span class="px-1.5 py-0.5 rounded-full ${pnlBg} text-[9px] font-bold inline-block">${(t.netRoi >= 0 ? '+' : '') + Number(t.netRoi || 0).toFixed(1)}%</span>
-          </td>
-          <td class="p-2.5 text-right whitespace-nowrap">
-            <div class="flex items-center justify-end gap-1">
-              <button class="p-1 rounded text-[#F4EDE0]/60 hover:text-[#F4EDE0]" onclick="window.App.editTrade(${t.id})" title="Edit Trade">
-                <span class="material-symbols-outlined text-[16px]">edit</span>
-              </button>
-              <button class="p-1 rounded text-[#F4EDE0]/60 hover:text-[#F87171]" onclick="window.App.confirmDeleteTrade(${t.id}, '${t.stockSymbol}')" title="Delete Trade">
-                <span class="material-symbols-outlined text-[16px]">delete</span>
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  // Live Math calculation for Add Trade Form in Journal
-  function calculateJournalFormMath() {
-    const buyPrice = parseFloat(document.getElementById('buyPrice')?.value) || 0;
-    const sellPrice = parseFloat(document.getElementById('sellPrice')?.value) || 0;
-    const qty = parseInt(document.getElementById('tradeQty')?.value, 10) || 0;
-    const broker = document.getElementById('selectedBroker')?.value || 'groww';
-
-    const res = NSECalculator.calculate({
-      broker,
-      segment: 'delivery',
-      buyPrice,
-      sellPrice,
-      qty,
-      customDp: AppState.settings.customDp
-    });
-
-    const grossEl = document.getElementById('liveGrossPnL');
-    const chargesEl = document.getElementById('liveTaxesCharges');
-    const netEl = document.getElementById('liveNetPnL');
-    const roiEl = document.getElementById('liveNetRoi');
-    const statusPill = document.getElementById('liveOutcomeStatus');
-
-    if (grossEl) grossEl.textContent = (res.grossPnL >= 0 ? '+' : '') + fmtINR(res.grossPnL);
-    if (chargesEl) chargesEl.textContent = '-' + fmtINR(res.totalCharges);
-    if (netEl) {
-      netEl.className = res.netPnL >= 0
-        ? 'font-serif text-[20px] font-semibold text-[#7AD9A5] tabular-nums'
-        : 'font-serif text-[20px] font-semibold text-[#F87171] tabular-nums';
-      netEl.textContent = (res.netPnL >= 0 ? '+' : '') + fmtINR(res.netPnL);
-    }
-    if (roiEl) {
-      roiEl.className = res.netRoi >= 0 ? 'text-xs text-[#7AD9A5] font-medium' : 'text-xs text-[#F87171] font-medium';
-      roiEl.textContent = (res.netRoi >= 0 ? '+' : '') + res.netRoi.toFixed(2) + '% ROI';
-    }
-
-    if (statusPill) {
-      if (res.netPnL >= 0) {
-        statusPill.textContent = 'WIN';
-        statusPill.className = 'px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.15)] text-[#7AD9A5] text-[10px] font-bold block mb-0.5';
-      } else {
-        statusPill.textContent = 'LOSS';
-        statusPill.className = 'px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.15)] text-[#F87171] text-[10px] font-bold block mb-0.5';
-      }
-    }
-  }
-
-  async function handleSaveTrade() {
-    const date = document.getElementById('tradeDate')?.value;
-    const stockName = document.getElementById('stockName')?.value.trim();
-    const stockSymbol = document.getElementById('stockSymbol')?.value.trim().toUpperCase();
-    const broker = document.getElementById('selectedBroker')?.value || 'groww';
-    const buyPrice = parseFloat(document.getElementById('buyPrice')?.value) || 0;
-    const sellPrice = parseFloat(document.getElementById('sellPrice')?.value) || 0;
-    const qty = parseInt(document.getElementById('tradeQty')?.value, 10) || 0;
-    const strategy = document.getElementById('tradeStrategy')?.value.trim() || 'Swing Trade';
-    const notes = document.getElementById('tradeNotes')?.value.trim() || '';
-
-    if (!stockSymbol) {
-      showToast('Please enter a valid stock symbol (e.g. TATAPOWER)', 'error');
-      return;
-    }
-    if (buyPrice <= 0 || sellPrice <= 0 || qty <= 0) {
-      showToast('Please enter valid positive values for price and quantity', 'error');
-      return;
-    }
-
-    const calc = NSECalculator.calculate({
-      broker,
-      segment: 'delivery',
-      buyPrice,
-      sellPrice,
-      qty,
-      customDp: AppState.settings.customDp
-    });
-
-    const tradeRecord = {
-      date: date || new Date().toISOString().split('T')[0],
-      stockName: stockName || stockSymbol,
-      stockSymbol,
-      broker,
-      segment: 'delivery',
-      buyPrice,
-      sellPrice,
-      qty,
-      strategy,
-      notes,
-      grossPnL: calc.grossPnL,
-      totalCharges: calc.totalCharges,
-      netPnL: calc.netPnL,
-      netRoi: calc.netRoi,
-      outcome: calc.netPnL >= 0 ? 'win' : 'loss'
-    };
-
-    if (AppState.editingTradeId) {
-      tradeRecord.id = AppState.editingTradeId;
-      await TradeDB.saveTrade(tradeRecord);
-      AppState.editingTradeId = null;
-      document.getElementById('btnSaveTradeText').textContent = 'Add Swing Trade to Journal';
-      showToast('Trade record updated successfully', 'success');
-    } else {
-      await TradeDB.saveTrade(tradeRecord);
-      showToast('New swing trade saved to IndexedDB', 'success');
-    }
-
-    // Reset Form
-    resetTradeForm();
-    await reloadAllData();
-    renderJournal();
-    renderDashboard();
-  }
-
-  function resetTradeForm() {
-    AppState.editingTradeId = null;
-    document.getElementById('stockName').value = '';
-    document.getElementById('stockSymbol').value = '';
-    document.getElementById('buyPrice').value = '100.00';
-    document.getElementById('sellPrice').value = '105.00';
-    document.getElementById('tradeQty').value = '50';
-    document.getElementById('tradeStrategy').value = '';
-    document.getElementById('tradeNotes').value = '';
-    const btnText = document.getElementById('btnSaveTradeText');
-    if (btnText) btnText.textContent = 'Add Swing Trade to Journal';
-    calculateJournalFormMath();
-  }
-
-  function editTrade(id) {
-    const trade = AppState.trades.find(t => t.id === Number(id));
-    if (!trade) return;
-
-    AppState.editingTradeId = trade.id;
-    document.getElementById('tradeDate').value = trade.date;
-    document.getElementById('stockName').value = trade.stockName;
-    document.getElementById('stockSymbol').value = trade.stockSymbol;
-    document.getElementById('buyPrice').value = trade.buyPrice;
-    document.getElementById('sellPrice').value = trade.sellPrice;
-    document.getElementById('tradeQty').value = trade.qty;
-    if (document.getElementById('tradeStrategy')) document.getElementById('tradeStrategy').value = trade.strategy || '';
-    if (document.getElementById('tradeNotes')) document.getElementById('tradeNotes').value = trade.notes || '';
-
-    // Set broker toggle
-    selectJournalBroker(trade.broker);
-
-    const btnText = document.getElementById('btnSaveTradeText');
-    if (btnText) btnText.textContent = `Update Trade #${trade.id}`;
-
-    calculateJournalFormMath();
-    window.scrollTo({ top: 180, behavior: 'smooth' });
-    showToast(`Loaded ${trade.stockSymbol} into editor`, 'info');
-  }
-
-  function selectJournalBroker(broker) {
-    const hidden = document.getElementById('selectedBroker');
-    const gBtn = document.getElementById('brokerGrowwBtn');
-    const zBtn = document.getElementById('brokerZerodhaBtn');
-    if (hidden) hidden.value = broker;
-
-    if (broker === 'groww') {
-      if (gBtn) gBtn.className = 'py-1.5 text-xs rounded-lg font-semibold bg-[#F4EDE0] text-[#14213D] transition-all';
-      if (zBtn) zBtn.className = 'py-1.5 text-xs rounded-lg font-semibold text-[#F4EDE0]/70 transition-all';
-    } else {
-      if (zBtn) zBtn.className = 'py-1.5 text-xs rounded-lg font-semibold bg-[#F4EDE0] text-[#14213D] transition-all';
-      if (gBtn) gBtn.className = 'py-1.5 text-xs rounded-lg font-semibold text-[#F4EDE0]/70 transition-all';
-    }
-    calculateJournalFormMath();
-  }
-
-  function confirmDeleteTrade(id, symbol) {
-    AppState.deletingTradeId = id;
-    const modal = document.getElementById('deleteModal');
-    const label = document.getElementById('deleteStockName');
-    if (label) label.textContent = symbol;
-    if (modal) modal.classList.remove('hidden');
-  }
-
-  async function executeDeleteTrade() {
-    if (!AppState.deletingTradeId) return;
-    await TradeDB.deleteTrade(AppState.deletingTradeId);
-    AppState.deletingTradeId = null;
-    const modal = document.getElementById('deleteModal');
-    if (modal) modal.classList.add('hidden');
-
-    showToast('Trade record removed from IndexedDB', 'success');
-    await reloadAllData();
-    renderJournal();
-    renderDashboard();
-  }
-
-  function closeDeleteModal() {
-    AppState.deletingTradeId = null;
-    const modal = document.getElementById('deleteModal');
-    if (modal) modal.classList.add('hidden');
-  }
-
-  function exportJournalCSV() {
-    if (AppState.trades.length === 0) {
-      showToast('No trades to export', 'error');
-      return;
-    }
-
-    const headers = ['Date', 'Symbol', 'StockName', 'Broker', 'Segment', 'BuyPrice', 'SellPrice', 'Quantity', 'GrossPnL', 'TotalCharges', 'NetPnL', 'NetROI_Pct', 'Strategy', 'Notes'];
-    const rows = AppState.trades.map(t => [
-      t.date,
-      t.stockSymbol,
-      `"${(t.stockName || '').replace(/"/g, '""')}"`,
-      t.broker,
-      t.segment,
-      t.buyPrice,
-      t.sellPrice,
-      t.qty,
-      t.grossPnL,
-      t.totalCharges,
-      t.netPnL,
-      t.netRoi,
-      `"${(t.strategy || '').replace(/"/g, '""')}"`,
-      `"${(t.notes || '').replace(/"/g, '""')}"`
-    ]);
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const encoded = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encoded);
-    link.setAttribute('download', `TradeLedger_Trades_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('Exported trades to CSV', 'success');
-  }
-
-  /* ==========================================================================
-     VIEW 3: PORTFOLIO TRACKER
+     VIEW 2: PORTFOLIO TRACKER
      ========================================================================== */
   function renderPortfolio() {
-    // Set default date to today
     const dateInput = document.getElementById('snapshot-date');
     if (dateInput && !dateInput.value) {
       dateInput.value = new Date().toISOString().split('T')[0];
     }
-
     updateSnapshotFormCalculations();
     renderSnapshotTable();
   }
@@ -956,6 +445,7 @@
     const gInv = parseFloat(document.getElementById('groww-invested')?.value) || 0;
     const kCash = parseFloat(document.getElementById('kite-cash')?.value) || 0;
     const kInv = parseFloat(document.getElementById('kite-invested')?.value) || 0;
+    const deposit = parseFloat(document.getElementById('snapshot-deposit')?.value) || 0;
 
     const gSub = gCash + gInv;
     const kSub = kCash + kInv;
@@ -965,20 +455,35 @@
     const kSubEl = document.getElementById('kite-subtotal');
     const combEl = document.getElementById('combined-total-value');
     const deltaEl = document.getElementById('combined-dod-delta');
+    const organicEl = document.getElementById('combined-organic-return');
 
     if (gSubEl) gSubEl.textContent = fmtINR(gSub);
     if (kSubEl) kSubEl.textContent = fmtINR(kSub);
     if (combEl) combEl.textContent = fmtINR(comb);
 
-    // Delta estimation vs latest recorded snapshot
-    if (deltaEl && AppState.snapshots.length > 0) {
+    // Delta estimation vs previous recorded snapshot
+    let diff = 0;
+    let pct = '0.00';
+    if (AppState.snapshots.length > 0) {
       const prev = AppState.snapshots[AppState.snapshots.length - 1];
-      const diff = comb - prev.combinedTotal;
-      const pct = prev.combinedTotal > 0 ? ((diff / prev.combinedTotal) * 100).toFixed(2) : '0.00';
+      diff = comb - prev.combinedTotal;
+      pct = prev.combinedTotal > 0 ? ((diff / prev.combinedTotal) * 100).toFixed(2) : '0.00';
+    }
+
+    if (deltaEl) {
       deltaEl.className = diff >= 0
         ? 'text-xs font-bold text-[#7AD9A5] tabular-nums'
         : 'text-xs font-bold text-[#F87171] tabular-nums';
       deltaEl.textContent = `${diff >= 0 ? '+' : ''}${fmtINR(diff)} (${diff >= 0 ? '+' : ''}${pct}%)`;
+    }
+
+    // True Organic Market Return = Total Value Change - Net Deposit
+    const organicReturn = diff - deposit;
+    if (organicEl) {
+      organicEl.className = organicReturn >= 0
+        ? 'font-bold text-[#7AD9A5] tabular-nums'
+        : 'font-bold text-[#F87171] tabular-nums';
+      organicEl.textContent = `${organicReturn >= 0 ? '+' : ''}${fmtINR(organicReturn)}`;
     }
   }
 
@@ -988,6 +493,7 @@
     const gInv = parseFloat(document.getElementById('groww-invested')?.value) || 0;
     const kCash = parseFloat(document.getElementById('kite-cash')?.value) || 0;
     const kInv = parseFloat(document.getElementById('kite-invested')?.value) || 0;
+    const deposit = parseFloat(document.getElementById('snapshot-deposit')?.value) || 0;
 
     if (!date) {
       showToast('Please select a settlement date', 'error');
@@ -998,7 +504,7 @@
     const kTotal = kCash + kInv;
     const combinedTotal = gTotal + kTotal;
 
-    // Calculate DoD delta
+    // Calculate DoD delta vs previous chronologically
     let dodDelta = 0;
     let dodDeltaPct = 0;
     const prevSnapshots = AppState.snapshots.filter(s => s.date < date);
@@ -1007,6 +513,8 @@
       dodDelta = combinedTotal - lastPrev.combinedTotal;
       dodDeltaPct = lastPrev.combinedTotal > 0 ? (dodDelta / lastPrev.combinedTotal) * 100 : 0;
     }
+
+    const organicReturn = dodDelta - deposit;
 
     const snapshot = {
       date,
@@ -1018,7 +526,9 @@
       kiteTotal: kTotal,
       combinedTotal,
       dodDelta,
-      dodDeltaPct: parseFloat(dodDeltaPct.toFixed(2))
+      dodDeltaPct: parseFloat(dodDeltaPct.toFixed(2)),
+      deposit,
+      organicReturn
     };
 
     const saveBtn = document.getElementById('save-snapshot-btn');
@@ -1026,7 +536,7 @@
       saveBtn.disabled = true;
       saveBtn.innerHTML = `
         <span class="material-symbols-outlined text-[18px] animate-spin">refresh</span>
-        <span>Writing IndexedDB Record...</span>
+        <span>Saving Valuation...</span>
       `;
     }
 
@@ -1036,34 +546,35 @@
     if (saveBtn) {
       saveBtn.innerHTML = `
         <span class="material-symbols-outlined text-[18px]">check_circle</span>
-        <span>Snapshot Stored (IDB)</span>
+        <span>Valuation Recorded</span>
       `;
       setTimeout(() => {
         saveBtn.innerHTML = `
-          <span class="material-symbols-outlined text-[18px]">save</span>
-          <span>Commit Snapshot to Ledger</span>
+          <span class="material-symbols-outlined text-[16px]">save</span>
+          <span>Save Valuation Snapshot</span>
         `;
         saveBtn.disabled = false;
       }, 1500);
     }
 
-    showToast(`Snapshot for ${date} recorded in ledger`, 'success');
+    showToast(`Valuation for ${date} recorded in ledger`, 'success');
     renderSnapshotTable();
     renderDashboard();
   }
 
   function renderSnapshotTable() {
     const tbody = document.getElementById('snapshot-table-body');
+    const countBadge = document.getElementById('snapshot-count-badge');
     if (!tbody) return;
 
-    // Display descending by date
     const list = [...AppState.snapshots].sort((a, b) => b.date.localeCompare(a.date));
+    if (countBadge) countBadge.textContent = `${list.length} Records`;
 
     if (list.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="p-6 text-center text-[#F4EDE0]/50 text-xs">
-            No snapshots recorded yet. Add your daily EOD valuation above.
+          <td colspan="7" class="p-6 text-center text-[#F4EDE0]/50 text-xs">
+            No snapshots recorded yet. Record your daily valuation above.
           </td>
         </tr>
       `;
@@ -1073,27 +584,35 @@
     tbody.innerHTML = list.map(s => {
       const isUp = (s.dodDelta || 0) >= 0;
       const deltaColor = isUp ? 'text-[#7AD9A5]' : 'text-[#F87171]';
+      const organic = s.organicReturn !== undefined ? s.organicReturn : s.dodDelta;
+      const isOrgUp = (organic || 0) >= 0;
+      const orgColor = isOrgUp ? 'text-[#7AD9A5]' : 'text-[#F87171]';
 
       return `
         <tr class="hover:bg-white/5 transition-colors border-b border-[rgba(244,237,224,0.08)]">
-          <td class="p-2 text-[#F4EDE0]/65 whitespace-nowrap text-[11px]">
+          <td class="p-2.5 text-[#F4EDE0]/65 whitespace-nowrap text-[11px]">
             ${s.date}
           </td>
-          <td class="p-2 text-right tabular-nums">
+          <td class="p-2.5 text-right tabular-nums">
             <div class="text-[#F4EDE0] text-[11px]">${fmtINR(s.growwTotal)}</div>
           </td>
-          <td class="p-2 text-right tabular-nums">
+          <td class="p-2.5 text-right tabular-nums">
             <div class="text-[#F4EDE0] text-[11px]">${fmtINR(s.kiteTotal)}</div>
           </td>
-          <td class="p-2 text-right tabular-nums">
+          <td class="p-2.5 text-right tabular-nums">
             <div class="font-serif text-[#F4EDE0] font-semibold text-[13px]">${fmtINR(s.combinedTotal)}</div>
           </td>
-          <td class="p-2 text-right tabular-nums whitespace-nowrap">
+          <td class="p-2.5 text-right tabular-nums whitespace-nowrap">
             <span class="text-[10px] font-bold ${deltaColor}">
               ${(isUp ? '+' : '') + Number(s.dodDeltaPct || 0).toFixed(1)}%
             </span>
           </td>
-          <td class="p-2 text-right whitespace-nowrap">
+          <td class="p-2.5 text-right tabular-nums whitespace-nowrap">
+            <span class="text-[11px] font-semibold ${orgColor}">
+              ${(isOrgUp ? '+' : '') + fmtINR(organic)}
+            </span>
+          </td>
+          <td class="p-2.5 text-right whitespace-nowrap">
             <button class="p-1 rounded text-[#F4EDE0]/60 hover:text-[#F87171] transition-colors" onclick="window.App.confirmDeleteSnapshot('${s.date}')" title="Delete Record">
               <span class="material-symbols-outlined text-[15px]">delete</span>
             </button>
@@ -1134,7 +653,7 @@
       return;
     }
 
-    const headers = ['Date', 'Groww_Cash', 'Groww_Invested', 'Groww_Total', 'Zerodha_Cash', 'Zerodha_Invested', 'Zerodha_Total', 'Combined_Total', 'DoD_Delta'];
+    const headers = ['Date', 'Groww_Cash', 'Groww_Invested', 'Groww_Total', 'Zerodha_Cash', 'Zerodha_Invested', 'Zerodha_Total', 'Combined_Total', 'DoD_Delta', 'DoD_Delta_Pct', 'Net_Deposit', 'Organic_Market_Return'];
     const rows = AppState.snapshots.map(s => [
       s.date,
       s.growwCash,
@@ -1144,193 +663,25 @@
       s.kiteInvested,
       s.kiteTotal,
       s.combinedTotal,
-      s.dodDelta || 0
+      s.dodDelta || 0,
+      s.dodDeltaPct || 0,
+      s.deposit || 0,
+      s.organicReturn !== undefined ? s.organicReturn : (s.dodDelta || 0)
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const encoded = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encoded);
-    link.setAttribute('download', `TradeLedger_Snapshots_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `TradeDiary_Portfolio_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast('Exported snapshots to CSV', 'success');
+    showToast('Exported portfolio to CSV', 'success');
   }
 
   /* ==========================================================================
-     VIEW 4: ANALYTICS & PERFORMANCE
-     ========================================================================== */
-  function renderAnalytics() {
-    const trades = AppState.trades;
-    const snapshots = AppState.snapshots;
-
-    // 1. Portfolio Health
-    const latestSnapshot = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
-    const totalVal = latestSnapshot ? latestSnapshot.combinedTotal : 0;
-    const investedBase = latestSnapshot ? ((latestSnapshot.growwInvested || 0) + (latestSnapshot.kiteInvested || 0)) : 0;
-    const absGain = totalVal - investedBase;
-    const absGainPct = investedBase > 0 ? ((absGain / investedBase) * 100).toFixed(2) : '0.00';
-
-    const valEl = document.getElementById('analytics-total-val');
-    const gainEl = document.getElementById('analytics-abs-gain');
-    const baseEl = document.getElementById('analytics-invested-base');
-
-    if (valEl) valEl.innerHTML = fmtINR(totalVal);
-    if (gainEl) gainEl.textContent = `${absGain >= 0 ? '+' : ''}${fmtINR(absGain)} (${absGain >= 0 ? '+' : ''}${absGainPct}%)`;
-    if (baseEl) baseEl.textContent = fmtINR(investedBase);
-
-    // 2. Win / Loss Stats & Profit Factor
-    let grossWins = 0;
-    let grossLosses = 0;
-    let winCount = 0;
-    let lossCount = 0;
-    let maxWinTrade = null;
-    let maxLossTrade = null;
-
-    trades.forEach(t => {
-      const net = Number(t.netPnL || 0);
-      if (net > 0) {
-        winCount++;
-        grossWins += net;
-        if (!maxWinTrade || net > maxWinTrade.netPnL) maxWinTrade = t;
-      } else if (net < 0) {
-        lossCount++;
-        grossLosses += Math.abs(net);
-        if (!maxLossTrade || net < maxLossTrade.netPnL) maxLossTrade = t;
-      }
-    });
-
-    const totalTrades = trades.length;
-    const winRate = totalTrades > 0 ? ((winCount / totalTrades) * 100).toFixed(1) : '0.0';
-    const profitFactor = grossLosses > 0 ? (grossWins / grossLosses).toFixed(2) : (grossWins > 0 ? '99.00' : '0.00');
-
-    const avgWin = winCount > 0 ? (grossWins / winCount) : 0;
-    const avgLoss = lossCount > 0 ? (grossLosses / lossCount) : 0;
-    const payoffRatio = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : (avgWin > 0 ? '1.00' : '0.00');
-
-    // Update Analytics UI Elements
-    const hitRateEl = document.getElementById('analytics-hit-rate');
-    const winRatioBar = document.getElementById('analytics-win-ratio-bar');
-    const winRatioDetails = document.getElementById('analytics-win-ratio-details');
-    const profitFactorEl = document.getElementById('analytics-profit-factor');
-    const grossWinsEl = document.getElementById('analytics-gross-wins');
-    const grossLossesEl = document.getElementById('analytics-gross-losses');
-    const avgWinEl = document.getElementById('analytics-avg-win');
-    const avgLossEl = document.getElementById('analytics-avg-loss');
-    const payoffEl = document.getElementById('analytics-payoff-ratio');
-
-    if (hitRateEl) hitRateEl.textContent = `${winRate}% Hit Rate`;
-    if (winRatioBar) {
-      winRatioBar.innerHTML = `
-        <div class="h-full bg-[#7AD9A5]" style="width: ${winRate}%;"></div>
-        <div class="h-full bg-[#F87171]" style="width: ${(100 - Number(winRate)).toFixed(1)}%;"></div>
-      `;
-    }
-    if (winRatioDetails) {
-      winRatioDetails.innerHTML = `
-        <span class="text-[#7AD9A5] font-semibold">${winCount} Wins (${winRate}%)</span>
-        <span class="text-[#F87171] font-semibold">${lossCount} Losses (${(100 - Number(winRate)).toFixed(1)}%)</span>
-      `;
-    }
-    if (profitFactorEl) profitFactorEl.textContent = profitFactor;
-    if (grossWinsEl) grossWinsEl.textContent = '+' + fmtINR(grossWins);
-    if (grossLossesEl) grossLossesEl.textContent = '-' + fmtINR(grossLosses);
-    if (avgWinEl) avgWinEl.textContent = '+' + fmtINR(avgWin);
-    if (avgLossEl) avgLossEl.textContent = '-' + fmtINR(avgLoss);
-    if (payoffEl) payoffEl.textContent = `${payoffRatio} : 1`;
-
-    // Outlier Winner & Loser
-    const maxWinEl = document.getElementById('analytics-max-win-symbol');
-    const maxWinVal = document.getElementById('analytics-max-win-val');
-    const maxLossEl = document.getElementById('analytics-max-loss-symbol');
-    const maxLossVal = document.getElementById('analytics-max-loss-val');
-
-    if (maxWinTrade) {
-      if (maxWinEl) maxWinEl.textContent = maxWinTrade.stockSymbol;
-      if (maxWinVal) maxWinVal.textContent = '+' + fmtINR(maxWinTrade.netPnL);
-    }
-    if (maxLossTrade) {
-      if (maxLossEl) maxLossEl.textContent = maxLossTrade.stockSymbol;
-      if (maxLossVal) maxLossVal.textContent = fmtINR(maxLossTrade.netPnL);
-    }
-
-    // Taxes Breakdown
-    let totalCharges = 0;
-    trades.forEach(t => totalCharges += Number(t.totalCharges || 0));
-    const chargesTotalEl = document.getElementById('analytics-total-charges');
-    if (chargesTotalEl) chargesTotalEl.textContent = `Total Charges Deducted: ${fmtINR(totalCharges)}`;
-
-    // Render Equity Curve Chart
-    renderAnalyticsChart();
-  }
-
-  function renderAnalyticsChart() {
-    const svg = document.getElementById('analytics-equity-svg');
-    if (!svg) return;
-
-    let snapshots = AppState.snapshots;
-    if (!snapshots || snapshots.length < 2) {
-      snapshots = [
-        { date: '01 May', combinedTotal: 240488 },
-        { date: '05 May', combinedTotal: 244350 },
-        { date: '08 May', combinedTotal: 247120 },
-        { date: '12 May', combinedTotal: 253000 },
-        { date: '14 May', combinedTotal: 269528 },
-        { date: '16 May', combinedTotal: 273088 }
-      ];
-    }
-
-    const W = 900;
-    const H = 240;
-    const padX = 20;
-    const padY = 20;
-
-    const values = snapshots.map(s => Number(s.combinedTotal) || 0);
-    const minVal = Math.min(...values) * 0.98;
-    const maxVal = Math.max(...values) * 1.02;
-    const range = (maxVal - minVal) || 1;
-
-    const n = snapshots.length;
-    const points = snapshots.map((s, idx) => {
-      const x = padX + (idx / (n - 1)) * (W - 2 * padX);
-      const val = Number(s.combinedTotal) || 0;
-      const y = H - padY - ((val - minVal) / range) * (H - 2 * padY);
-      return { x, y, val, date: s.date };
-    });
-
-    let pathD = `M ${points[0].x},${points[0].y}`;
-    for (let i = 1; i < points.length; i++) {
-      const prev = points[i - 1];
-      const curr = points[i];
-      const midX = (prev.x + curr.x) / 2;
-      pathD += ` C ${midX},${prev.y} ${midX},${curr.y} ${curr.x},${curr.y}`;
-    }
-
-    const areaD = `${pathD} L ${points[points.length - 1].x},${H} L ${points[0].x},${H} Z`;
-
-    let nodes = '';
-    points.forEach((p, i) => {
-      if (i === 0 || i === Math.floor(n / 2) || i === n - 1) {
-        nodes += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#F4EDE0" stroke="#0D1527" stroke-width="2"/>`;
-      }
-    });
-
-    svg.innerHTML = `
-      <defs>
-        <linearGradient id="anEquityGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#F4EDE0" stop-opacity="0.30"/>
-          <stop offset="100%" stop-color="#F4EDE0" stop-opacity="0.0"/>
-        </linearGradient>
-      </defs>
-      <path d="${areaD}" fill="url(#anEquityGrad)"/>
-      <path d="${pathD}" fill="none" stroke="#F4EDE0" stroke-width="2.5" stroke-linecap="round"/>
-      ${nodes}
-    `;
-  }
-
-  /* ==========================================================================
-     VIEW 5: NSE CALCULATOR
+     VIEW 3: NSE CALCULATOR (PRESERVED & DETERMINISTIC)
      ========================================================================== */
   function setCalculatorBroker(broker) {
     AppState.calculatorState.broker = broker;
@@ -1344,7 +695,6 @@
       if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5';
       if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#F4EDE0]/70 transition-all flex items-center justify-center gap-1.5';
     }
-
     calculateAllCalculator();
   }
 
@@ -1359,7 +709,6 @@
         btn.className = 'px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap';
       }
     });
-
     calculateAllCalculator();
   }
 
@@ -1368,21 +717,6 @@
     if (!input) return;
     const current = parseInt(input.value, 10) || 0;
     input.value = Math.max(1, current + delta);
-    calculateAllCalculator();
-  }
-
-  function loadCalculatorSample() {
-    document.getElementById('calc-buy-price').value = '1450.00';
-    document.getElementById('calc-sell-price').value = '1530.00';
-    document.getElementById('calc-trade-qty').value = '100';
-    calculateAllCalculator();
-    showToast('Loaded sample swing position (₹1450 -> ₹1530)', 'info');
-  }
-
-  function resetCalculatorInputs() {
-    document.getElementById('calc-buy-price').value = '1000.00';
-    document.getElementById('calc-sell-price').value = '1050.00';
-    document.getElementById('calc-trade-qty').value = '50';
     calculateAllCalculator();
   }
 
@@ -1432,7 +766,7 @@
       }
     }
 
-    // Metric Hero Cards
+    // Metric Cards
     const grossEl = document.getElementById('metric-gross-pnl');
     const netEl = document.getElementById('metric-net-pnl');
     const netRoiEl = document.getElementById('metric-net-roi');
@@ -1464,17 +798,6 @@
       }
     }
 
-    // Drag / Retention Bar
-    const dragEl = document.getElementById('metric-charges-drag');
-    const retentionEl = document.getElementById('pnl-retention-rate');
-    const barNet = document.getElementById('bar-net');
-    const barCharges = document.getElementById('bar-charges');
-
-    if (dragEl) dragEl.textContent = `${res.dragPct.toFixed(1)}% profit drag`;
-    if (retentionEl) retentionEl.textContent = `${res.retentionPct.toFixed(1)}% Net Retention`;
-    if (barNet) barNet.style.width = `${res.retentionPct}%`;
-    if (barCharges) barCharges.style.width = `${res.dragPct}%`;
-
     // Breakeven display
     const bePriceEl = document.getElementById('breakeven-price');
     const beGapEl = document.getElementById('breakeven-gap');
@@ -1493,7 +816,7 @@
     const totalCharges = document.getElementById('cell-total-deductions').textContent;
     const bePrice = document.getElementById('breakeven-price').textContent;
 
-    const summaryText = `[TradeLedger NSE Calculator]\nBroker: ${AppState.calculatorState.broker.toUpperCase()} | Segment: ${AppState.calculatorState.segment.toUpperCase()}\nBuy Price: ₹${buyPrice} | Sell Price: ₹${sellPrice} | Qty: ${qty}\nTotal Charges: ${totalCharges}\nNet Realized P&L: ${netPnL}\nBreak-Even Exit: ${bePrice}`;
+    const summaryText = `[Trade Diary NSE Calculator]\nBroker: ${AppState.calculatorState.broker.toUpperCase()} | Segment: ${AppState.calculatorState.segment.toUpperCase()}\nBuy Price: ₹${buyPrice} | Sell Price: ₹${sellPrice} | Qty: ${qty}\nTotal Charges: ${totalCharges}\nNet Realized P&L: ${netPnL}\nBreak-Even Target: ${bePrice}`;
 
     navigator.clipboard.writeText(summaryText).then(() => {
       showToast('Calculator parameters copied to clipboard', 'success');
@@ -1502,45 +825,10 @@
     });
   }
 
-  function transferCalculatorToJournal() {
-    const buyPrice = document.getElementById('calc-buy-price').value;
-    const sellPrice = document.getElementById('calc-sell-price').value;
-    const qty = document.getElementById('calc-trade-qty').value;
-
-    switchView('trade-journal');
-
-    setTimeout(() => {
-      document.getElementById('buyPrice').value = buyPrice;
-      document.getElementById('sellPrice').value = sellPrice;
-      document.getElementById('tradeQty').value = qty;
-      document.getElementById('stockName').value = 'NSE Swing Position';
-      document.getElementById('stockSymbol').value = 'SWING';
-      selectJournalBroker(AppState.calculatorState.broker);
-      calculateJournalFormMath();
-      window.scrollTo({ top: 180, behavior: 'smooth' });
-      showToast('Transferred parameters to Trade Journal', 'success');
-    }, 150);
-  }
-
   /* ==========================================================================
-     VIEW 6: SETTINGS & DATABASE HUB
+     VIEW 4: SETTINGS & STORAGE HUB
      ========================================================================== */
   async function renderSettings() {
-    const stats = await TradeDB.getStats();
-
-    const tradesCountEl = document.getElementById('settings-trades-count');
-    const snapCountEl = document.getElementById('settings-snapshots-count');
-    const quotaUsedEl = document.getElementById('settings-quota-used');
-    const quotaPctEl = document.getElementById('settings-quota-pct');
-    const quotaBarEl = document.getElementById('settings-quota-bar');
-
-    if (tradesCountEl) tradesCountEl.textContent = stats.tradesCount;
-    if (snapCountEl) snapCountEl.textContent = stats.snapshotCount;
-    if (quotaUsedEl) quotaUsedEl.textContent = `${stats.quota.usedMB} MB / ~${stats.quota.totalGB} GB`;
-    if (quotaPctEl) quotaPctEl.textContent = `${stats.quota.pct}% Quota Used`;
-    if (quotaBarEl) quotaBarEl.style.width = `${Math.max(1, parseFloat(stats.quota.pct))}%`;
-
-    // Preferences
     const brokerSel = document.getElementById('settings-default-broker');
     const dpInput = document.getElementById('settings-dp-charge');
     if (brokerSel) brokerSel.value = AppState.settings.defaultBroker;
@@ -1554,7 +842,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `TradeLedger_Full_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `TradeDiary_Backup_${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -1594,7 +882,7 @@
   }
 
   async function handleClearAllDatabase() {
-    if (confirm('DANGER: Completely wipe all trades and snapshots from local browser storage? This cannot be undone.')) {
+    if (confirm('DANGER: Completely wipe all records from local browser storage? This cannot be undone.')) {
       await TradeDB.clearAll();
       await reloadAllData();
       renderSettings();
@@ -1614,92 +902,12 @@
       AppState.settings.customDp = parseFloat(dpInput.value) || 13.50;
       await TradeDB.setSetting('customDp', AppState.settings.customDp);
     }
-
     showToast('Preferences saved', 'success');
   }
 
-  // PWA Install Prompt Listener
-  function initPwaInstall() {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      AppState.deferredInstallPrompt = e;
-      const installBtn = document.getElementById('pwa-install-banner-btn');
-      if (installBtn) {
-        installBtn.classList.remove('hidden');
-      }
-    });
-
-    window.addEventListener('appinstalled', () => {
-      AppState.deferredInstallPrompt = null;
-      showToast('TradeLedger installed as native PWA!', 'success');
-    });
-  }
-
-  function triggerPwaInstall() {
-    if (AppState.deferredInstallPrompt) {
-      AppState.deferredInstallPrompt.prompt();
-      AppState.deferredInstallPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          showToast('Installing PWA...', 'success');
-        }
-        AppState.deferredInstallPrompt = null;
-      });
-    } else {
-      showToast('App is ready for offline use or already installed', 'info');
-    }
-  }
-
-  // Unregister Service Workers and Purge Caches to guarantee live updates
-  function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        for (const reg of registrations) {
-          reg.unregister();
-        }
-      }).catch(() => {});
-    }
-    if ('caches' in window) {
-      caches.keys().then((names) => {
-        for (const name of names) {
-          caches.delete(name);
-        }
-      }).catch(() => {});
-    }
-  }
-
-  // Journal Filter Controls
-  function setJournalBrokerFilter(broker) {
-    AppState.journalFilter.broker = broker;
-    ['all', 'groww', 'zerodha'].forEach(b => {
-      const btn = document.getElementById(`fltBroker${b.charAt(0).toUpperCase() + b.slice(1)}`);
-      if (!btn) return;
-      if (b === broker) {
-        btn.className = 'px-3 py-1 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap';
-      } else {
-        btn.className = 'px-3 py-1 rounded-full bg-[#14213D] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0]/70 whitespace-nowrap';
-      }
-    });
-    renderJournalTable();
-  }
-
-  function setJournalOutcomeFilter(outcome) {
-    AppState.journalFilter.outcome = outcome;
-    ['all', 'win', 'loss'].forEach(o => {
-      const btn = document.getElementById(`fltOut${o.charAt(0).toUpperCase() + o.slice(1)}`);
-      if (!btn) return;
-      if (o === outcome) {
-        btn.className = 'px-3 py-1 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap';
-      } else {
-        btn.className = 'px-3 py-1 rounded-full bg-[#14213D] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0]/70 whitespace-nowrap';
-      }
-    });
-    renderJournalTable();
-  }
-
-  // Universal Global Event Delegation (Synchronous, instant tap response for Safari & Chrome)
+  // Universal Global Event Delegation
   function setupEventDelegation() {
     document.addEventListener('click', (e) => {
-      // 1. Navigation Tabs & data-path buttons
       const navBtn = e.target.closest('[data-path]');
       if (navBtn) {
         e.preventDefault();
@@ -1708,22 +916,12 @@
         return;
       }
 
-      // 2. Action Buttons & data-action triggers
       const actionBtn = e.target.closest('[data-action]');
       if (actionBtn) {
         const action = actionBtn.getAttribute('data-action');
         e.preventDefault();
 
         switch (action) {
-          case 'open-action-sheet':
-            openActionSheet();
-            break;
-          case 'close-action-sheet':
-            closeActionSheet();
-            break;
-          case 'quick-calc':
-            switchView('nse-calculator');
-            break;
           case 'open-settings':
             switchView('settings-and-backup');
             break;
@@ -1739,23 +937,11 @@
           case 'clear-all':
             handleClearAllDatabase();
             break;
-          case 'save-trade':
-            handleSaveTrade();
-            break;
-          case 'reset-trade':
-            resetTradeForm();
-            break;
-          case 'export-journal-csv':
-            exportJournalCSV();
-            break;
           case 'save-snapshot':
             handleSaveSnapshot();
             break;
           case 'export-portfolio-csv':
             exportPortfolioCSV();
-            break;
-          case 'transfer-calc':
-            transferCalculatorToJournal();
             break;
           case 'copy-calc':
             copyCalculatorSummary();
@@ -1765,70 +951,42 @@
     });
   }
 
-  // Form input and change listeners
+  // Form input listeners
   function setupFormEvents() {
-    const saveTradeBtn = document.getElementById('btnSaveTrade');
-    if (saveTradeBtn) saveTradeBtn.addEventListener('click', handleSaveTrade);
-
-    const clearTradeBtn = document.getElementById('btnClearTrade');
-    if (clearTradeBtn) clearTradeBtn.addEventListener('click', resetTradeForm);
-
     const saveSnapBtn = document.getElementById('save-snapshot-btn');
     if (saveSnapBtn) saveSnapBtn.addEventListener('click', handleSaveSnapshot);
 
-    // Inputs listener for dynamic subtotal calculation
-    ['groww-cash', 'groww-invested', 'kite-cash', 'kite-invested'].forEach(id => {
+    ['groww-cash', 'groww-invested', 'kite-cash', 'kite-invested', 'snapshot-deposit'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', updateSnapshotFormCalculations);
     });
 
-    // Inputs listener for trade form
-    ['buyPrice', 'sellPrice', 'tradeQty'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('input', calculateJournalFormMath);
-    });
-
-    // Inputs listener for calculator
     ['calc-buy-price', 'calc-sell-price', 'calc-trade-qty'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', calculateAllCalculator);
     });
-
-    // Search & Filter listeners
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
-        AppState.journalFilter.search = e.target.value;
-        renderJournalTable();
-      });
-    }
-
-    const sortSelect = document.getElementById('sortSelect');
-    if (sortSelect) {
-      sortSelect.addEventListener('change', (e) => {
-        AppState.journalFilter.sort = e.target.value;
-        renderJournalTable();
-      });
-    }
   }
 
-  // Synchronous App Initialization (Never blocks on async storage)
+  // Keyboard Shortcuts (1 = Home, 2 = Portfolio, 3 = Calculator, s = Settings)
+  function initKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      if (e.key === '1') switchView('dashboard');
+      else if (e.key === '2') switchView('portfolio-tracker');
+      else if (e.key === '3') switchView('nse-calculator');
+      else if (e.key === 's' || e.key === 'S') switchView('settings-and-backup');
+    });
+  }
+
+  // App Initialization
   function initApp() {
-    // 1. Immediately attach event delegation & form events
     setupEventDelegation();
     setupFormEvents();
-
-    // 2. Connectivity & Market Clock
     initConnectivityMonitor();
     updateMarketStatus();
     setInterval(updateMarketStatus, 30000);
-
-    // 3. Register Hotkeys & PWA
     initKeyboardShortcuts();
-    initPwaInstall();
-    registerServiceWorker();
 
-    // 4. Handle initial URL hash and render immediately from synchronous state
     const initialHash = window.location.hash.replace('#', '') || 'dashboard';
     switchView(initialHash);
 
@@ -1839,15 +997,13 @@
       }
     });
 
-    // 5. Background non-blocking IndexedDB sync
     (async () => {
       try {
         await TradeDB.init();
         await reloadAllData();
-        // Update current view with any persisted data
         switchView(AppState.currentView);
       } catch (dbErr) {
-        console.warn('Background database sync notice:', dbErr);
+        console.warn('Database initialization:', dbErr);
       }
     })();
   }
@@ -1856,62 +1012,37 @@
   window.App = window.App || {};
   window.App._onViewSwitch = function(viewName) {
     if (viewName === 'dashboard') renderDashboard();
-    if (viewName === 'trade-journal') renderJournal();
     if (viewName === 'portfolio-tracker') renderPortfolio();
-    if (viewName === 'analytics') renderAnalytics();
     if (viewName === 'nse-calculator') calculateAllCalculator();
     if (viewName === 'settings-and-backup') renderSettings();
   };
 
-  // Expose and extend global controller
+  // Expose global methods
   Object.assign(window.App, {
     init: initApp,
     switchView,
-    toggleMobileSidebar,
-    closeMobileSidebar,
     showToast,
-    // Form and Action Handlers
-    handleSaveTrade,
-    resetTradeForm,
+    // Portfolio
     handleSaveSnapshot,
     updateSnapshotFormCalculations,
-    calculateJournalFormMath,
-    // Calculator
-    setCalculatorBroker,
-    setCalculatorSegment,
-    adjustCalculatorQty,
-    loadCalculatorSample,
-    resetCalculatorInputs,
-    calculateAllCalculator,
-    copyCalculatorSummary,
-    transferCalculatorToJournal,
-    // Journal
-    selectJournalBroker,
-    editTrade,
-    confirmDeleteTrade,
-    executeDeleteTrade,
-    closeDeleteModal,
-    exportJournalCSV,
-    setJournalBrokerFilter,
-    setJournalOutcomeFilter,
-    // Action Sheet Modal Controls
-    openActionSheet,
-    closeActionSheet,
-    // Portfolio
     confirmDeleteSnapshot,
     executeDeleteSnapshot,
     closeDeleteSnapshotModal,
     exportPortfolioCSV,
+    // Calculator
+    setCalculatorBroker,
+    setCalculatorSegment,
+    adjustCalculatorQty,
+    calculateAllCalculator,
+    copyCalculatorSummary,
     // Settings
     downloadFullBackup,
     handleRestoreBackup,
     handleResetToSampleData,
     handleClearAllDatabase,
-    savePreferences,
-    triggerPwaInstall
+    savePreferences
   });
 
-  // Start on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
   } else {

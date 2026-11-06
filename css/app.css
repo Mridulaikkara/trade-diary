@@ -8,8 +8,8 @@
      Navy Elevated:    #1C2C4E (Secondary Surface / Buttons)
      Navy Input:       #0B1220 (Deep Inset Input Surface)
      Cream Hover:      #E8DFCF (Cream State Tint)
-     Border Subtle:    rgba(244, 237, 224, 0.12)
-     Border Focus:     rgba(244, 237, 224, 0.28)
+     Border Subtle:    rgba(244, 237, 224, 0.14)
+     Border Focus:     rgba(244, 237, 224, 0.30)
      Text Primary:     #F4EDE0 (Crisp Warm Cream)
      Text Muted:       rgba(244, 237, 224, 0.70)
      Text Subtle:      rgba(244, 237, 224, 0.45)
@@ -27,7 +27,7 @@
   --cream-hover: #E8DFCF;
   --cream-muted: rgba(244, 237, 224, 0.70);
   --cream-subtle: rgba(244, 237, 224, 0.45);
-  --card-border: rgba(244, 237, 224, 0.12);
+  --card-border: rgba(244, 237, 224, 0.14);
   --gain: #7AD9A5;
   --loss: #F87171;
 }
@@ -60,7 +60,7 @@ button, a, input, select, [role="button"], [data-action], [data-path] {
   cursor: pointer;
 }
 
-button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .nav-center-action-btn:active {
+button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
   opacity: 0.72 !important;
   transform: none !important;
 }
@@ -73,8 +73,13 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-::-webkit-scrollbar { display: none; }
-* { scrollbar-width: none; }
+/* Hide scrollbars cleanly */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
+}
 
 /* ─── LAYER 1: Permanently Fixed Top Header ─── */
 .app-header {
@@ -101,7 +106,7 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .
   justify-content: space-between !important;
 }
 
-/* ─── LAYER 3: Permanently Fixed Bottom Navigation Bar ─── */
+/* ─── LAYER 3: Permanently Fixed Bottom Navigation Bar (3 Tabs: Home, Portfolio, Calculator) ─── */
 .app-bottom-nav {
   position: fixed !important;
   bottom: 0 !important;
@@ -119,8 +124,8 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .
   border-top: 1px solid rgba(244, 237, 224, 0.14) !important;
   padding-top: 8px !important;
   padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px) !important;
-  padding-left: 12px !important;
-  padding-right: 12px !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-around !important;
@@ -142,13 +147,14 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .
 
 /* ─── Bottom Nav Tab Items ─── */
 .nav-tab-item {
-  width: 48px;
-  height: 44px;
-  border-radius: 999px;
+  width: 72px;
+  height: 46px;
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   color: rgba(244, 237, 224, 0.45);
   background: transparent;
   border: none;
@@ -158,8 +164,18 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .
   cursor: pointer;
 }
 
+.nav-tab-item .nav-tab-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
 .nav-tab-item.active {
   color: #F4EDE0;
+}
+
+.nav-tab-item.active .nav-tab-label {
+  font-weight: 600;
 }
 
 .nav-tab-item.active::after {
@@ -175,28 +191,6 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .
   box-shadow: 0 0 8px #F4EDE0;
 }
 
-/* Center Highlight (+) Button - Solid Luxury Cream with Navy Icon */
-.nav-center-action-btn {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: #F4EDE0;
-  color: #14213D;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  outline: none;
-  box-shadow: 0 4px 18px rgba(244, 237, 224, 0.35);
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: opacity 0.15s ease, background-color 0.15s ease;
-}
-
-.nav-center-action-btn:hover {
-  background-color: #E8DFCF;
-}
-
 /* ─── View Panels ─── */
 .view-panel {
   display: none;
@@ -210,43 +204,6 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .
 @keyframes fadeInPanel {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-/* ─── iOS Action Sheet Modal ─── */
-.action-sheet-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(10, 17, 32, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 10000;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 16px;
-  padding-bottom: calc(max(env(safe-area-inset-bottom, 20px), 16px) + 12px);
-}
-
-.action-sheet-overlay.hidden {
-  display: none !important;
-  pointer-events: none !important;
-}
-
-.action-sheet-container {
-  width: 100%;
-  max-width: 440px;
-  margin: 0 auto;
-  background-color: #14213D;
-  border: 1px solid rgba(244, 237, 224, 0.18);
-  border-radius: 24px;
-  padding: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
-  animation: slideUpSheet 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideUpSheet {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
 }
 
 /* ─── Toast Container ─── */
@@ -271,10 +228,10 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .
 }
 
 /* ─── Modals ─── */
-#deleteModal, #delete-snapshot-modal {
+#delete-snapshot-modal {
   z-index: 10000;
 }
-#deleteModal.hidden, #delete-snapshot-modal.hidden {
+#delete-snapshot-modal.hidden {
   display: none !important;
   pointer-events: none !important;
 }

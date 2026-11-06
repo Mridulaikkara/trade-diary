@@ -13,18 +13,18 @@ const TradeDB = (function() {
 
   // Initial Sample Datasets (Seed on first run so the dashboard and analytics are populated)
   const INITIAL_SNAPSHOTS = [
-    { date: '2025-05-01', growwCash: 20000, growwInvested: 175488, kiteCash: 30000, kiteInvested: 15000, growwTotal: 195488, kiteTotal: 45000, combinedTotal: 240488, dodDelta: 0, dodDeltaPct: 0 },
-    { date: '2025-05-02', growwCash: 20000, growwInvested: 177210, kiteCash: 30000, kiteInvested: 15150, growwTotal: 197210, kiteTotal: 45150, combinedTotal: 242360, dodDelta: 1872, dodDeltaPct: 0.78 },
-    { date: '2025-05-05', growwCash: 20000, growwInvested: 179050, kiteCash: 30000, kiteInvested: 15300, growwTotal: 199050, kiteTotal: 45300, combinedTotal: 244350, dodDelta: 1990, dodDeltaPct: 0.82 },
-    { date: '2025-05-06', growwCash: 20000, growwInvested: 180120, kiteCash: 30000, kiteInvested: 15410, growwTotal: 200120, kiteTotal: 45410, combinedTotal: 245530, dodDelta: 1180, dodDeltaPct: 0.48 },
-    { date: '2025-05-07', growwCash: 20000, growwInvested: 181290, kiteCash: 30000, kiteInvested: 15550, growwTotal: 201290, kiteTotal: 45550, combinedTotal: 246840, dodDelta: 1310, dodDeltaPct: 0.53 },
-    { date: '2025-05-08', growwCash: 20000, growwInvested: 181500, kiteCash: 30000, kiteInvested: 15620, growwTotal: 201500, kiteTotal: 45620, combinedTotal: 247120, dodDelta: 280, dodDeltaPct: 0.11 },
-    { date: '2025-05-09', growwCash: 20000, growwInvested: 183400, kiteCash: 30000, kiteInvested: 15720, growwTotal: 203400, kiteTotal: 45720, combinedTotal: 249120, dodDelta: 2000, dodDeltaPct: 0.81 },
-    { date: '2025-05-12', growwCash: 20000, growwInvested: 185600, kiteCash: 32000, kiteInvested: 15400, growwTotal: 205600, kiteTotal: 47400, combinedTotal: 253000, dodDelta: 3880, dodDeltaPct: 1.56 },
-    { date: '2025-05-13', growwCash: 20000, growwInvested: 186900, kiteCash: 32000, kiteInvested: 15480, growwTotal: 206900, kiteTotal: 47480, combinedTotal: 254380, dodDelta: 1380, dodDeltaPct: 0.55 },
-    { date: '2025-05-14', growwCash: 20000, growwInvested: 201100, kiteCash: 33070, kiteInvested: 15358, growwTotal: 221100, kiteTotal: 48428, combinedTotal: 269528, dodDelta: 15148, dodDeltaPct: 5.96 },
-    { date: '2025-05-15', growwCash: 20000, growwInvested: 202180, kiteCash: 33070, kiteInvested: 15698, growwTotal: 222180, kiteTotal: 48768, combinedTotal: 270948, dodDelta: 1420, dodDeltaPct: 0.53 },
-    { date: '2025-05-16', growwCash: 20000, growwInvested: 204226, kiteCash: 33070, kiteInvested: 15792, growwTotal: 224226, kiteTotal: 48862, combinedTotal: 273088, dodDelta: 2140, dodDeltaPct: 0.79 }
+    { date: '2025-05-01', growwCash: 20000, growwInvested: 175488, kiteCash: 30000, kiteInvested: 15000, growwTotal: 195488, kiteTotal: 45000, combinedTotal: 240488, dodDelta: 0, dodDeltaPct: 0, deposit: 0, organicReturn: 0 },
+    { date: '2025-05-02', growwCash: 20000, growwInvested: 177210, kiteCash: 30000, kiteInvested: 15150, growwTotal: 197210, kiteTotal: 45150, combinedTotal: 242360, dodDelta: 1872, dodDeltaPct: 0.78, deposit: 0, organicReturn: 1872 },
+    { date: '2025-05-05', growwCash: 20000, growwInvested: 179050, kiteCash: 30000, kiteInvested: 15300, growwTotal: 199050, kiteTotal: 45300, combinedTotal: 244350, dodDelta: 1990, dodDeltaPct: 0.82, deposit: 0, organicReturn: 1990 },
+    { date: '2025-05-06', growwCash: 20000, growwInvested: 180120, kiteCash: 30000, kiteInvested: 15410, growwTotal: 200120, kiteTotal: 45410, combinedTotal: 245530, dodDelta: 1180, dodDeltaPct: 0.48, deposit: 0, organicReturn: 1180 },
+    { date: '2025-05-07', growwCash: 20000, growwInvested: 181290, kiteCash: 30000, kiteInvested: 15550, growwTotal: 201290, kiteTotal: 45550, combinedTotal: 246840, dodDelta: 1310, dodDeltaPct: 0.53, deposit: 0, organicReturn: 1310 },
+    { date: '2025-05-08', growwCash: 20000, growwInvested: 181500, kiteCash: 30000, kiteInvested: 15620, growwTotal: 201500, kiteTotal: 45620, combinedTotal: 247120, dodDelta: 280, dodDeltaPct: 0.11, deposit: 0, organicReturn: 280 },
+    { date: '2025-05-09', growwCash: 20000, growwInvested: 183400, kiteCash: 30000, kiteInvested: 15720, growwTotal: 203400, kiteTotal: 45720, combinedTotal: 249120, dodDelta: 2000, dodDeltaPct: 0.81, deposit: 0, organicReturn: 2000 },
+    { date: '2025-05-12', growwCash: 20000, growwInvested: 185600, kiteCash: 32000, kiteInvested: 15400, growwTotal: 205600, kiteTotal: 47400, combinedTotal: 253000, dodDelta: 3880, dodDeltaPct: 1.56, deposit: 0, organicReturn: 3880 },
+    { date: '2025-05-13', growwCash: 20000, growwInvested: 186900, kiteCash: 32000, kiteInvested: 15480, growwTotal: 206900, kiteTotal: 47480, combinedTotal: 254380, dodDelta: 1380, dodDeltaPct: 0.55, deposit: 0, organicReturn: 1380 },
+    { date: '2025-05-14', growwCash: 20000, growwInvested: 201100, kiteCash: 33070, kiteInvested: 15358, growwTotal: 221100, kiteTotal: 48428, combinedTotal: 269528, dodDelta: 15148, dodDeltaPct: 5.96, deposit: 14000, organicReturn: 1148 },
+    { date: '2025-05-15', growwCash: 20000, growwInvested: 202180, kiteCash: 33070, kiteInvested: 15698, growwTotal: 222180, kiteTotal: 48768, combinedTotal: 270948, dodDelta: 1420, dodDeltaPct: 0.53, deposit: 0, organicReturn: 1420 },
+    { date: '2025-05-16', growwCash: 20000, growwInvested: 204226, kiteCash: 33070, kiteInvested: 15792, growwTotal: 224226, kiteTotal: 48862, combinedTotal: 273088, dodDelta: 2140, dodDeltaPct: 0.79, deposit: 0, organicReturn: 2140 }
   ];
 
   const INITIAL_TRADES = [
