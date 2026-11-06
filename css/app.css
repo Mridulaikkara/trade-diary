@@ -1,37 +1,35 @@
 /* ==========================================================================
-   Trade Diary — Warm Luxury Native Mobile Stylesheet
+   Trade Diary — Ultra-Premium Navy & Cream Native Mobile Stylesheet
    Palette:
-     Canvas:      #1F1D20 (Dark Charcoal Black-Plum)
-     Burgundy:    #46232A (Deep Wine)
-     Rust:        #803E2F (Primary Warm Accent)
-     Sand:        #A79986 (Secondary Warm Accent)
-     Mocha:       #362F2E (Card Surface / Buttons)
-     Slate:       #3E3D38 (Borders & Surfaces)
-     Text White:  #FFFFFF (Headings & Hero Numbers)
-     Text Primary:#F6F4F1 (Warm Ivory)
-     Text Sand:   #A79986 (Metadata & Labels)
-     Text Muted:  #8E8780 (Subtle)
-     Gain:        #82D172 (Green)
-     Loss:        #E05D4D (Red)
+     Brand Navy:       #14213D (Deep Sophisticated Royal Navy)
+     Brand Cream:      #F4EDE0 (Warm Luxury Alabaster / Ivory)
+     Canvas:           #0D1527 (Midnight Navy Base)
+     Navy Card:        #14213D (Primary Surface)
+     Navy Elevated:    #1C2C4E (Secondary Surface / Buttons)
+     Navy Input:       #0B1220 (Deep Inset Input Surface)
+     Cream Hover:      #E8DFCF (Cream State Tint)
+     Border Subtle:    rgba(244, 237, 224, 0.12)
+     Border Focus:     rgba(244, 237, 224, 0.28)
+     Text Primary:     #F4EDE0 (Crisp Warm Cream)
+     Text Muted:       rgba(244, 237, 224, 0.70)
+     Text Subtle:      rgba(244, 237, 224, 0.45)
+     Gain Accent:      #7AD9A5 (Refined Sage Mint)
+     Loss Accent:      #F87171 (Refined Soft Coral)
    ========================================================================== */
 
 :root {
-  --canvas: #1F1D20;
-  --card-bg: #2B272A;
-  --card-bg-subtle: #242023;
-  --card-border: rgba(167, 153, 134, 0.16);
-  --rust: #803E2F;
-  --rust-hover: #964a38;
-  --burgundy: #46232A;
-  --sand: #A79986;
-  --mocha: #362F2E;
-  --slate: #3E3D38;
-  --text-main: #F6F4F1;
-  --text-white: #FFFFFF;
-  --text-sand: #A79986;
-  --text-muted: #8E8780;
-  --gain: #82D172;
-  --loss: #E05D4D;
+  --canvas: #0D1527;
+  --navy: #14213D;
+  --navy-card: #14213D;
+  --navy-elevated: #1C2C4E;
+  --navy-input: #0B1220;
+  --cream: #F4EDE0;
+  --cream-hover: #E8DFCF;
+  --cream-muted: rgba(244, 237, 224, 0.70);
+  --cream-subtle: rgba(244, 237, 224, 0.45);
+  --card-border: rgba(244, 237, 224, 0.12);
+  --gain: #7AD9A5;
+  --loss: #F87171;
 }
 
 *, *::before, *::after {
@@ -39,8 +37,8 @@
 }
 
 html {
-  background-color: #1F1D20 !important;
-  color: #F6F4F1 !important;
+  background-color: #0D1527 !important;
+  color: #F4EDE0 !important;
   min-height: 100%;
 }
 
@@ -48,23 +46,23 @@ body {
   margin: 0 !important;
   padding: 0 !important;
   min-height: 100% !important;
-  background-color: #1F1D20 !important;
-  color: #F6F4F1 !important;
+  background-color: #0D1527 !important;
+  color: #F4EDE0 !important;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Touch responsiveness */
+/* Touch responsiveness - zero transform to prevent WebKit touch cancellation */
 button, a, input, select, [role="button"], [data-action], [data-path] {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
 }
 
-button:active, [data-action]:active, [data-path]:active {
-  transform: scale(0.96);
-  transition: transform 0.08s ease;
+button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .nav-center-action-btn:active {
+  opacity: 0.72 !important;
+  transform: none !important;
 }
 
 .font-serif {
@@ -87,12 +85,13 @@ button:active, [data-action]:active, [data-path]:active {
   width: 100% !important;
   max-width: 480px !important;
   margin: 0 auto !important;
-  z-index: 9999 !important;
-  background-color: #1F1D20 !important;
-  background: rgba(31, 29, 32, 0.96) !important;
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+  background-color: #14213D !important;
+  background: rgba(20, 33, 61, 0.95) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   backdrop-filter: blur(20px) !important;
-  border-bottom: 1px solid rgba(167, 153, 134, 0.16) !important;
+  border-bottom: 1px solid rgba(244, 237, 224, 0.14) !important;
   padding-top: max(env(safe-area-inset-top, 44px), 14px) !important;
   padding-bottom: 10px !important;
   padding-left: 16px !important;
@@ -111,12 +110,13 @@ button:active, [data-action]:active, [data-path]:active {
   width: 100% !important;
   max-width: 480px !important;
   margin: 0 auto !important;
-  z-index: 9999 !important;
-  background-color: #1A181A !important;
-  background: rgba(26, 24, 26, 0.97) !important;
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+  background-color: #0E182B !important;
+  background: rgba(14, 24, 43, 0.96) !important;
   -webkit-backdrop-filter: blur(24px) !important;
   backdrop-filter: blur(24px) !important;
-  border-top: 1px solid rgba(167, 153, 134, 0.18) !important;
+  border-top: 1px solid rgba(244, 237, 224, 0.14) !important;
   padding-top: 8px !important;
   padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px) !important;
   padding-left: 12px !important;
@@ -124,7 +124,7 @@ button:active, [data-action]:active, [data-path]:active {
   display: flex !important;
   align-items: center !important;
   justify-content: space-around !important;
-  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.7) !important;
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.6) !important;
 }
 
 /* ─── LAYER 2: Scrollable Main Content ─── */
@@ -149,16 +149,17 @@ button:active, [data-action]:active, [data-path]:active {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #8E8780;
+  color: rgba(244, 237, 224, 0.45);
   background: transparent;
   border: none;
   outline: none;
   transition: all 0.15s ease;
   position: relative;
+  cursor: pointer;
 }
 
 .nav-tab-item.active {
-  color: #A79986;
+  color: #F4EDE0;
 }
 
 .nav-tab-item.active::after {
@@ -170,33 +171,30 @@ button:active, [data-action]:active, [data-path]:active {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: #803E2F;
-  box-shadow: 0 0 8px #803E2F;
+  background-color: #F4EDE0;
+  box-shadow: 0 0 8px #F4EDE0;
 }
 
-/* Center Highlight (+) Button */
+/* Center Highlight (+) Button - Solid Luxury Cream with Navy Icon */
 .nav-center-action-btn {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: #803E2F;
-  color: #FFFFFF;
+  background: #F4EDE0;
+  color: #14213D;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   outline: none;
-  box-shadow: 0 4px 18px rgba(128, 62, 47, 0.6);
+  box-shadow: 0 4px 18px rgba(244, 237, 224, 0.35);
   flex-shrink: 0;
-  transition: transform 0.1s ease, background-color 0.15s ease;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
 }
 
 .nav-center-action-btn:hover {
-  background-color: #964a38;
-}
-
-.nav-center-action-btn:active {
-  transform: scale(0.92) !important;
+  background-color: #E8DFCF;
 }
 
 /* ─── View Panels ─── */
@@ -218,7 +216,7 @@ button:active, [data-action]:active, [data-path]:active {
 .action-sheet-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(14, 12, 14, 0.8);
+  background: rgba(10, 17, 32, 0.82);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 10000;
@@ -231,14 +229,15 @@ button:active, [data-action]:active, [data-path]:active {
 
 .action-sheet-overlay.hidden {
   display: none !important;
+  pointer-events: none !important;
 }
 
 .action-sheet-container {
   width: 100%;
   max-width: 440px;
   margin: 0 auto;
-  background-color: #2B272A;
-  border: 1px solid rgba(167, 153, 134, 0.2);
+  background-color: #14213D;
+  border: 1px solid rgba(244, 237, 224, 0.18);
   border-radius: 24px;
   padding: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
@@ -261,6 +260,9 @@ button:active, [data-action]:active, [data-path]:active {
   z-index: 10001;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
   white-space: nowrap;
+  background-color: #14213D;
+  border: 1px solid rgba(244, 237, 224, 0.25);
+  color: #F4EDE0;
 }
 
 .toast-container.show {
@@ -274,6 +276,7 @@ button:active, [data-action]:active, [data-path]:active {
 }
 #deleteModal.hidden, #delete-snapshot-modal.hidden {
   display: none !important;
+  pointer-events: none !important;
 }
 
 /* ─── Pulse animation ─── */

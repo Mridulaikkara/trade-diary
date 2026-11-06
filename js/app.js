@@ -53,13 +53,13 @@
     if (toastIcon) {
       if (type === 'success') {
         toastIcon.textContent = 'check_circle';
-        toastIcon.style.color = '#82D172';
+        toastIcon.style.color = '#7AD9A5';
       } else if (type === 'error') {
         toastIcon.textContent = 'error';
-        toastIcon.style.color = '#E05D4D';
+        toastIcon.style.color = '#F87171';
       } else {
         toastIcon.textContent = 'info';
-        toastIcon.style.color = '#A79986';
+        toastIcon.style.color = '#F4EDE0';
       }
     }
 
@@ -91,14 +91,14 @@
 
     if (isLive) {
       el.innerHTML = `
-        <span class="w-2 h-2 rounded-full bg-[#82D172] animate-pulse"></span>
-        <span class="text-xs text-[#82D172] font-semibold">NSE Live Session</span>
+        <span class="w-2 h-2 rounded-full bg-[#7AD9A5] animate-pulse"></span>
+        <span class="text-xs text-[#7AD9A5] font-semibold">NSE Live Session</span>
       `;
     } else {
       const label = (day === 0 || day === 6) ? 'NSE Weekend (Closed)' : 'NSE Market Closed';
       el.innerHTML = `
-        <span class="w-2 h-2 rounded-full bg-[#A79986]/40"></span>
-        <span class="text-xs text-[#A79986] font-medium">${label}</span>
+        <span class="w-2 h-2 rounded-full bg-[#F4EDE0]/40"></span>
+        <span class="text-xs text-[#F4EDE0]/70 font-medium">${label}</span>
       `;
     }
   }
@@ -112,13 +112,13 @@
       if (navigator.onLine) {
         if (offlineIcon) {
           offlineIcon.textContent = 'offline_bolt';
-          offlineIcon.className = 'material-symbols-outlined text-[16px] text-[#82D172]';
+          offlineIcon.className = 'material-symbols-outlined text-[16px] text-[#7AD9A5]';
           offlineIcon.title = 'PWA Offline Native (Connected)';
         }
         if (syncStatusText) {
           syncStatusText.innerHTML = `
-            <span class="w-2 h-2 rounded-full bg-[#82D172]"></span>
-            <span class="text-xs text-[#A79986] font-medium tracking-wide uppercase">Local Storage • Sync Active • All data stored in browser IndexedDB</span>
+            <span class="w-2 h-2 rounded-full bg-[#7AD9A5]"></span>
+            <span class="text-xs text-[#F4EDE0]/70 font-medium tracking-wide uppercase">Local Storage • Sync Active • All data stored in browser IndexedDB</span>
           `;
         }
       } else {
@@ -346,7 +346,7 @@
       todayDeltaEl.textContent = (deltaVal >= 0 ? '+' : '') + fmtINR(deltaVal);
     }
     if (todayDeltaPctEl) {
-      todayDeltaPctEl.className = 'text-xs font-bold bg-[#1F1D20] text-[#A79986] px-2 py-0.5 rounded-full';
+      todayDeltaPctEl.className = 'text-xs font-bold bg-[#0D1527] text-[#7AD9A5] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full';
       todayDeltaPctEl.textContent = (deltaVal >= 0 ? '+' : '') + deltaPct + '%';
     }
     if (prevCloseEl && prevSnapshot) {
@@ -369,7 +369,7 @@
     const totalRealisedEl = document.getElementById('dash-realised-pnl');
     const realisedRoiEl = document.getElementById('dash-realised-roi');
     if (totalRealisedEl) {
-      totalRealisedEl.className = realisedPnL >= 0 ? 'font-bold text-[#82D172]' : 'font-bold text-[#E05D4D]';
+      totalRealisedEl.className = realisedPnL >= 0 ? 'font-bold text-[#7AD9A5]' : 'font-bold text-[#F87171]';
       totalRealisedEl.textContent = (realisedPnL >= 0 ? '+' : '') + fmtINR(realisedPnL);
     }
     if (realisedRoiEl && totalInvestedCost > 0) {
@@ -479,7 +479,7 @@
     let gridLines = '';
     for (let i = 1; i <= 3; i++) {
       const yLine = padY + (i / 4) * (H - 2 * padY);
-      gridLines += `<line x1="0" x2="${W}" y1="${yLine}" y2="${yLine}" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1" stroke-dasharray="3 3"/>`;
+      gridLines += `<line x1="0" x2="${W}" y1="${yLine}" y2="${yLine}" stroke="rgba(244, 237, 224, 0.08)" stroke-width="1" stroke-dasharray="3 3"/>`;
     }
 
     // Circles
@@ -487,9 +487,9 @@
     points.forEach((p, i) => {
       const isLast = (i === points.length - 1);
       const r = isLast ? 6 : 4;
-      const stroke = isLast ? 'stroke="#1F1D20" stroke-width="2.5"' : '';
+      const stroke = isLast ? 'stroke="#0D1527" stroke-width="2.5"' : '';
       circlesSvg += `
-        <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="#A79986" ${stroke} class="chart-point" data-idx="${i}">
+        <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="#F4EDE0" ${stroke} class="chart-point" data-idx="${i}">
           <title>${p.date}: ${fmtINR(p.val)}</title>
         </circle>
       `;
@@ -498,16 +498,16 @@
     svg.innerHTML = `
       <defs>
         <linearGradient id="dashGrowthGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#803E2F" stop-opacity="0.38"/>
-          <stop offset="100%" stop-color="#803E2F" stop-opacity="0.0"/>
+          <stop offset="0%" stop-color="#F4EDE0" stop-opacity="0.32"/>
+          <stop offset="100%" stop-color="#F4EDE0" stop-opacity="0.0"/>
         </linearGradient>
         <filter id="dashGlow" x="-10%" y="-20%" width="120%" height="150%">
-          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#803E2F" flood-opacity="0.4"/>
+          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#F4EDE0" flood-opacity="0.25"/>
         </filter>
       </defs>
       ${gridLines}
       <path d="${areaD}" fill="url(#dashGrowthGrad)"/>
-      <path d="${pathD}" fill="none" stroke="#803E2F" stroke-width="2.5" stroke-linecap="round" filter="url(#dashGlow)"/>
+      <path d="${pathD}" fill="none" stroke="#F4EDE0" stroke-width="2.5" stroke-linecap="round" filter="url(#dashGlow)"/>
       ${circlesSvg}
     `;
 
@@ -576,8 +576,8 @@
     const todayCountEl = document.getElementById('journal-kpi-today-count');
     if (todayEl) {
       todayEl.className = todayRealised >= 0
-        ? 'font-serif text-[22px] font-normal leading-tight my-1 tabular-nums text-[#82D172]'
-        : 'font-serif text-[22px] font-normal leading-tight my-1 tabular-nums text-[#E05D4D]';
+        ? 'font-serif text-[22px] font-normal leading-tight my-1 tabular-nums text-[#7AD9A5]'
+        : 'font-serif text-[22px] font-normal leading-tight my-1 tabular-nums text-[#F87171]';
       todayEl.textContent = (todayRealised >= 0 ? '+' : '') + fmtINR(todayRealised);
     }
     if (todayCountEl) todayCountEl.textContent = `${todayClosedCount} Closed`;
@@ -585,8 +585,8 @@
     const monthlyEl = document.getElementById('journal-kpi-monthly-pnl');
     if (monthlyEl) {
       monthlyEl.className = totalRealised >= 0
-        ? 'font-serif text-[22px] font-normal text-[#F6F4F1] leading-tight my-1 tabular-nums'
-        : 'font-serif text-[22px] font-normal text-[#E05D4D] leading-tight my-1 tabular-nums';
+        ? 'font-serif text-[22px] font-normal text-[#F4EDE0] leading-tight my-1 tabular-nums'
+        : 'font-serif text-[22px] font-normal text-[#F87171] leading-tight my-1 tabular-nums';
       monthlyEl.textContent = (totalRealised >= 0 ? '+' : '') + fmtINR(totalRealised);
     }
 
@@ -647,7 +647,7 @@
     if (list.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="p-6 text-center text-[#8e8e98] text-xs">
+          <td colspan="7" class="p-6 text-center text-[#F4EDE0]/50 text-xs">
             No matching trades found. Log a completed swing trade above.
           </td>
         </tr>
@@ -657,36 +657,36 @@
 
     tbody.innerHTML = list.map(t => {
       const isWin = Number(t.netPnL || 0) >= 0;
-      const pnlColor = isWin ? 'text-[#d5f6be]' : 'text-red-400';
-      const pnlBg = isWin ? 'bg-[#20331b] text-[#a5f368]' : 'bg-red-950 text-red-300';
+      const pnlColor = isWin ? 'text-[#7AD9A5]' : 'text-[#F87171]';
+      const pnlBg = isWin ? 'bg-[#1C2C4E] text-[#7AD9A5] border border-[rgba(244,237,224,0.12)]' : 'bg-[#1C2C4E] text-[#F87171] border border-[rgba(244,237,224,0.12)]';
       const brokerBadge = t.broker === 'zerodha'
-        ? `<span class="px-2 py-0.5 rounded-full bg-[#24242e] text-white text-[10px] font-semibold">Zerodha</span>`
-        : `<span class="px-2 py-0.5 rounded-full bg-[#20331b] text-[#a5f368] text-[10px] font-semibold">Groww</span>`;
+        ? `<span class="px-2 py-0.5 rounded-full bg-[#0B1220] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0] text-[10px] font-semibold">Zerodha</span>`
+        : `<span class="px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0] text-[10px] font-semibold">Groww</span>`;
 
       const buyTurnover = Number(t.buyPrice || 0) * Number(t.qty || 0);
 
       return `
-        <tr class="hover:bg-white/5 transition-colors border-b border-white/5" data-id="${t.id}">
-          <td class="p-2.5 text-[#8e8e98] whitespace-nowrap text-[11px]">
+        <tr class="hover:bg-white/5 transition-colors border-b border-[rgba(244,237,224,0.08)]" data-id="${t.id}">
+          <td class="p-2.5 text-[#F4EDE0]/65 whitespace-nowrap text-[11px]">
             ${t.date}
           </td>
           <td class="p-2.5">
             <div>
-              <span class="font-serif text-[15px] font-semibold text-white block leading-tight">${t.stockSymbol}</span>
-              <span class="text-[10px] text-[#8e8e98]">${t.stockName || ''}</span>
+              <span class="font-serif text-[15px] font-semibold text-[#F4EDE0] block leading-tight">${t.stockSymbol}</span>
+              <span class="text-[10px] text-[#F4EDE0]/65">${t.stockName || ''}</span>
             </div>
-            ${t.strategy ? `<span class="inline-block mt-0.5 px-1.5 py-0.2 rounded bg-[#24242e] text-[#8e8e98] text-[9px]">${t.strategy}</span>` : ''}
+            ${t.strategy ? `<span class="inline-block mt-0.5 px-1.5 py-0.2 rounded bg-[#1C2C4E] border border-[rgba(244,237,224,0.12)] text-[#F4EDE0]/70 text-[9px]">${t.strategy}</span>` : ''}
           </td>
           <td class="p-2.5 whitespace-nowrap">
             ${brokerBadge}
           </td>
           <td class="p-2.5 text-right tabular-nums">
-            <div class="text-white font-medium text-[11px]">${fmtINR(t.buyPrice)}</div>
-            <div class="text-[#8e8e98] text-[10px]">${t.qty} sh</div>
+            <div class="text-[#F4EDE0] font-medium text-[11px]">${fmtINR(t.buyPrice)}</div>
+            <div class="text-[#F4EDE0]/60 text-[10px]">${t.qty} sh</div>
           </td>
           <td class="p-2.5 text-right tabular-nums">
-            <div class="text-white font-medium text-[11px]">${fmtINR(t.sellPrice)}</div>
-            <div class="text-[#8e8e98] text-[10px]">${fmtINR(buyTurnover, false)}</div>
+            <div class="text-[#F4EDE0] font-medium text-[11px]">${fmtINR(t.sellPrice)}</div>
+            <div class="text-[#F4EDE0]/60 text-[10px]">${fmtINR(buyTurnover, false)}</div>
           </td>
           <td class="p-2.5 text-right tabular-nums whitespace-nowrap">
             <div class="font-serif text-[14px] font-semibold ${pnlColor}">
@@ -696,10 +696,10 @@
           </td>
           <td class="p-2.5 text-right whitespace-nowrap">
             <div class="flex items-center justify-end gap-1">
-              <button class="p-1 rounded text-[#8e8e98] hover:text-white" onclick="window.App.editTrade(${t.id})" title="Edit Trade">
+              <button class="p-1 rounded text-[#F4EDE0]/60 hover:text-[#F4EDE0]" onclick="window.App.editTrade(${t.id})" title="Edit Trade">
                 <span class="material-symbols-outlined text-[16px]">edit</span>
               </button>
-              <button class="p-1 rounded text-[#8e8e98] hover:text-red-400" onclick="window.App.confirmDeleteTrade(${t.id}, '${t.stockSymbol}')" title="Delete Trade">
+              <button class="p-1 rounded text-[#F4EDE0]/60 hover:text-[#F87171]" onclick="window.App.confirmDeleteTrade(${t.id}, '${t.stockSymbol}')" title="Delete Trade">
                 <span class="material-symbols-outlined text-[16px]">delete</span>
               </button>
             </div>
@@ -735,22 +735,22 @@
     if (chargesEl) chargesEl.textContent = '-' + fmtINR(res.totalCharges);
     if (netEl) {
       netEl.className = res.netPnL >= 0
-        ? 'font-serif text-[20px] font-semibold text-[#82D172] tabular-nums'
-        : 'font-serif text-[20px] font-semibold text-[#E05D4D] tabular-nums';
+        ? 'font-serif text-[20px] font-semibold text-[#7AD9A5] tabular-nums'
+        : 'font-serif text-[20px] font-semibold text-[#F87171] tabular-nums';
       netEl.textContent = (res.netPnL >= 0 ? '+' : '') + fmtINR(res.netPnL);
     }
     if (roiEl) {
-      roiEl.className = res.netRoi >= 0 ? 'text-xs text-[#82D172] font-medium' : 'text-xs text-[#E05D4D] font-medium';
+      roiEl.className = res.netRoi >= 0 ? 'text-xs text-[#7AD9A5] font-medium' : 'text-xs text-[#F87171] font-medium';
       roiEl.textContent = (res.netRoi >= 0 ? '+' : '') + res.netRoi.toFixed(2) + '% ROI';
     }
 
     if (statusPill) {
       if (res.netPnL >= 0) {
         statusPill.textContent = 'WIN';
-        statusPill.className = 'px-2 py-0.5 rounded-full bg-[#46232A] text-[#82D172] text-[10px] font-bold block mb-0.5';
+        statusPill.className = 'px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.15)] text-[#7AD9A5] text-[10px] font-bold block mb-0.5';
       } else {
         statusPill.textContent = 'LOSS';
-        statusPill.className = 'px-2 py-0.5 rounded-full bg-[#46232A] text-[#E05D4D] text-[10px] font-bold block mb-0.5';
+        statusPill.className = 'px-2 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.15)] text-[#F87171] text-[10px] font-bold block mb-0.5';
       }
     }
   }
@@ -866,11 +866,11 @@
     if (hidden) hidden.value = broker;
 
     if (broker === 'groww') {
-      if (gBtn) gBtn.className = 'py-1.5 text-xs rounded-lg font-semibold bg-[#803E2F] text-white transition-all';
-      if (zBtn) zBtn.className = 'py-1.5 text-xs rounded-lg font-semibold text-[#A79986] transition-all';
+      if (gBtn) gBtn.className = 'py-1.5 text-xs rounded-lg font-semibold bg-[#F4EDE0] text-[#14213D] transition-all';
+      if (zBtn) zBtn.className = 'py-1.5 text-xs rounded-lg font-semibold text-[#F4EDE0]/70 transition-all';
     } else {
-      if (zBtn) zBtn.className = 'py-1.5 text-xs rounded-lg font-semibold bg-[#803E2F] text-white transition-all';
-      if (gBtn) gBtn.className = 'py-1.5 text-xs rounded-lg font-semibold text-[#A79986] transition-all';
+      if (zBtn) zBtn.className = 'py-1.5 text-xs rounded-lg font-semibold bg-[#F4EDE0] text-[#14213D] transition-all';
+      if (gBtn) gBtn.className = 'py-1.5 text-xs rounded-lg font-semibold text-[#F4EDE0]/70 transition-all';
     }
     calculateJournalFormMath();
   }
@@ -976,8 +976,8 @@
       const diff = comb - prev.combinedTotal;
       const pct = prev.combinedTotal > 0 ? ((diff / prev.combinedTotal) * 100).toFixed(2) : '0.00';
       deltaEl.className = diff >= 0
-        ? 'text-xs font-bold text-[#82D172] tabular-nums'
-        : 'text-xs font-bold text-[#E05D4D] tabular-nums';
+        ? 'text-xs font-bold text-[#7AD9A5] tabular-nums'
+        : 'text-xs font-bold text-[#F87171] tabular-nums';
       deltaEl.textContent = `${diff >= 0 ? '+' : ''}${fmtINR(diff)} (${diff >= 0 ? '+' : ''}${pct}%)`;
     }
   }
@@ -1062,7 +1062,7 @@
     if (list.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="p-6 text-center text-[#8e8e98] text-xs">
+          <td colspan="6" class="p-6 text-center text-[#F4EDE0]/50 text-xs">
             No snapshots recorded yet. Add your daily EOD valuation above.
           </td>
         </tr>
@@ -1072,21 +1072,21 @@
 
     tbody.innerHTML = list.map(s => {
       const isUp = (s.dodDelta || 0) >= 0;
-      const deltaColor = isUp ? 'text-[#d5f6be]' : 'text-red-400';
+      const deltaColor = isUp ? 'text-[#7AD9A5]' : 'text-[#F87171]';
 
       return `
-        <tr class="hover:bg-white/5 transition-colors border-b border-white/5">
-          <td class="p-2 text-[#8e8e98] whitespace-nowrap text-[11px]">
+        <tr class="hover:bg-white/5 transition-colors border-b border-[rgba(244,237,224,0.08)]">
+          <td class="p-2 text-[#F4EDE0]/65 whitespace-nowrap text-[11px]">
             ${s.date}
           </td>
           <td class="p-2 text-right tabular-nums">
-            <div class="text-white text-[11px]">${fmtINR(s.growwTotal)}</div>
+            <div class="text-[#F4EDE0] text-[11px]">${fmtINR(s.growwTotal)}</div>
           </td>
           <td class="p-2 text-right tabular-nums">
-            <div class="text-white text-[11px]">${fmtINR(s.kiteTotal)}</div>
+            <div class="text-[#F4EDE0] text-[11px]">${fmtINR(s.kiteTotal)}</div>
           </td>
           <td class="p-2 text-right tabular-nums">
-            <div class="font-serif text-white font-semibold text-[13px]">${fmtINR(s.combinedTotal)}</div>
+            <div class="font-serif text-[#F4EDE0] font-semibold text-[13px]">${fmtINR(s.combinedTotal)}</div>
           </td>
           <td class="p-2 text-right tabular-nums whitespace-nowrap">
             <span class="text-[10px] font-bold ${deltaColor}">
@@ -1094,7 +1094,7 @@
             </span>
           </td>
           <td class="p-2 text-right whitespace-nowrap">
-            <button class="p-1 rounded text-[#8e8e98] hover:text-red-400 transition-colors" onclick="window.App.confirmDeleteSnapshot('${s.date}')" title="Delete Record">
+            <button class="p-1 rounded text-[#F4EDE0]/60 hover:text-[#F87171] transition-colors" onclick="window.App.confirmDeleteSnapshot('${s.date}')" title="Delete Record">
               <span class="material-symbols-outlined text-[15px]">delete</span>
             </button>
           </td>
@@ -1223,14 +1223,14 @@
     if (hitRateEl) hitRateEl.textContent = `${winRate}% Hit Rate`;
     if (winRatioBar) {
       winRatioBar.innerHTML = `
-        <div class="h-full bg-[#82D172]" style="width: ${winRate}%;"></div>
-        <div class="h-full bg-[#E05D4D]" style="width: ${(100 - Number(winRate)).toFixed(1)}%;"></div>
+        <div class="h-full bg-[#7AD9A5]" style="width: ${winRate}%;"></div>
+        <div class="h-full bg-[#F87171]" style="width: ${(100 - Number(winRate)).toFixed(1)}%;"></div>
       `;
     }
     if (winRatioDetails) {
       winRatioDetails.innerHTML = `
-        <span class="text-[#82D172] font-semibold">${winCount} Wins (${winRate}%)</span>
-        <span class="text-[#E05D4D] font-semibold">${lossCount} Losses (${(100 - Number(winRate)).toFixed(1)}%)</span>
+        <span class="text-[#7AD9A5] font-semibold">${winCount} Wins (${winRate}%)</span>
+        <span class="text-[#F87171] font-semibold">${lossCount} Losses (${(100 - Number(winRate)).toFixed(1)}%)</span>
       `;
     }
     if (profitFactorEl) profitFactorEl.textContent = profitFactor;
@@ -1312,19 +1312,19 @@
     let nodes = '';
     points.forEach((p, i) => {
       if (i === 0 || i === Math.floor(n / 2) || i === n - 1) {
-        nodes += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#A79986" stroke="#1F1D20" stroke-width="2"/>`;
+        nodes += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#F4EDE0" stroke="#0D1527" stroke-width="2"/>`;
       }
     });
 
     svg.innerHTML = `
       <defs>
         <linearGradient id="anEquityGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#803E2F" stop-opacity="0.35"/>
-          <stop offset="100%" stop-color="#803E2F" stop-opacity="0.0"/>
+          <stop offset="0%" stop-color="#F4EDE0" stop-opacity="0.30"/>
+          <stop offset="100%" stop-color="#F4EDE0" stop-opacity="0.0"/>
         </linearGradient>
       </defs>
       <path d="${areaD}" fill="url(#anEquityGrad)"/>
-      <path d="${pathD}" fill="none" stroke="#803E2F" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="${pathD}" fill="none" stroke="#F4EDE0" stroke-width="2.5" stroke-linecap="round"/>
       ${nodes}
     `;
   }
@@ -1338,11 +1338,11 @@
     const zBtn = document.getElementById('broker-zerodha');
 
     if (broker === 'groww') {
-      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#803E2F] text-white transition-all flex items-center justify-center gap-1.5';
-      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#A79986] transition-all flex items-center justify-center gap-1.5';
+      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5';
+      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#F4EDE0]/70 transition-all flex items-center justify-center gap-1.5';
     } else {
-      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#803E2F] text-white transition-all flex items-center justify-center gap-1.5';
-      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#A79986] transition-all flex items-center justify-center gap-1.5';
+      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5';
+      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#F4EDE0]/70 transition-all flex items-center justify-center gap-1.5';
     }
 
     calculateAllCalculator();
@@ -1354,9 +1354,9 @@
       const btn = document.getElementById(`seg-${seg}`);
       if (!btn) return;
       if (seg === segment) {
-        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#803E2F] text-white font-semibold whitespace-nowrap';
+        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap';
       } else {
-        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#362F2E] text-[#A79986] whitespace-nowrap';
+        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap';
       }
     });
 
@@ -1443,24 +1443,24 @@
     if (chargesEl) chargesEl.textContent = '-' + fmtINR(res.totalCharges);
     if (netEl) {
       netEl.className = res.netPnL >= 0
-        ? 'font-serif text-[17px] font-semibold text-[#82D172] tabular-nums mt-0.5'
-        : 'font-serif text-[17px] font-semibold text-[#E05D4D] tabular-nums mt-0.5';
+        ? 'font-serif text-[17px] font-semibold text-[#7AD9A5] tabular-nums mt-0.5'
+        : 'font-serif text-[17px] font-semibold text-[#F87171] tabular-nums mt-0.5';
       netEl.textContent = (res.netPnL >= 0 ? '+' : '') + fmtINR(res.netPnL);
     }
     if (netRoiEl) {
       netRoiEl.className = res.netPnL >= 0
-        ? 'text-[10px] font-bold text-[#82D172]'
-        : 'text-[10px] font-bold text-[#E05D4D]';
+        ? 'text-[10px] font-bold text-[#7AD9A5]'
+        : 'text-[10px] font-bold text-[#F87171]';
       netRoiEl.textContent = (res.netRoi >= 0 ? '+' : '') + res.netRoi.toFixed(2) + '% ROI';
     }
 
     if (pillEl) {
       if (res.netPnL >= 0) {
         pillEl.textContent = 'WIN';
-        pillEl.className = 'text-[9px] font-bold text-[#82D172]';
+        pillEl.className = 'text-[9px] font-bold text-[#7AD9A5]';
       } else {
         pillEl.textContent = 'LOSS';
-        pillEl.className = 'text-[9px] font-bold text-[#E05D4D]';
+        pillEl.className = 'text-[9px] font-bold text-[#F87171]';
       }
     }
 
@@ -1674,9 +1674,9 @@
       const btn = document.getElementById(`fltBroker${b.charAt(0).toUpperCase() + b.slice(1)}`);
       if (!btn) return;
       if (b === broker) {
-        btn.className = 'px-3 py-1 rounded-full bg-[#803E2F] text-white font-semibold whitespace-nowrap';
+        btn.className = 'px-3 py-1 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap';
       } else {
-        btn.className = 'px-3 py-1 rounded-full bg-[#2B272A] text-[#A79986] whitespace-nowrap';
+        btn.className = 'px-3 py-1 rounded-full bg-[#14213D] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0]/70 whitespace-nowrap';
       }
     });
     renderJournalTable();
@@ -1688,9 +1688,9 @@
       const btn = document.getElementById(`fltOut${o.charAt(0).toUpperCase() + o.slice(1)}`);
       if (!btn) return;
       if (o === outcome) {
-        btn.className = 'px-3 py-1 rounded-full bg-[#803E2F] text-white font-semibold whitespace-nowrap';
+        btn.className = 'px-3 py-1 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap';
       } else {
-        btn.className = 'px-3 py-1 rounded-full bg-[#2B272A] text-[#A79986] whitespace-nowrap';
+        btn.className = 'px-3 py-1 rounded-full bg-[#14213D] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0]/70 whitespace-nowrap';
       }
     });
     renderJournalTable();
