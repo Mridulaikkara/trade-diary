@@ -1,6 +1,6 @@
 // Trade Diary Service Worker - Offline PWA Engine
-const CACHE_NAME = 'tradediary-v1.0.3';
-const RUNTIME_CACHE = 'tradediary-runtime-v1.0.3';
+const CACHE_NAME = 'tradediary-v1.0.4';
+const RUNTIME_CACHE = 'tradediary-runtime-v1.0.4';
 
 const STATIC_ASSETS = [
   './',

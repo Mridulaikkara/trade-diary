@@ -55,7 +55,7 @@
 <body class="bg-[#050507] text-[#f5f5f7] font-sans antialiased selection:bg-[#cfc2fc] selection:text-[#181328]">
 
   <!-- iPhone 17 Pro Container Shell (Mobile native edge-to-edge, centered frame on desktop) -->
-  <div class="iphone-frame">
+  <div class="app-container">
 
     <!-- Dynamic Island Simulator for Desktop (hardware island on native iPhone) -->
     <div class="dynamic-island-sim" onclick="window.App.switchView('dashboard')">
@@ -883,36 +883,36 @@
     <!-- ====================================================================
          BOTTOM FLOATING DOCK (Exact Navigation Placement from Image 1)
          ==================================================================== -->
-    <div class="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-[max(env(safe-area-inset-bottom),14px)] pt-2 pointer-events-none">
-      <nav class="bottom-dock pointer-events-auto rounded-full px-3 py-2 flex items-center justify-between max-w-[390px] w-[calc(100%-2rem)] mx-auto">
+    <div class="bottom-dock-wrapper">
+      <nav class="bottom-dock rounded-full px-3 py-2 flex items-center justify-between max-w-[390px] w-[calc(100%-2rem)] mx-auto">
         <!-- 1: Dashboard (Home) -->
-        <button class="nav-link dock-item active flex items-center justify-center w-11 h-11" data-path="dashboard" onclick="window.App.switchView('dashboard')" aria-label="Dashboard">
+        <button type="button" class="nav-link dock-item active flex items-center justify-center w-11 h-11" data-path="dashboard" onclick="window.App.switchView('dashboard')" aria-label="Dashboard">
           <div class="dock-icon-box w-10 h-10 rounded-full flex items-center justify-center text-[#8e8e98] transition-all">
             <span class="material-symbols-outlined text-[22px]">home</span>
           </div>
         </button>
 
         <!-- 2: Journal -->
-        <button class="nav-link dock-item flex items-center justify-center w-11 h-11" data-path="trade-journal" onclick="window.App.switchView('trade-journal')" aria-label="Trade Journal">
+        <button type="button" class="nav-link dock-item flex items-center justify-center w-11 h-11" data-path="trade-journal" onclick="window.App.switchView('trade-journal')" aria-label="Trade Journal">
           <div class="dock-icon-box w-10 h-10 rounded-full flex items-center justify-center text-[#8e8e98] transition-all">
             <span class="material-symbols-outlined text-[20px]">search</span>
           </div>
         </button>
 
         <!-- 3: Center Action (+) Button (Soft Lilac Centerpiece from Image 1) -->
-        <button class="center-action-btn w-12 h-12 rounded-full flex items-center justify-center font-bold" onclick="window.App.openActionSheet()" aria-label="Quick Actions">
+        <button type="button" class="center-action-btn w-12 h-12 rounded-full flex items-center justify-center font-bold" onclick="window.App.openActionSheet()" aria-label="Quick Actions">
           <span class="material-symbols-outlined text-[26px]">add</span>
         </button>
 
         <!-- 4: Portfolio Tracker (Wallet) -->
-        <button class="nav-link dock-item flex items-center justify-center w-11 h-11" data-path="portfolio-tracker" onclick="window.App.switchView('portfolio-tracker')" aria-label="Portfolio">
+        <button type="button" class="nav-link dock-item flex items-center justify-center w-11 h-11" data-path="portfolio-tracker" onclick="window.App.switchView('portfolio-tracker')" aria-label="Portfolio">
           <div class="dock-icon-box w-10 h-10 rounded-full flex items-center justify-center text-[#8e8e98] transition-all">
             <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
           </div>
         </button>
 
         <!-- 5: NSE Calculator (Exchange/Arrows) -->
-        <button class="nav-link dock-item flex items-center justify-center w-11 h-11" data-path="nse-calculator" onclick="window.App.switchView('nse-calculator')" aria-label="Calculator">
+        <button type="button" class="nav-link dock-item flex items-center justify-center w-11 h-11" data-path="nse-calculator" onclick="window.App.switchView('nse-calculator')" aria-label="Calculator">
           <div class="dock-icon-box w-10 h-10 rounded-full flex items-center justify-center text-[#8e8e98] transition-all">
             <span class="material-symbols-outlined text-[20px]">swap_horiz</span>
           </div>
@@ -920,61 +920,65 @@
       </nav>
     </div>
 
-  </div> <!-- End iPhone 17 Pro Container Shell -->
+  </div> <!-- End App Container Shell -->
 
   <!-- ====================================================================
        iOS ACTION SHEET MODAL (Triggered by Center Lilac (+) Button)
        ==================================================================== -->
-  <div id="action-sheet-overlay" class="action-sheet-overlay fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col justify-end p-4" onclick="window.App.closeActionSheet(event)">
-    <div class="action-sheet-container bg-[#18181f] border border-white/10 rounded-3xl p-5 max-w-[420px] w-full mx-auto space-y-3 shadow-2xl">
+  <div id="action-sheet-overlay" class="action-sheet-overlay hidden" onclick="window.App.closeActionSheet(event)">
+    <div class="action-sheet-container bg-[#18181f] border border-white/10 rounded-3xl p-5 max-w-[420px] w-full mx-auto space-y-3 shadow-2xl" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between pb-2 border-b border-white/10">
         <span class="font-serif text-[20px] text-white">Quick Actions</span>
-        <button onclick="window.App.closeActionSheet()" class="w-7 h-7 rounded-full bg-[#24242e] flex items-center justify-center text-white">
-          <span class="material-symbols-outlined text-[16px]">close</span>
+        <button type="button" onclick="window.App.closeActionSheet()" class="w-8 h-8 rounded-full bg-[#24242e] flex items-center justify-center text-white" aria-label="Close">
+          <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
 
       <div class="grid grid-cols-1 gap-2 pt-1">
-        <button onclick="window.App.switchView('trade-journal'); window.App.closeActionSheet();" class="w-full bg-[#22222b] hover:bg-[#2c2c38] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
-          <div class="w-10 h-10 rounded-xl bg-[#cfc2fc] text-[#181328] flex items-center justify-center">
+        <button type="button" onclick="window.App.switchView('trade-journal')" class="w-full bg-[#22222b] hover:bg-[#2c2c38] active:bg-[#343444] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
+          <div class="w-10 h-10 rounded-xl bg-[#cfc2fc] text-[#181328] flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-[20px]">add_box</span>
           </div>
           <div>
-            <div class="text-sm font-semibold">Log New Trade</div>
+            <div class="text-sm font-semibold text-white">Log New Trade</div>
             <div class="text-[11px] text-[#8e8e98]">Record completed swing trade with P&L</div>
           </div>
         </button>
 
-        <button onclick="window.App.switchView('nse-calculator'); window.App.closeActionSheet();" class="w-full bg-[#22222b] hover:bg-[#2c2c38] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
-          <div class="w-10 h-10 rounded-xl bg-[#d5f6be] text-[#142809] flex items-center justify-center">
+        <button type="button" onclick="window.App.switchView('nse-calculator')" class="w-full bg-[#22222b] hover:bg-[#2c2c38] active:bg-[#343444] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
+          <div class="w-10 h-10 rounded-xl bg-[#d5f6be] text-[#142809] flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-[20px]">calculate</span>
           </div>
           <div>
-            <div class="text-sm font-semibold">Calculate NSE Charges</div>
+            <div class="text-sm font-semibold text-white">Calculate NSE Charges</div>
             <div class="text-[11px] text-[#8e8e98]">Check breakeven & brokerage before entry</div>
           </div>
         </button>
 
-        <button onclick="window.App.switchView('portfolio-tracker'); window.App.closeActionSheet();" class="w-full bg-[#22222b] hover:bg-[#2c2c38] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
-          <div class="w-10 h-10 rounded-xl bg-[#282833] text-white flex items-center justify-center">
+        <button type="button" onclick="window.App.switchView('portfolio-tracker')" class="w-full bg-[#22222b] hover:bg-[#2c2c38] active:bg-[#343444] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
+          <div class="w-10 h-10 rounded-xl bg-[#282833] text-white flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-[20px]">calendar_today</span>
           </div>
           <div>
-            <div class="text-sm font-semibold">Record Daily Valuation</div>
+            <div class="text-sm font-semibold text-white">Record Daily Valuation</div>
             <div class="text-[11px] text-[#8e8e98]">Update Groww & Zerodha EOD balances</div>
           </div>
         </button>
 
-        <button onclick="window.App.switchView('analytics'); window.App.closeActionSheet();" class="w-full bg-[#22222b] hover:bg-[#2c2c38] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
-          <div class="w-10 h-10 rounded-xl bg-[#282833] text-[#cfc2fc] flex items-center justify-center">
+        <button type="button" onclick="window.App.switchView('analytics')" class="w-full bg-[#22222b] hover:bg-[#2c2c38] active:bg-[#343444] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
+          <div class="w-10 h-10 rounded-xl bg-[#282833] text-[#cfc2fc] flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-[20px]">insights</span>
           </div>
           <div>
-            <div class="text-sm font-semibold">View Analytics & Win Rate</div>
+            <div class="text-sm font-semibold text-white">View Analytics & Win Rate</div>
             <div class="text-[11px] text-[#8e8e98]">Inspect equity curve & performance stats</div>
           </div>
         </button>
       </div>
+
+      <button type="button" onclick="window.App.closeActionSheet()" class="w-full py-2.5 mt-2 rounded-xl bg-[#24242e] text-white font-semibold text-xs text-center hover:bg-[#2e2e3a] active:scale-98 transition-all">
+        Cancel
+      </button>
     </div>
   </div>
 

@@ -182,7 +182,8 @@
       }
     });
 
-    // Close mobile sidebar if open
+    // Close any open modals
+    closeActionSheet();
     closeMobileSidebar();
 
     // Trigger specific view refreshes
@@ -219,7 +220,11 @@
   // iOS Action Sheet Modal Controls
   function openActionSheet() {
     const sheet = document.getElementById('action-sheet-overlay');
-    if (sheet) sheet.classList.add('open');
+    if (!sheet) return;
+    sheet.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      sheet.classList.add('open');
+    });
   }
 
   function closeActionSheet(e) {
@@ -227,7 +232,11 @@
       return;
     }
     const sheet = document.getElementById('action-sheet-overlay');
-    if (sheet) sheet.classList.remove('open');
+    if (!sheet) return;
+    sheet.classList.remove('open');
+    setTimeout(() => {
+      sheet.classList.add('hidden');
+    }, 250);
   }
 
   // Keyboard navigation shortcuts: F1 to F6
