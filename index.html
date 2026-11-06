@@ -505,11 +505,11 @@
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="groww-cash">Available Cash (₹)</label>
-                <input id="groww-cash" type="number" step="any" inputmode="decimal" value="20000" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <input id="groww-cash" type="number" step="any" inputmode="decimal" value="20000" oninput="window.App.updateSnapshotFormCalculations()" onchange="window.App.updateSnapshotFormCalculations()" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
               <div>
                 <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="groww-invested">Invested Value (₹)</label>
-                <input id="groww-invested" type="number" step="any" inputmode="decimal" value="204226" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <input id="groww-invested" type="number" step="any" inputmode="decimal" value="204226" oninput="window.App.updateSnapshotFormCalculations()" onchange="window.App.updateSnapshotFormCalculations()" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
             </div>
           </div>
@@ -523,11 +523,11 @@
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="kite-cash">Available Cash (₹)</label>
-                <input id="kite-cash" type="number" step="any" inputmode="decimal" value="33070" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <input id="kite-cash" type="number" step="any" inputmode="decimal" value="33070" oninput="window.App.updateSnapshotFormCalculations()" onchange="window.App.updateSnapshotFormCalculations()" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
               <div>
                 <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="kite-invested">Invested Value (₹)</label>
-                <input id="kite-invested" type="number" step="any" inputmode="decimal" value="15792" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <input id="kite-invested" type="number" step="any" inputmode="decimal" value="15792" oninput="window.App.updateSnapshotFormCalculations()" onchange="window.App.updateSnapshotFormCalculations()" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
             </div>
           </div>
@@ -538,7 +538,7 @@
               <label class="text-xs font-semibold text-[#F4EDE0]" for="snapshot-deposit">Net Deposit / Withdrawal Today (₹)</label>
               <span class="text-[10px] text-[#F4EDE0]/60">Positive = Deposit, Negative = Withdrawal</span>
             </div>
-            <input id="snapshot-deposit" type="number" step="any" inputmode="decimal" value="0" placeholder="0" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+            <input id="snapshot-deposit" type="number" step="any" inputmode="decimal" value="0" placeholder="0" oninput="window.App.updateSnapshotFormCalculations()" onchange="window.App.updateSnapshotFormCalculations()" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
             <p class="text-[10px] text-[#F4EDE0]/60 mt-1">Deducts deposits from portfolio growth to calculate true organic market returns.</p>
           </div>
 
@@ -610,28 +610,28 @@
 
       <!-- Segment Pills -->
       <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-        <button id="seg-delivery" onclick="window.App.setCalculatorSegment('delivery')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap">
+        <button id="seg-delivery" onclick="window.App.setCalculatorSegment('delivery')" data-action="set-seg-delivery" type="button" class="px-3.5 py-1.5 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap shadow-sm">
           Delivery (Swing)
         </button>
-        <button id="seg-intraday" onclick="window.App.setCalculatorSegment('intraday')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap">
+        <button id="seg-intraday" onclick="window.App.setCalculatorSegment('intraday')" data-action="set-seg-intraday" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap">
           Intraday
         </button>
-        <button id="seg-futures" onclick="window.App.setCalculatorSegment('futures')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap">
+        <button id="seg-futures" onclick="window.App.setCalculatorSegment('futures')" data-action="set-seg-futures" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap">
           Futures
         </button>
-        <button id="seg-options" onclick="window.App.setCalculatorSegment('options')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap">
+        <button id="seg-options" onclick="window.App.setCalculatorSegment('options')" data-action="set-seg-options" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap">
           Options
         </button>
       </div>
 
       <!-- Broker Toggle Pills -->
       <div class="grid grid-cols-2 p-1 bg-[#0B1220] rounded-2xl border border-[rgba(244,237,224,0.14)] gap-1">
-        <button id="broker-groww" onclick="window.App.setCalculatorBroker('groww')" type="button" class="py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-[#7AD9A5]"></span>
+        <button id="broker-groww" onclick="window.App.setCalculatorBroker('groww')" data-action="set-broker-groww" type="button" class="py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5 shadow-sm">
+          <span id="broker-groww-dot" class="w-2 h-2 rounded-full bg-[#7AD9A5]"></span>
           <span>Groww</span>
         </button>
-        <button id="broker-zerodha" onclick="window.App.setCalculatorBroker('zerodha')" type="button" class="py-2 rounded-xl text-xs font-semibold text-[#F4EDE0]/70 transition-all flex items-center justify-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-neutral-500"></span>
+        <button id="broker-zerodha" onclick="window.App.setCalculatorBroker('zerodha')" data-action="set-broker-zerodha" type="button" class="py-2 rounded-xl text-xs font-semibold text-[#F4EDE0]/70 transition-all flex items-center justify-center gap-1.5">
+          <span id="broker-zerodha-dot" class="w-2 h-2 rounded-full bg-neutral-500"></span>
           <span>Zerodha Kite</span>
         </button>
       </div>
@@ -641,28 +641,27 @@
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="calc-buy-price">Buy Price (₹)</label>
-            <input id="calc-buy-price" type="number" step="0.05" inputmode="decimal" value="1450.00" oninput="window.App.calculateAllCalculator()" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
+            <input id="calc-buy-price" type="number" step="0.05" inputmode="decimal" value="1450.00" oninput="window.App.calculateAllCalculator()" onchange="window.App.calculateAllCalculator()" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
           </div>
           <div>
             <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="calc-sell-price">Sell Price (₹)</label>
-            <input id="calc-sell-price" type="number" step="0.05" inputmode="decimal" value="1530.00" oninput="window.App.calculateAllCalculator()" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
+            <input id="calc-sell-price" type="number" step="0.05" inputmode="decimal" value="1530.00" oninput="window.App.calculateAllCalculator()" onchange="window.App.calculateAllCalculator()" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
           </div>
         </div>
 
         <div>
           <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="calc-trade-qty">Quantity (Shares)</label>
-          <input id="calc-trade-qty" type="number" min="1" inputmode="numeric" value="100" oninput="window.App.calculateAllCalculator()" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-3 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
+          <input id="calc-trade-qty" type="number" min="1" inputmode="numeric" value="100" oninput="window.App.calculateAllCalculator()" onchange="window.App.calculateAllCalculator()" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-3 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
         </div>
 
-        <div class="grid grid-cols-4 gap-1.5 pt-0.5">
-          <button type="button" onclick="window.App.adjustCalculatorQty(25)" class="py-1.5 rounded-lg bg-[#1C2C4E] text-xs font-semibold text-[#F4EDE0] border border-[rgba(244,237,224,0.12)] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all">+25</button>
-          <button type="button" onclick="window.App.adjustCalculatorQty(50)" class="py-1.5 rounded-lg bg-[#1C2C4E] text-xs font-semibold text-[#F4EDE0] border border-[rgba(244,237,224,0.12)] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all">+50</button>
-          <button type="button" onclick="window.App.adjustCalculatorQty(100)" class="py-1.5 rounded-lg bg-[#1C2C4E] text-xs font-semibold text-[#F4EDE0] border border-[rgba(244,237,224,0.12)] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all">+100</button>
-          <button type="button" onclick="window.App.adjustCalculatorQty(500)" class="py-1.5 rounded-lg bg-[#1C2C4E] text-xs font-semibold text-[#F4EDE0] border border-[rgba(244,237,224,0.12)] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all">+500</button>
-        </div>
+        <!-- Prominent Calculate Brokerage & Net P&L Button -->
+        <button id="btn-run-calc" type="button" onclick="window.App.calculateAllCalculator()" data-action="run-calc" class="w-full py-3 rounded-xl bg-[#F4EDE0] hover:bg-[#E8DFCF] text-[#14213D] font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[rgba(244,237,224,0.15)] active:scale-[0.98] transition-all cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">calculate</span>
+          <span>Calculate Brokerage & Net P&L</span>
+        </button>
 
-        <div id="calc-turnover-display" class="text-center text-[11px] text-[#F4EDE0]/70 pt-1">
-          Buy: ₹0 | Sell: ₹0 | Total: ₹0
+        <div id="calc-turnover-display" class="text-center text-[11px] text-[#F4EDE0]/70 pt-1 font-medium">
+          Buy: ₹ 1,45,000.00 | Sell: ₹ 1,53,000.00 | Total: ₹ 2,98,000.00
         </div>
       </div>
 
@@ -851,8 +850,8 @@
   </div>
 
   <!-- Application Engine Scripts (Cache-Busted for Guaranteed Immediate Update) -->
-  <script src="js/calculator.js?v=20261106_1530"></script>
-  <script src="js/db.js?v=20261106_1530"></script>
-  <script src="js/app.js?v=20261106_1530"></script>
+  <script src="js/calculator.js?v=20261106_1600"></script>
+  <script src="js/db.js?v=20261106_1600"></script>
+  <script src="js/app.js?v=20261106_1600"></script>
 </body>
 </html>

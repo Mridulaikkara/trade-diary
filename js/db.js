@@ -512,6 +512,10 @@ const TradeDB = (function() {
       // Sort chronologically ascending
       return list.sort((a, b) => a.date.localeCompare(b.date));
     },
+    getAllSnapshots: async () => {
+      const list = await getAll('snapshots');
+      return list.sort((a, b) => a.date.localeCompare(b.date));
+    },
     getSnapshot: (date) => getRecord('snapshots', date),
     saveSnapshot: (snapshot) => addRecord('snapshots', snapshot),
     deleteSnapshot: (date) => deleteRecord('snapshots', date),

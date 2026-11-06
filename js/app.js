@@ -111,20 +111,35 @@
   // Synchronous State Reload from IndexedDB
   async function reloadAllData() {
     try {
-      const snaps = await TradeDB.getAllSnapshots();
+      let snaps = null;
+      if (typeof TradeDB.getSnapshots === 'function') {
+        snaps = await TradeDB.getSnapshots();
+      } else if (typeof TradeDB.getAllSnapshots === 'function') {
+        snaps = await TradeDB.getAllSnapshots();
+      }
+      if (!snaps || snaps.length === 0) {
+        snaps = typeof TradeDB.getInitialSnapshots === 'function' ? TradeDB.getInitialSnapshots() : [];
+      }
       // Sort snapshots chronologically
       snaps.sort((a, b) => a.date.localeCompare(b.date));
       AppState.snapshots = snaps;
 
-      const brokerSetting = await TradeDB.getSetting('defaultBroker');
-      const dpSetting = await TradeDB.getSetting('customDp');
-      if (brokerSetting) AppState.settings.defaultBroker = brokerSetting;
-      if (dpSetting) AppState.settings.customDp = parseFloat(dpSetting) || 13.50;
+      if (typeof TradeDB.getSetting === 'function') {
+        const brokerSetting = await TradeDB.getSetting('defaultBroker');
+        const dpSetting = await TradeDB.getSetting('customDp');
+        if (brokerSetting) AppState.settings.defaultBroker = brokerSetting;
+        if (dpSetting) AppState.settings.customDp = parseFloat(dpSetting) || 13.50;
+      }
 
       // Sync calculator state default
-      AppState.calculatorState.broker = AppState.settings.defaultBroker || 'groww';
+      if (!AppState.calculatorState.broker) {
+        AppState.calculatorState.broker = AppState.settings.defaultBroker || 'groww';
+      }
     } catch (err) {
       console.warn('Data reload fallback:', err);
+      if (!AppState.snapshots || AppState.snapshots.length === 0) {
+        AppState.snapshots = typeof TradeDB.getInitialSnapshots === 'function' ? TradeDB.getInitialSnapshots() : [];
+      }
     }
   }
 
@@ -485,78 +500,101 @@
   }
 
   async function handleSaveSnapshot() {
-    const date = document.getElementById('snapshot-date')?.value;
-    const gCash = parseFloat(document.getElementById('groww-cash')?.value) || 0;
-    const gInv = parseFloat(document.getElementById('groww-invested')?.value) || 0;
-    const kCash = parseFloat(document.getElementById('kite-cash')?.value) || 0;
-    const kInv = parseFloat(document.getElementById('kite-invested')?.value) || 0;
-    const deposit = parseFloat(document.getElementById('snapshot-deposit')?.value) || 0;
+    if (AppState._isSavingSnapshot) return;
+    AppState._isSavingSnapshot = true;
 
-    if (!date) {
-      showToast('Please select a settlement date', 'error');
-      return;
-    }
+    try {
+      const dateInput = document.getElementById('snapshot-date');
+      let date = dateInput?.value;
+      if (!date) {
+        const today = new Date();
+        date = today.toISOString().split('T')[0];
+        if (dateInput) dateInput.value = date;
+      }
+      const gCash = parseFloat(document.getElementById('groww-cash')?.value) || 0;
+      const gInv = parseFloat(document.getElementById('groww-invested')?.value) || 0;
+      const kCash = parseFloat(document.getElementById('kite-cash')?.value) || 0;
+      const kInv = parseFloat(document.getElementById('kite-invested')?.value) || 0;
+      const deposit = parseFloat(document.getElementById('snapshot-deposit')?.value) || 0;
 
-    const gTotal = gCash + gInv;
-    const kTotal = kCash + kInv;
-    const combinedTotal = gTotal + kTotal;
+      const gTotal = gCash + gInv;
+      const kTotal = kCash + kInv;
+      const combinedTotal = gTotal + kTotal;
 
-    // Calculate DoD delta vs previous chronologically
-    let dodDelta = 0;
-    let dodDeltaPct = 0;
-    const prevSnapshots = AppState.snapshots.filter(s => s.date < date);
-    if (prevSnapshots.length > 0) {
-      const lastPrev = prevSnapshots[prevSnapshots.length - 1];
-      dodDelta = combinedTotal - lastPrev.combinedTotal;
-      dodDeltaPct = lastPrev.combinedTotal > 0 ? (dodDelta / lastPrev.combinedTotal) * 100 : 0;
-    }
+      // Calculate DoD delta vs previous chronologically
+      let dodDelta = 0;
+      let dodDeltaPct = 0;
+      const prevSnapshots = (AppState.snapshots || []).filter(s => s.date < date);
+      if (prevSnapshots.length > 0) {
+        const lastPrev = prevSnapshots[prevSnapshots.length - 1];
+        dodDelta = combinedTotal - lastPrev.combinedTotal;
+        dodDeltaPct = lastPrev.combinedTotal > 0 ? (dodDelta / lastPrev.combinedTotal) * 100 : 0;
+      }
 
-    const organicReturn = dodDelta - deposit;
+      const organicReturn = dodDelta - deposit;
 
-    const snapshot = {
-      date,
-      growwCash: gCash,
-      growwInvested: gInv,
-      kiteCash: kCash,
-      kiteInvested: kInv,
-      growwTotal: gTotal,
-      kiteTotal: kTotal,
-      combinedTotal,
-      dodDelta,
-      dodDeltaPct: parseFloat(dodDeltaPct.toFixed(2)),
-      deposit,
-      organicReturn
-    };
+      const snapshot = {
+        date,
+        growwCash: gCash,
+        growwInvested: gInv,
+        kiteCash: kCash,
+        kiteInvested: kInv,
+        growwTotal: gTotal,
+        kiteTotal: kTotal,
+        combinedTotal,
+        dodDelta,
+        dodDeltaPct: parseFloat(dodDeltaPct.toFixed(2)),
+        deposit,
+        organicReturn
+      };
 
-    const saveBtn = document.getElementById('save-snapshot-btn');
-    if (saveBtn) {
-      saveBtn.disabled = true;
-      saveBtn.innerHTML = `
-        <span class="material-symbols-outlined text-[18px] animate-spin">refresh</span>
-        <span>Saving Valuation...</span>
-      `;
-    }
-
-    await TradeDB.saveSnapshot(snapshot);
-    await reloadAllData();
-
-    if (saveBtn) {
-      saveBtn.innerHTML = `
-        <span class="material-symbols-outlined text-[18px]">check_circle</span>
-        <span>Valuation Recorded</span>
-      `;
-      setTimeout(() => {
+      const saveBtn = document.getElementById('save-snapshot-btn');
+      if (saveBtn) {
+        saveBtn.disabled = true;
         saveBtn.innerHTML = `
-          <span class="material-symbols-outlined text-[16px]">save</span>
-          <span>Save Valuation Snapshot</span>
+          <span class="material-symbols-outlined text-[18px] animate-spin">refresh</span>
+          <span>Saving Valuation...</span>
         `;
-        saveBtn.disabled = false;
-      }, 1500);
-    }
+      }
 
-    showToast(`Valuation for ${date} recorded in ledger`, 'success');
-    renderSnapshotTable();
-    renderDashboard();
+      // Immediately record into memory for zero latency
+      if (!AppState.snapshots) AppState.snapshots = [];
+      const existingIdx = AppState.snapshots.findIndex(s => s.date === date);
+      if (existingIdx >= 0) {
+        AppState.snapshots[existingIdx] = snapshot;
+      } else {
+        AppState.snapshots.push(snapshot);
+      }
+      AppState.snapshots.sort((a, b) => a.date.localeCompare(b.date));
+
+      try {
+        await TradeDB.saveSnapshot(snapshot);
+      } catch (dbErr) {
+        console.warn('Snapshot storage:', dbErr);
+      }
+
+      await reloadAllData();
+
+      if (saveBtn) {
+        saveBtn.innerHTML = `
+          <span class="material-symbols-outlined text-[18px]">check_circle</span>
+          <span>Valuation Recorded</span>
+        `;
+        setTimeout(() => {
+          saveBtn.innerHTML = `
+            <span class="material-symbols-outlined text-[16px]">save</span>
+            <span>Save Valuation Snapshot</span>
+          `;
+          saveBtn.disabled = false;
+        }, 1500);
+      }
+
+      showToast(`Valuation for ${date} recorded in ledger`, 'success');
+      renderSnapshotTable();
+      renderDashboard();
+    } finally {
+      AppState._isSavingSnapshot = false;
+    }
   }
 
   function renderSnapshotTable() {
@@ -681,27 +719,35 @@
      VIEW 3: NSE CALCULATOR (PRESERVED & DETERMINISTIC)
      ========================================================================== */
   function setCalculatorBroker(broker) {
+    if (!broker) broker = 'groww';
     AppState.calculatorState.broker = broker;
     const gBtn = document.getElementById('broker-groww');
     const zBtn = document.getElementById('broker-zerodha');
+    const gDot = document.getElementById('broker-groww-dot');
+    const zDot = document.getElementById('broker-zerodha-dot');
 
     if (broker === 'groww') {
-      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5';
+      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5 shadow-sm';
       if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#F4EDE0]/70 transition-all flex items-center justify-center gap-1.5';
+      if (gDot) gDot.className = 'w-2 h-2 rounded-full bg-[#7AD9A5]';
+      if (zDot) zDot.className = 'w-2 h-2 rounded-full bg-neutral-500';
     } else {
-      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5';
+      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5 shadow-sm';
       if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#F4EDE0]/70 transition-all flex items-center justify-center gap-1.5';
+      if (zDot) zDot.className = 'w-2 h-2 rounded-full bg-[#7AD9A5]';
+      if (gDot) gDot.className = 'w-2 h-2 rounded-full bg-neutral-500';
     }
     calculateAllCalculator();
   }
 
   function setCalculatorSegment(segment) {
+    if (!segment) segment = 'delivery';
     AppState.calculatorState.segment = segment;
     ['delivery', 'intraday', 'futures', 'options'].forEach(seg => {
       const btn = document.getElementById(`seg-${seg}`);
       if (!btn) return;
       if (seg === segment) {
-        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap';
+        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap shadow-sm';
       } else {
         btn.className = 'px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap';
       }
@@ -943,6 +989,27 @@
           case 'copy-calc':
             copyCalculatorSummary();
             break;
+          case 'run-calc':
+            calculateAllCalculator();
+            break;
+          case 'set-broker-groww':
+            setCalculatorBroker('groww');
+            break;
+          case 'set-broker-zerodha':
+            setCalculatorBroker('zerodha');
+            break;
+          case 'set-seg-delivery':
+            setCalculatorSegment('delivery');
+            break;
+          case 'set-seg-intraday':
+            setCalculatorSegment('intraday');
+            break;
+          case 'set-seg-futures':
+            setCalculatorSegment('futures');
+            break;
+          case 'set-seg-options':
+            setCalculatorSegment('options');
+            break;
         }
       }
     });
@@ -950,17 +1017,22 @@
 
   // Form input listeners
   function setupFormEvents() {
-    const saveSnapBtn = document.getElementById('save-snapshot-btn');
-    if (saveSnapBtn) saveSnapBtn.addEventListener('click', handleSaveSnapshot);
-
-    ['groww-cash', 'groww-invested', 'kite-cash', 'kite-invested', 'snapshot-deposit'].forEach(id => {
+    ['groww-cash', 'groww-invested', 'kite-cash', 'kite-invested', 'snapshot-deposit', 'snapshot-date'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.addEventListener('input', updateSnapshotFormCalculations);
+      if (el) {
+        el.addEventListener('input', updateSnapshotFormCalculations);
+        el.addEventListener('change', updateSnapshotFormCalculations);
+        el.addEventListener('keyup', updateSnapshotFormCalculations);
+      }
     });
 
     ['calc-buy-price', 'calc-sell-price', 'calc-trade-qty'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.addEventListener('input', calculateAllCalculator);
+      if (el) {
+        el.addEventListener('input', calculateAllCalculator);
+        el.addEventListener('change', calculateAllCalculator);
+        el.addEventListener('keyup', calculateAllCalculator);
+      }
     });
   }
 
