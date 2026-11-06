@@ -1,15 +1,16 @@
 /* ==========================================================================
-   Trade Diary - Luxury Warm Palette (from Reference Swatch)
+   Trade Diary — Warm Luxury Palette
    Colors:
-     Canvas:      #1F1D20 (Dark Charcoal Black-Plum)
-     Burgundy:    #46232A (Deep Wine / Maroon)
-     Rust / Terracotta: #803E2F (Primary Warm Accent)
-     Sand / Champagne:  #A79986 (Secondary Warm Accent)
-     Mocha / Espresso:  #362F2E (Subtle Dark Neutral)
-     Slate Charcoal:    #3E3D38 (Card Surface & Borders)
-     Text Primary:      #F6F4F1 (Warm Ivory White)
-     Text Secondary:    #A79986 (Warm Sand)
-     Text Muted:        #8E8780 (Muted Warm Taupe)
+     Canvas:    #1F1D20   Dark Charcoal / Black-Plum
+     Burgundy:  #46232A   Deep Wine
+     Rust:      #803E2F   Primary Warm Accent
+     Sand:      #A79986   Secondary Warm Accent
+     Mocha:     #362F2E   Subtle Dark Neutral
+     Slate:     #3E3D38   Card Surface & Borders
+     Text:      #F6F4F1   Warm Ivory White
+     Muted:     #8E8780   Muted Warm Taupe
+     Gain:      #82D172
+     Loss:      #E05D4D
    ========================================================================== */
 
 :root {
@@ -21,7 +22,6 @@
   --rust-hover: #964a38;
   --burgundy: #46232A;
   --sand: #A79986;
-  --sand-dark: #1F1D20;
   --mocha: #362F2E;
   --slate: #3E3D38;
   --text-main: #F6F4F1;
@@ -31,267 +31,284 @@
   --loss: #E05D4D;
 }
 
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  height: 100%;
+  height: -webkit-fill-available;
+  background: var(--canvas);
 }
 
-html, body {
+body {
   margin: 0;
   padding: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--canvas);
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+  background: var(--canvas);
   color: var(--text-main);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow: hidden; /* App root does not scroll; only main content scrolls */
+  /* NO overflow:hidden on body — kills fixed positioning in Safari */
 }
 
-/* Touch responsiveness - immediate tap feedback */
-button, a, input, select, [role="button"], .interactive {
+/* Touch responsiveness */
+button, a, input, select, [role="button"], [data-action], [data-path] {
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   cursor: pointer;
-  user-select: none;
   -webkit-user-select: none;
+  user-select: none;
 }
-
-button:active, .interactive:active {
+input, select, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: text;
+}
+button:active, [data-action]:active, [data-path]:active {
   transform: scale(0.96);
-  transition: transform 0.1s ease;
+  transition: transform 0.08s ease;
 }
 
-/* Serif font for numbers and headings */
+/* Serif font */
 .font-serif {
   font-family: 'Newsreader', 'Playfair Display', Georgia, serif;
 }
+.tabular-nums { font-variant-numeric: tabular-nums lining-nums; }
 
-.tabular-nums, [data-mono], .font-mono {
-  font-variant-numeric: tabular-nums lining-nums;
-}
-
-/* Hide scrollbars but keep smooth momentum scrolling */
-::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
-}
-* {
-  scrollbar-width: none;
-}
+/* Hide scrollbars */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
 
 /* ==========================================================================
-   NATIVE-APP 3-LAYER VIEWPORT LAYOUT
-   Layer 1: Fixed Top Header (Safe area top)
-   Layer 2: Middle Scrollable Content (Takes remaining height, scrolls smoothly)
-   Layer 3: Permanently Fixed Bottom Tab Bar (Safe area bottom, NEVER scrolls)
+   FIXED-POSITION NATIVE APP SHELL
+   ── Top bar: position:fixed; top:0
+   ── Bottom nav: position:fixed; bottom:0
+   ── Main content: margin-top / padding-bottom to clear both bars
+   This is the ONLY approach that works 100% reliably in Safari PWA mode.
    ========================================================================== */
 
-.app-viewport {
-  width: 100%;
-  max-width: 440px;
-  height: 100vh;
-  height: 100dvh;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  background-color: var(--canvas);
-  overflow: hidden;
-}
-
-@media (min-width: 641px) {
-  body {
-    background-color: #121113;
-  }
-  .app-viewport {
-    box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
-    border-left: 1px solid rgba(167, 153, 134, 0.15);
-    border-right: 1px solid rgba(167, 153, 134, 0.15);
-  }
-}
-
-/* Layer 1: Fixed Top Header */
+/* ─── LAYER 1: Fixed Top Header ─── */
 .app-header {
-  flex-shrink: 0;
-  width: 100%;
-  background-color: rgba(31, 29, 32, 0.92);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* respect Dynamic Island / notch */
+  padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+  padding-bottom: 10px;
+  padding-left: 16px;
+  padding-right: 16px;
+  background: rgba(31, 29, 32, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--card-border);
-  padding-top: max(env(safe-area-inset-top, 44px), 12px);
-  padding-bottom: 12px;
-  padding-left: 16px;
-  padding-right: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  z-index: 40;
+  z-index: 100;
 }
 
-/* Layer 2: Main Scrollable Content */
-.app-scrollable-content {
-  flex: 1 1 auto;
-  width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  padding: 16px;
-  padding-bottom: 32px;
-}
-
-/* Layer 3: Permanently Fixed Bottom Navigation Bar */
+/* ─── LAYER 3: Fixed Bottom Navigation ─── */
 .app-bottom-nav {
-  flex-shrink: 0;
-  width: 100%;
-  background-color: rgba(36, 32, 35, 0.96);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  /* respect home-indicator bar */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  padding-top: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+  background: rgba(26, 23, 26, 0.97);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-top: 1px solid var(--card-border);
-  padding-top: 8px;
-  padding-bottom: max(env(safe-area-inset-bottom, 16px), 12px);
-  padding-left: 12px;
-  padding-right: 12px;
   display: flex;
   align-items: center;
   justify-content: space-around;
-  z-index: 50;
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
 }
 
+/* Desktop: center the fixed bars inside a max-width column */
+@media (min-width: 441px) {
+  .app-header,
+  .app-bottom-nav {
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+    width: 440px;
+  }
+}
+
+/* ─── LAYER 2: Scrollable Main Content ─── */
+/* Top margin clears the fixed header; bottom padding clears the fixed nav bar */
+.app-scrollable-content {
+  /* 
+   * margin-top pushes content below the fixed header.
+   * We use max() to handle iPhones with Dynamic Island (more top safe area).
+   * 56px = default header height for a normal iPhone; 100px covers DI models.
+   */
+  margin-top: max(env(safe-area-inset-top, 0px) + 56px, 56px);
+  /* padding-bottom clears nav bar + home indicator */
+  padding-bottom: max(env(safe-area-inset-bottom, 0px) + 80px, 90px);
+  padding-top: 16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  min-height: calc(100vh - 56px);
+  /* smooth momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ─── Nav Tab Buttons ─── */
 .nav-tab-item {
-  width: 48px;
-  height: 48px;
-  border-radius: 9999px;
+  flex: 1;
+  height: 44px;
+  border-radius: 999px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
   background: transparent;
   border: none;
   outline: none;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease;
+  position: relative;
 }
-
+.nav-tab-item .material-symbols-outlined {
+  font-size: 24px;
+  line-height: 1;
+}
 .nav-tab-item.active {
-  color: var(--text-main);
-  background-color: var(--slate);
-}
-
-.nav-tab-item.active .material-symbols-outlined {
   color: var(--sand);
 }
+.nav-tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--rust);
+}
 
-/* Center Highlight Floating (+) Action Button */
+/* Center Action (+) Button */
 .nav-center-action-btn {
-  width: 50px;
-  height: 50px;
-  border-radius: 9999px;
-  background-color: var(--rust);
-  color: #ffffff;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--rust);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   outline: none;
-  box-shadow: 0 4px 18px rgba(128, 62, 47, 0.5);
-  transition: all 0.15s ease;
+  box-shadow: 0 4px 20px rgba(128, 62, 47, 0.55);
+  flex-shrink: 0;
+  margin-top: -10px; /* Slight float above nav bar */
+  transition: background 0.15s ease, transform 0.1s ease;
 }
+.nav-center-action-btn .material-symbols-outlined { font-size: 28px; }
+.nav-center-action-btn:active { transform: scale(0.9) !important; }
 
-.nav-center-action-btn:hover {
-  background-color: var(--rust-hover);
-}
-
-.nav-center-action-btn:active {
-  transform: scale(0.92);
-}
-
-/* View switching transitions */
-.view-panel {
-  display: none;
-  opacity: 0;
-}
+/* ─── View Panels ─── */
+.view-panel { display: none; }
 .view-panel.active {
   display: block;
-  opacity: 1;
   animation: fadeInPanel 0.18s ease-out;
 }
-
 @keyframes fadeInPanel {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* iOS Action Sheet Modal */
+/* ─── iOS Action Sheet Modal ─── */
 .action-sheet-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(18, 16, 18, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 100;
+  background: rgba(10, 8, 10, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 200;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   padding: 16px;
-  cursor: pointer;
+  padding-bottom: calc(var(--sab) + 16px);
 }
-
-.action-sheet-overlay.hidden {
-  display: none !important;
-}
+.action-sheet-overlay.hidden { display: none !important; }
 
 .action-sheet-container {
   width: 100%;
   max-width: 420px;
   margin: 0 auto;
-  background-color: var(--card-bg);
+  background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 24px;
   padding: 20px;
-  cursor: default;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
-  animation: slideUpSheet 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+  animation: slideUpSheet 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 @keyframes slideUpSheet {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from { transform: translateY(110%); }
+  to   { transform: translateY(0); }
 }
 
-/* Global Toast Alert */
+/* ─── Toast Notification ─── */
 .toast-container {
   position: fixed;
-  top: max(env(safe-area-inset-top, 48px), 20px);
+  bottom: calc(var(--sab) + var(--nav-h) + 12px);
   left: 50%;
-  transform: translate(-50%, -100px);
+  transform: translateX(-50%) translateY(80px);
   opacity: 0;
   pointer-events: none;
-  z-index: 120;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out;
+  z-index: 300;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+  white-space: nowrap;
 }
-
 .toast-container.show {
-  transform: translate(-50%, 0);
+  transform: translateX(-50%) translateY(0);
   opacity: 1;
 }
 
-/* Pulse animation */
-@keyframes softPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(0.9); }
+/* ─── Modals ─── */
+#deleteModal, #delete-snapshot-modal {
+  z-index: 200;
 }
-.animate-soft-pulse {
-  animation: softPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+#deleteModal.hidden, #delete-snapshot-modal.hidden {
+  display: none !important;
 }
 
-/* Clean input reset */
+/* ─── Pulse animation ─── */
+@keyframes softPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+.animate-soft-pulse { animation: softPulse 2s ease-in-out infinite; }
+
+/* ─── Clean number inputs ─── */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-input[type="number"] {
-  -moz-appearance: textfield;
+input[type="number"] { -moz-appearance: textfield; }
+
+/* ─── Desktop frame ─── */
+@media (min-width: 641px) {
+  body { background: #111013; }
+  .app-scrollable-content {
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }

@@ -59,11 +59,8 @@
 </head>
 <body>
 
-  <!-- Native 3-Layer Viewport Layout -->
-  <div class="app-viewport">
-
-    <!-- LAYER 1: FIXED TOP HEADER (Anchored at top, respects Dynamic Island) -->
-    <header class="app-header">
+  <!-- LAYER 1: FIXED TOP HEADER - position:fixed, direct child of body -->
+  <header class="app-header">
       <!-- Left: Quick Calc Pill -->
       <button type="button" data-action="quick-calc" class="flex items-center gap-1.5 bg-[#362F2E] border border-[rgba(167,153,134,0.25)] px-3 py-1.5 rounded-full text-xs font-semibold text-[#F6F4F1] hover:bg-[#803E2F]/40 transition-colors">
         <span class="material-symbols-outlined text-[15px] text-[#A79986]">add</span>
@@ -82,7 +79,7 @@
       </button>
     </header>
 
-    <!-- LAYER 2: SCROLLABLE MAIN CONTENT (Only this layer scrolls!) -->
+    <!-- LAYER 2: SCROLLABLE MAIN CONTENT - normal page flow, scrolls with momentum -->
     <main class="app-scrollable-content" id="main-content-scroll">
 
       <!-- ====================================================================
@@ -848,8 +845,8 @@
 
     </main>
 
-    <!-- LAYER 3: PERMANENTLY FIXED BOTTOM NAVIGATION TAB BAR (Anchored at bottom, NEVER scrolls away!) -->
-    <nav class="app-bottom-nav">
+  <!-- LAYER 3: FIXED BOTTOM NAVIGATION - position:fixed, direct child of body -->
+  <nav class="app-bottom-nav">
       <!-- 1: Dashboard (Home) -->
       <button type="button" class="nav-tab-item active" data-path="dashboard" aria-label="Dashboard" title="Dashboard">
         <span class="material-symbols-outlined text-[24px]">home</span>
@@ -875,8 +872,6 @@
         <span class="material-symbols-outlined text-[22px]">swap_horiz</span>
       </button>
     </nav>
-
-  </div> <!-- End App Viewport -->
 
   <!-- ====================================================================
        iOS ACTION SHEET MODAL

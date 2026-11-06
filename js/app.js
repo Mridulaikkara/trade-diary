@@ -53,23 +53,21 @@
     if (toastIcon) {
       if (type === 'success') {
         toastIcon.textContent = 'check_circle';
-        toastIcon.className = 'material-symbols-outlined text-[18px] text-secondary';
+        toastIcon.style.color = '#82D172';
       } else if (type === 'error') {
         toastIcon.textContent = 'error';
-        toastIcon.className = 'material-symbols-outlined text-[18px] text-error';
+        toastIcon.style.color = '#E05D4D';
       } else {
         toastIcon.textContent = 'info';
-        toastIcon.className = 'material-symbols-outlined text-[18px] text-primary';
+        toastIcon.style.color = '#A79986';
       }
     }
 
-    toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-    toast.classList.add('translate-y-0', 'opacity-100');
+    toast.classList.add('show');
 
     clearTimeout(toast._timeout);
     toast._timeout = setTimeout(() => {
-      toast.classList.remove('translate-y-0', 'opacity-100');
-      toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+      toast.classList.remove('show');
     }, 2800);
   }
 
@@ -194,13 +192,10 @@
     if (viewName === 'nse-calculator') calculateAllCalculator();
     if (viewName === 'settings-and-backup') renderSettings();
 
-    // Scroll to top of content container
-    const scrollContainer = document.getElementById('main-content-scroll');
-    if (scrollContainer) {
-      scrollContainer.scrollTop = 0;
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    // Scroll page to top
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }
 
   function toggleMobileSidebar() {
