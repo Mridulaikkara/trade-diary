@@ -1,19 +1,34 @@
 /* ==========================================================================
-   Trade Diary Mobile PWA Stylesheet
-   Optimized for iPhone 17 Pro, iOS Safari & OLED Dark Aesthetic
-   Palette: Deep Dark (#0d0d11), Soft Lilac (#cfc2fc), Matcha Mint (#d5f6be)
+   Trade Diary - Luxury Warm Palette (from Reference Swatch)
+   Colors:
+     Canvas:      #1F1D20 (Dark Charcoal Black-Plum)
+     Burgundy:    #46232A (Deep Wine / Maroon)
+     Rust / Terracotta: #803E2F (Primary Warm Accent)
+     Sand / Champagne:  #A79986 (Secondary Warm Accent)
+     Mocha / Espresso:  #362F2E (Subtle Dark Neutral)
+     Slate Charcoal:    #3E3D38 (Card Surface & Borders)
+     Text Primary:      #F6F4F1 (Warm Ivory White)
+     Text Secondary:    #A79986 (Warm Sand)
+     Text Muted:        #8E8780 (Muted Warm Taupe)
    ========================================================================== */
 
 :root {
-  --canvas: #0d0d11;
-  --card-bg: #18181f;
-  --card-border: rgba(255, 255, 255, 0.08);
-  --lilac: #cfc2fc;
-  --lilac-dark: #181328;
-  --mint: #d5f6be;
-  --mint-dark: #142809;
-  --text-main: #f5f5f7;
-  --text-muted: #8e8e98;
+  --canvas: #1F1D20;
+  --card-bg: #2B272A;
+  --card-bg-subtle: #242023;
+  --card-border: rgba(167, 153, 134, 0.16);
+  --rust: #803E2F;
+  --rust-hover: #964a38;
+  --burgundy: #46232A;
+  --sand: #A79986;
+  --sand-dark: #1F1D20;
+  --mocha: #362F2E;
+  --slate: #3E3D38;
+  --text-main: #F6F4F1;
+  --text-sand: #A79986;
+  --text-muted: #8E8780;
+  --gain: #82D172;
+  --loss: #E05D4D;
 }
 
 * {
@@ -21,41 +36,42 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html {
-  background-color: #0d0d11;
-}
-
-body {
+html, body {
   margin: 0;
   padding: 0;
-  background-color: #0d0d11;
+  width: 100%;
+  height: 100%;
+  background-color: var(--canvas);
   color: var(--text-main);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  min-height: 100vh;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden; /* App root does not scroll; only main content scrolls */
 }
 
-/* Touch responsiveness - remove 300ms tap delay */
-button, a, input, select, [role="button"] {
+/* Touch responsiveness - immediate tap feedback */
+button, a, input, select, [role="button"], .interactive {
   touch-action: manipulation;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-/* Luxury Serif Typography for Currencies & Headlines */
+button:active, .interactive:active {
+  transform: scale(0.96);
+  transition: transform 0.1s ease;
+}
+
+/* Serif font for numbers and headings */
 .font-serif {
   font-family: 'Newsreader', 'Playfair Display', Georgia, serif;
 }
 
-/* Enforce tabular numerals on all numeric readouts to eliminate layout shift */
-.tabular-nums,
-[data-mono],
-.font-mono {
+.tabular-nums, [data-mono], .font-mono {
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* Native-feel smooth scroll without visible bars */
+/* Hide scrollbars but keep smooth momentum scrolling */
 ::-webkit-scrollbar {
   display: none;
   width: 0;
@@ -65,55 +81,133 @@ button, a, input, select, [role="button"] {
   scrollbar-width: none;
 }
 
-/* App Container Layout */
-.app-container {
+/* ==========================================================================
+   NATIVE-APP 3-LAYER VIEWPORT LAYOUT
+   Layer 1: Fixed Top Header (Safe area top)
+   Layer 2: Middle Scrollable Content (Takes remaining height, scrolls smoothly)
+   Layer 3: Permanently Fixed Bottom Tab Bar (Safe area bottom, NEVER scrolls)
+   ========================================================================== */
+
+.app-viewport {
   width: 100%;
   max-width: 440px;
+  height: 100vh;
+  height: 100dvh;
   margin: 0 auto;
-  min-height: 100vh;
-  background-color: var(--canvas);
-  position: relative;
   display: flex;
   flex-direction: column;
+  position: relative;
+  background-color: var(--canvas);
+  overflow: hidden;
 }
 
 @media (min-width: 641px) {
-  .app-container {
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.85);
-    border-left: 1px solid rgba(255, 255, 255, 0.05);
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
+  body {
+    background-color: #121113;
+  }
+  .app-viewport {
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+    border-left: 1px solid rgba(167, 153, 134, 0.15);
+    border-right: 1px solid rgba(167, 153, 134, 0.15);
   }
 }
 
-/* Dynamic Island Desktop Simulator (hidden on standalone iOS where hardware island exists) */
-@media (min-width: 641px) {
-  .dynamic-island-sim {
-    position: sticky;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 124px;
-    height: 35px;
-    background: #000000;
-    border-radius: 20px;
-    z-index: 60;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 12px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-}
-@media (max-width: 640px) {
-  .dynamic-island-sim {
-    display: none !important;
-  }
+/* Layer 1: Fixed Top Header */
+.app-header {
+  flex-shrink: 0;
+  width: 100%;
+  background-color: rgba(31, 29, 32, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--card-border);
+  padding-top: max(env(safe-area-inset-top, 44px), 12px);
+  padding-bottom: 12px;
+  padding-left: 16px;
+  padding-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 40;
 }
 
-/* Smooth view transitions */
+/* Layer 2: Main Scrollable Content */
+.app-scrollable-content {
+  flex: 1 1 auto;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px;
+  padding-bottom: 32px;
+}
+
+/* Layer 3: Permanently Fixed Bottom Navigation Bar */
+.app-bottom-nav {
+  flex-shrink: 0;
+  width: 100%;
+  background-color: rgba(36, 32, 35, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid var(--card-border);
+  padding-top: 8px;
+  padding-bottom: max(env(safe-area-inset-bottom, 16px), 12px);
+  padding-left: 12px;
+  padding-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 50;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.nav-tab-item {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.nav-tab-item.active {
+  color: var(--text-main);
+  background-color: var(--slate);
+}
+
+.nav-tab-item.active .material-symbols-outlined {
+  color: var(--sand);
+}
+
+/* Center Highlight Floating (+) Action Button */
+.nav-center-action-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 9999px;
+  background-color: var(--rust);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  outline: none;
+  box-shadow: 0 4px 18px rgba(128, 62, 47, 0.5);
+  transition: all 0.15s ease;
+}
+
+.nav-center-action-btn:hover {
+  background-color: var(--rust-hover);
+}
+
+.nav-center-action-btn:active {
+  transform: scale(0.92);
+}
+
+/* View switching transitions */
 .view-panel {
   display: none;
   opacity: 0;
@@ -121,78 +215,27 @@ button, a, input, select, [role="button"] {
 .view-panel.active {
   display: block;
   opacity: 1;
+  animation: fadeInPanel 0.18s ease-out;
 }
 
-/* iOS Bottom Dock Nav */
-.bottom-dock-wrapper {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 45;
-  display: flex;
-  justify-content: center;
-  padding-bottom: max(env(safe-area-inset-bottom, 16px), 16px);
-  padding-top: 8px;
-  pointer-events: none;
-}
-
-.bottom-dock {
-  pointer-events: auto;
-  background: rgba(24, 24, 30, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
-}
-
-.dock-item {
-  position: relative;
-  transition: transform 0.15s ease;
-  user-select: none;
-}
-.dock-item:active {
-  transform: scale(0.92);
-}
-.dock-item.active .dock-icon-box {
-  background-color: #2b2b35;
-  color: #ffffff;
-}
-
-/* Floating Action Center Button (+) */
-.center-action-btn {
-  background-color: var(--lilac);
-  color: var(--lilac-dark);
-  box-shadow: 0 6px 20px rgba(207, 194, 252, 0.35);
-  transition: transform 0.15s ease, background-color 0.15s ease;
-  user-select: none;
-}
-.center-action-btn:active {
-  transform: scale(0.92);
-  background-color: #dcd3fc;
+@keyframes fadeInPanel {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* iOS Action Sheet Modal */
 .action-sheet-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 60;
+  background-color: rgba(18, 16, 18, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 100;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   padding: 16px;
-  opacity: 0;
   cursor: pointer;
-  pointer-events: none;
-  transition: opacity 0.22s ease-out;
-}
-
-.action-sheet-overlay.open {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .action-sheet-overlay.hidden {
@@ -200,26 +243,50 @@ button, a, input, select, [role="button"] {
 }
 
 .action-sheet-container {
-  transform: translateY(100%);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  padding: 20px;
   cursor: default;
-}
-.action-sheet-overlay.open .action-sheet-container {
-  transform: translateY(0);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  animation: slideUpSheet 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Toast alert */
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Global Toast Alert */
 .toast-container {
+  position: fixed;
+  top: max(env(safe-area-inset-top, 48px), 20px);
+  left: 50%;
+  transform: translate(-50%, -100px);
+  opacity: 0;
   pointer-events: none;
+  z-index: 120;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out;
 }
+
 .toast-container.show {
-  pointer-events: auto;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
   opacity: 1;
 }
 
-/* Number input spinners hide */
+/* Pulse animation */
+@keyframes softPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.9); }
+}
+.animate-soft-pulse {
+  animation: softPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Clean input reset */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -227,13 +294,4 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 input[type="number"] {
   -moz-appearance: textfield;
-}
-
-/* Pulsing dot */
-@keyframes softPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(0.92); }
-}
-.animate-soft-pulse {
-  animation: softPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

@@ -172,7 +172,7 @@
     }
 
     // Toggle nav active classes for bottom dock
-    document.querySelectorAll('.dock-item').forEach(link => {
+    document.querySelectorAll('.nav-tab-item, .dock-item').forEach(link => {
       if (link.getAttribute('data-path') === viewName) {
         link.classList.add('active');
         link.setAttribute('aria-current', 'page');
@@ -194,7 +194,13 @@
     if (viewName === 'nse-calculator') calculateAllCalculator();
     if (viewName === 'settings-and-backup') renderSettings();
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to top of content container
+    const scrollContainer = document.getElementById('main-content-scroll');
+    if (scrollContainer) {
+      scrollContainer.scrollTop = 0;
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   function toggleMobileSidebar() {
@@ -222,13 +228,14 @@
     const sheet = document.getElementById('action-sheet-overlay');
     if (!sheet) return;
     sheet.classList.remove('hidden');
+    sheet.style.display = 'flex';
     requestAnimationFrame(() => {
       sheet.classList.add('open');
     });
   }
 
   function closeActionSheet(e) {
-    if (e && e.target && e.target.closest('.action-sheet-container') && !e.target.closest('button')) {
+    if (e && e.target && e.target.closest && e.target.closest('.action-sheet-container') && !e.target.closest('button')) {
       return;
     }
     const sheet = document.getElementById('action-sheet-overlay');
@@ -236,7 +243,8 @@
     sheet.classList.remove('open');
     setTimeout(() => {
       sheet.classList.add('hidden');
-    }, 250);
+      sheet.style.display = 'none';
+    }, 200);
   }
 
   // Keyboard navigation shortcuts: F1 to F6
@@ -479,9 +487,9 @@
     points.forEach((p, i) => {
       const isLast = (i === points.length - 1);
       const r = isLast ? 6 : 4;
-      const stroke = isLast ? 'stroke="#0d0d11" stroke-width="2.5"' : '';
+      const stroke = isLast ? 'stroke="#1F1D20" stroke-width="2.5"' : '';
       circlesSvg += `
-        <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="#cfc2fc" ${stroke} class="chart-point" data-idx="${i}">
+        <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="#A79986" ${stroke} class="chart-point" data-idx="${i}">
           <title>${p.date}: ${fmtINR(p.val)}</title>
         </circle>
       `;
@@ -490,16 +498,16 @@
     svg.innerHTML = `
       <defs>
         <linearGradient id="dashGrowthGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#cfc2fc" stop-opacity="0.32"/>
-          <stop offset="100%" stop-color="#cfc2fc" stop-opacity="0.0"/>
+          <stop offset="0%" stop-color="#803E2F" stop-opacity="0.38"/>
+          <stop offset="100%" stop-color="#803E2F" stop-opacity="0.0"/>
         </linearGradient>
         <filter id="dashGlow" x="-10%" y="-20%" width="120%" height="150%">
-          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#cfc2fc" flood-opacity="0.35"/>
+          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#803E2F" flood-opacity="0.4"/>
         </filter>
       </defs>
       ${gridLines}
       <path d="${areaD}" fill="url(#dashGrowthGrad)"/>
-      <path d="${pathD}" fill="none" stroke="#cfc2fc" stroke-width="2.5" stroke-linecap="round" filter="url(#dashGlow)"/>
+      <path d="${pathD}" fill="none" stroke="#803E2F" stroke-width="2.5" stroke-linecap="round" filter="url(#dashGlow)"/>
       ${circlesSvg}
     `;
 
@@ -855,11 +863,11 @@
     if (hidden) hidden.value = broker;
 
     if (broker === 'groww') {
-      if (gBtn) gBtn.className = 'py-1.5 text-xs rounded-lg font-semibold bg-[#282833] text-white transition-all';
-      if (zBtn) zBtn.className = 'py-1.5 text-xs rounded-lg font-semibold text-[#8e8e98] transition-all';
+      if (gBtn) gBtn.className = 'py-1.5 text-xs rounded-lg font-semibold bg-[#803E2F] text-white transition-all';
+      if (zBtn) zBtn.className = 'py-1.5 text-xs rounded-lg font-semibold text-[#A79986] transition-all';
     } else {
-      if (zBtn) zBtn.className = 'py-1.5 text-xs rounded-lg font-semibold bg-[#282833] text-white transition-all';
-      if (gBtn) gBtn.className = 'py-1.5 text-xs rounded-lg font-semibold text-[#8e8e98] transition-all';
+      if (zBtn) zBtn.className = 'py-1.5 text-xs rounded-lg font-semibold bg-[#803E2F] text-white transition-all';
+      if (gBtn) gBtn.className = 'py-1.5 text-xs rounded-lg font-semibold text-[#A79986] transition-all';
     }
     calculateJournalFormMath();
   }
@@ -1292,19 +1300,19 @@
     let nodes = '';
     points.forEach((p, i) => {
       if (i === 0 || i === Math.floor(n / 2) || i === n - 1) {
-        nodes += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#cfc2fc" stroke="#0d0d11" stroke-width="2"/>`;
+        nodes += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#A79986" stroke="#1F1D20" stroke-width="2"/>`;
       }
     });
 
     svg.innerHTML = `
       <defs>
         <linearGradient id="anEquityGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#cfc2fc" stop-opacity="0.3"/>
-          <stop offset="100%" stop-color="#cfc2fc" stop-opacity="0.0"/>
+          <stop offset="0%" stop-color="#803E2F" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#803E2F" stop-opacity="0.0"/>
         </linearGradient>
       </defs>
       <path d="${areaD}" fill="url(#anEquityGrad)"/>
-      <path d="${pathD}" fill="none" stroke="#cfc2fc" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="${pathD}" fill="none" stroke="#803E2F" stroke-width="2.5" stroke-linecap="round"/>
       ${nodes}
     `;
   }
@@ -1318,11 +1326,11 @@
     const zBtn = document.getElementById('broker-zerodha');
 
     if (broker === 'groww') {
-      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#282833] text-white transition-all flex items-center justify-center gap-1.5';
-      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#8e8e98] transition-all flex items-center justify-center gap-1.5';
+      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#803E2F] text-white transition-all flex items-center justify-center gap-1.5';
+      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#A79986] transition-all flex items-center justify-center gap-1.5';
     } else {
-      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#282833] text-white transition-all flex items-center justify-center gap-1.5';
-      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#8e8e98] transition-all flex items-center justify-center gap-1.5';
+      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#803E2F] text-white transition-all flex items-center justify-center gap-1.5';
+      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#A79986] transition-all flex items-center justify-center gap-1.5';
     }
 
     calculateAllCalculator();
@@ -1334,9 +1342,9 @@
       const btn = document.getElementById(`seg-${seg}`);
       if (!btn) return;
       if (seg === segment) {
-        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#282833] text-white font-semibold whitespace-nowrap';
+        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#803E2F] text-white font-semibold whitespace-nowrap';
       } else {
-        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#18181f] text-[#8e8e98] whitespace-nowrap';
+        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#362F2E] text-[#A79986] whitespace-nowrap';
       }
     });
 
@@ -1709,6 +1717,70 @@
         renderJournalTable();
       });
     }
+
+    // 6. Universal Global Event Delegation (Guaranteed Mobile Safari & Chrome Tap Response)
+    document.addEventListener('click', (e) => {
+      // Handle Navigation Tabs
+      const navBtn = e.target.closest('[data-path]');
+      if (navBtn) {
+        e.preventDefault();
+        const path = navBtn.getAttribute('data-path');
+        if (path) switchView(path);
+        return;
+      }
+
+      // Handle Data Actions
+      const actionBtn = e.target.closest('[data-action]');
+      if (actionBtn) {
+        const action = actionBtn.getAttribute('data-action');
+        if (action === 'open-action-sheet') {
+          e.preventDefault();
+          openActionSheet();
+        } else if (action === 'close-action-sheet') {
+          e.preventDefault();
+          closeActionSheet();
+        } else if (action === 'quick-calc') {
+          e.preventDefault();
+          switchView('nse-calculator');
+        } else if (action === 'open-settings') {
+          e.preventDefault();
+          switchView('settings-and-backup');
+        } else if (action === 'save-preferences') {
+          e.preventDefault();
+          savePreferences();
+        } else if (action === 'export-backup') {
+          e.preventDefault();
+          downloadFullBackup();
+        } else if (action === 'reload-sample') {
+          e.preventDefault();
+          handleResetToSampleData();
+        } else if (action === 'clear-all') {
+          e.preventDefault();
+          handleClearAllDatabase();
+        } else if (action === 'save-trade') {
+          e.preventDefault();
+          handleSaveTrade();
+        } else if (action === 'reset-trade') {
+          e.preventDefault();
+          resetTradeForm();
+        } else if (action === 'export-journal-csv') {
+          e.preventDefault();
+          exportJournalCSV();
+        } else if (action === 'save-snapshot') {
+          e.preventDefault();
+          handleSaveSnapshot();
+        } else if (action === 'export-portfolio-csv') {
+          e.preventDefault();
+          exportPortfolioCSV();
+        } else if (action === 'transfer-calc') {
+          e.preventDefault();
+          transferCalculatorToJournal();
+        } else if (action === 'copy-calc') {
+          e.preventDefault();
+          copyCalculatorSummary();
+        }
+      }
+    });
   }
 
   // Expose global controller
@@ -1740,9 +1812,9 @@
         const btn = document.getElementById(`fltBroker${b.charAt(0).toUpperCase() + b.slice(1)}`);
         if (!btn) return;
         if (b === broker) {
-          btn.className = 'px-3 py-1 rounded-full bg-[#24242e] text-white font-semibold whitespace-nowrap';
+          btn.className = 'px-3 py-1 rounded-full bg-[#803E2F] text-white font-semibold whitespace-nowrap';
         } else {
-          btn.className = 'px-3 py-1 rounded-full bg-[#18181f] text-[#8e8e98] whitespace-nowrap';
+          btn.className = 'px-3 py-1 rounded-full bg-[#362F2E] text-[#A79986] whitespace-nowrap';
         }
       });
       renderJournalTable();
@@ -1753,9 +1825,9 @@
         const btn = document.getElementById(`fltOut${o.charAt(0).toUpperCase() + o.slice(1)}`);
         if (!btn) return;
         if (o === outcome) {
-          btn.className = 'px-3 py-1 rounded-full bg-[#24242e] text-white font-semibold whitespace-nowrap';
+          btn.className = 'px-3 py-1 rounded-full bg-[#803E2F] text-white font-semibold whitespace-nowrap';
         } else {
-          btn.className = 'px-3 py-1 rounded-full bg-[#18181f] text-[#8e8e98] whitespace-nowrap';
+          btn.className = 'px-3 py-1 rounded-full bg-[#362F2E] text-[#A79986] whitespace-nowrap';
         }
       });
       renderJournalTable();

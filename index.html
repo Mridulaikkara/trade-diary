@@ -7,7 +7,7 @@
 
   <!-- PWA & Mobile Meta for iOS / iPhone 17 Pro -->
   <link rel="manifest" href="manifest.json"/>
-  <meta name="theme-color" content="#0d0d11"/>
+  <meta name="theme-color" content="#1F1D20"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -15,7 +15,7 @@
   <link rel="icon" type="image/svg+xml" href="icons/icon.svg"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
 
-  <!-- Fonts: Newsreader (Editorial Serif for Numbers/Titles) & Inter (Sans) -->
+  <!-- Fonts: Newsreader (Editorial Serif) & Inter (Sans) -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -29,16 +29,21 @@
       theme: {
         extend: {
           colors: {
-            "canvas": "#0d0d11",
-            "card": "#18181f",
-            "card-highlight": "#23232c",
-            "lilac": "#cfc2fc",
-            "lilac-dark": "#181328",
-            "mint": "#d5f6be",
-            "mint-dark": "#142809",
-            "text-main": "#f5f5f7",
-            "text-muted": "#8e8e98",
-            "border-subtle": "rgba(255, 255, 255, 0.08)"
+            "canvas": "#1F1D20",
+            "card": "#2B272A",
+            "card-subtle": "#242023",
+            "card-border": "rgba(167, 153, 134, 0.16)",
+            "rust": "#803E2F",
+            "rust-hover": "#964a38",
+            "burgundy": "#46232A",
+            "sand": "#A79986",
+            "mocha": "#362F2E",
+            "slate": "#3E3D38",
+            "text-main": "#F6F4F1",
+            "text-sand": "#A79986",
+            "text-muted": "#8E8780",
+            "gain": "#82D172",
+            "loss": "#E05D4D"
           },
           fontFamily: {
             "serif": ["Newsreader", "Playfair Display", "Georgia", "serif"],
@@ -52,235 +57,215 @@
   <!-- Core App Stylesheet -->
   <link rel="stylesheet" href="css/app.css"/>
 </head>
-<body class="bg-[#050507] text-[#f5f5f7] font-sans antialiased selection:bg-[#cfc2fc] selection:text-[#181328]">
+<body>
 
-  <!-- iPhone 17 Pro Container Shell (Mobile native edge-to-edge, centered frame on desktop) -->
-  <div class="app-container">
+  <!-- Native 3-Layer Viewport Layout -->
+  <div class="app-viewport">
 
-    <!-- Dynamic Island Simulator for Desktop (hardware island on native iPhone) -->
-    <div class="dynamic-island-sim" onclick="window.App.switchView('dashboard')">
-      <div class="flex items-center gap-1.5">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="text-[10px] font-bold text-white tracking-wider">NSE</span>
-      </div>
-      <div class="w-3 h-3 rounded-full bg-[#1c1c22] border border-white/20"></div>
-    </div>
+    <!-- LAYER 1: FIXED TOP HEADER (Anchored at top, respects Dynamic Island) -->
+    <header class="app-header">
+      <!-- Left: Quick Calc Pill -->
+      <button type="button" data-action="quick-calc" class="flex items-center gap-1.5 bg-[#362F2E] border border-[rgba(167,153,134,0.25)] px-3 py-1.5 rounded-full text-xs font-semibold text-[#F6F4F1] hover:bg-[#803E2F]/40 transition-colors">
+        <span class="material-symbols-outlined text-[15px] text-[#A79986]">add</span>
+        <span>Quick Calc</span>
+      </button>
 
-    <!-- Top Sticky Safe-Area Header (Sitting just below Dynamic Island) -->
-    <header class="sticky top-0 z-40 bg-[#0d0d11]/80 backdrop-blur-xl border-b border-white/5 px-4 pt-3 pb-3 flex items-center justify-between">
-      <!-- Left: Quick Capsule Tag -->
-      <div class="flex items-center gap-2">
-        <button onclick="window.App.switchView('nse-calculator')" class="flex items-center gap-1.5 bg-[#1e1e26] border border-white/10 px-3 py-1.5 rounded-full text-xs font-semibold text-white hover:bg-[#252530] transition-colors">
-          <span class="material-symbols-outlined text-[15px] text-[#cfc2fc]">add</span>
-          <span>Quick Calc</span>
-        </button>
-      </div>
-
-      <!-- Center: Live Session Pulse (Discreet) -->
+      <!-- Center: Live Session Status -->
       <div id="market-session-status" class="flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-[#d5f6be] animate-soft-pulse"></span>
-        <span class="text-[11px] font-medium text-[#8e8e98]">NSE Live</span>
+        <span class="w-2 h-2 rounded-full bg-[#82D172] animate-soft-pulse"></span>
+        <span class="text-[11px] font-medium text-[#A79986]">NSE Live</span>
       </div>
 
-      <!-- Right: Action Icons (Notifications & Profile / Settings) -->
-      <div class="flex items-center gap-2">
-        <button id="pwa-install-banner-btn" class="hidden px-2.5 py-1 rounded-full bg-[#d5f6be] text-[#142809] text-[10px] font-bold tracking-wide transition-all" onclick="window.App.triggerPwaInstall()">
-          Install
-        </button>
-
-        <button onclick="window.App.switchView('settings-and-backup')" class="w-8 h-8 rounded-full bg-[#1e1e26] border border-white/10 flex items-center justify-center text-white hover:bg-[#282833] transition-colors" title="Settings">
-          <span class="material-symbols-outlined text-[17px]">settings</span>
-        </button>
-      </div>
+      <!-- Right: Settings Avatar Button -->
+      <button type="button" data-action="open-settings" class="w-9 h-9 rounded-full bg-[#362F2E] border border-[rgba(167,153,134,0.25)] flex items-center justify-center text-[#F6F4F1] hover:bg-[#803E2F]/30 transition-colors" title="Settings" aria-label="Settings">
+        <span class="material-symbols-outlined text-[18px]">settings</span>
+      </button>
     </header>
 
-    <!-- Main Content Area (With bottom padding for bottom dock) -->
-    <main class="flex-1 px-4 pt-2 pb-28">
+    <!-- LAYER 2: SCROLLABLE MAIN CONTENT (Only this layer scrolls!) -->
+    <main class="app-scrollable-content" id="main-content-scroll">
 
       <!-- ====================================================================
-           VIEW 1: DASHBOARD (Exact design from Image 1)
+           VIEW 1: DASHBOARD
            ==================================================================== -->
       <section id="view-dashboard" class="view-panel active space-y-4">
-
-        <!-- Hero Balance Section -->
-        <div class="pt-2">
-          <div class="flex items-center gap-1.5 text-xs text-[#8e8e98] font-medium">
+        <!-- Hero Balance -->
+        <div class="pt-1">
+          <div class="flex items-center gap-1.5 text-xs text-[#A79986] font-medium">
             <span>Total balance</span>
             <span>·</span>
             <span>All time</span>
           </div>
-          <!-- Giant Serif Currency Readout (Image 1 Style) -->
           <div class="mt-1 flex items-baseline">
-            <span id="dash-total-val" class="font-serif text-[42px] leading-tight font-normal text-white tracking-tight tabular-nums">
+            <span id="dash-total-val" class="font-serif text-[40px] leading-tight font-normal text-[#F6F4F1] tracking-tight tabular-nums">
               ₹ 2,73,088.00
             </span>
           </div>
           <div id="header-total-valuation" class="hidden">₹ 2,73,088.00</div>
         </div>
 
-        <!-- Sleek Mountain Area Chart with Lavender Glow (Image 1 Style) -->
-        <div class="relative w-full h-44 -mt-2 -mb-2 overflow-hidden">
+        <!-- Mountain Area Chart (Warm Terracotta & Sand) -->
+        <div class="relative w-full h-44 -mt-1 -mb-1 overflow-hidden">
           <svg id="dash-growth-svg" class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 240"></svg>
           <div id="dash-chart-labels" class="hidden"></div>
         </div>
 
-        <!-- Dual Side-by-Side Cards (Image 1 "Cash" & "Investments") -->
-        <div class="grid grid-cols-2 gap-3">
-          <!-- Card 1: Groww Balance -->
-          <div class="bg-[#18181f] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+        <!-- Dual Broker Cards (Side-by-Side) -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- Groww Card -->
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-medium text-[#8e8e98]">Groww</span>
-                <span id="dash-groww-share" class="px-2 py-0.5 rounded-full bg-[#20331b] text-[#a5f368] text-[10px] font-bold">+0.8%</span>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-medium text-[#A79986]">Groww</span>
+                <span id="dash-groww-share" class="px-2 py-0.5 rounded-full bg-[#46232A] text-[#A79986] text-[10px] font-bold">+0.8%</span>
               </div>
-              <div id="dash-groww-val" class="font-serif text-[22px] font-normal text-white tabular-nums leading-tight">
+              <div id="dash-groww-val" class="font-serif text-[21px] font-normal text-[#F6F4F1] tabular-nums leading-tight">
                 ₹ 2,24,226.00
               </div>
             </div>
-            <div class="pt-3 border-t border-white/5 mt-3 flex items-center justify-between text-[11px] text-[#8e8e98]">
+            <div class="pt-2.5 border-t border-[rgba(167,153,134,0.12)] mt-2.5 flex items-center justify-between text-[11px] text-[#A79986]">
               <span>Invested:</span>
-              <span id="dash-groww-inv" class="text-white font-medium tabular-nums">₹ 2,04,226</span>
+              <span id="dash-groww-inv" class="text-[#F6F4F1] font-medium tabular-nums">₹ 2,04,226</span>
               <span id="dash-groww-cash" class="hidden">₹ 20,000</span>
             </div>
           </div>
 
-          <!-- Card 2: Zerodha Kite -->
-          <div class="bg-[#18181f] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+          <!-- Zerodha Kite Card -->
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-medium text-[#8e8e98]">Zerodha Kite</span>
-                <span id="dash-kite-share" class="px-2 py-0.5 rounded-full bg-[#20331b] text-[#a5f368] text-[10px] font-bold">+1.2%</span>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-medium text-[#A79986]">Zerodha Kite</span>
+                <span id="dash-kite-share" class="px-2 py-0.5 rounded-full bg-[#46232A] text-[#A79986] text-[10px] font-bold">+1.2%</span>
               </div>
-              <div id="dash-kite-val" class="font-serif text-[22px] font-normal text-white tabular-nums leading-tight">
+              <div id="dash-kite-val" class="font-serif text-[21px] font-normal text-[#F6F4F1] tabular-nums leading-tight">
                 ₹ 48,862.00
               </div>
             </div>
-            <div class="pt-3 border-t border-white/5 mt-3 flex items-center justify-between text-[11px] text-[#8e8e98]">
+            <div class="pt-2.5 border-t border-[rgba(167,153,134,0.12)] mt-2.5 flex items-center justify-between text-[11px] text-[#A79986]">
               <span>Invested:</span>
-              <span id="dash-kite-inv" class="text-white font-medium tabular-nums">₹ 15,792</span>
+              <span id="dash-kite-inv" class="text-[#F6F4F1] font-medium tabular-nums">₹ 15,792</span>
               <span id="dash-kite-cash" class="hidden">₹ 33,070</span>
             </div>
           </div>
         </div>
 
-        <!-- Soft Matcha Mint Highlight Card (Image 1 "CashPilot AI forecast") -->
-        <div class="bg-[#d5f6be] text-[#142809] rounded-2xl p-4 relative overflow-hidden shadow-sm">
-          <div class="flex items-center justify-between mb-1.5">
-            <div class="flex items-center gap-1.5 text-xs font-bold tracking-wide">
+        <!-- Highlight Card 1: Warm Burgundy Wine Banner -->
+        <div class="bg-[#46232A] border border-[rgba(167,153,134,0.2)] rounded-2xl p-4 relative overflow-hidden shadow-md">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-[#A79986]">
               <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
               <span>Swing Summary</span>
             </div>
-            <span class="material-symbols-outlined text-[16px] opacity-60">close</span>
           </div>
 
-          <div class="font-serif text-[18px] font-normal leading-snug pr-20">
-            Win Rate <strong id="dash-win-rate">75.0%</strong> across <strong id="dash-trade-count">12</strong> trades
+          <div class="font-serif text-[18px] text-[#F6F4F1] font-normal leading-snug pr-20">
+            Win Rate <strong id="dash-win-rate" class="text-[#A79986]">75.0%</strong> across <strong id="dash-trade-count">12</strong> trades
           </div>
 
-          <div class="text-[11px] font-medium opacity-80 mt-1">
-            Realised P&L: <span id="dash-realised-pnl" class="font-bold">+₹ 32,294.30</span>
+          <div class="text-[11px] text-[#A79986] mt-1">
+            Realised P&L: <span id="dash-realised-pnl" class="font-bold text-[#F6F4F1]">+₹ 32,294.30</span>
             <span id="dash-realised-roi" class="ml-1">(+3.5% ROI)</span>
           </div>
 
-          <button onclick="window.App.switchView('trade-journal')" class="absolute right-4 bottom-4 bg-white text-[#142809] px-3.5 py-1.5 rounded-full text-xs font-bold shadow-sm hover:bg-neutral-50 active:scale-95 transition-all">
+          <button type="button" data-path="trade-journal" class="absolute right-4 bottom-4 bg-[#803E2F] text-white px-3.5 py-1.5 rounded-full text-xs font-bold shadow hover:bg-[#964a38] transition-all">
             Find out
           </button>
         </div>
 
-        <!-- Soft Lilac Card: Today's Change Delta (Image 2 style) -->
-        <div class="bg-[#cfc2fc] text-[#181328] rounded-2xl p-4 relative overflow-hidden shadow-sm">
+        <!-- Highlight Card 2: Warm Terracotta Today's Gain -->
+        <div class="bg-[#803E2F] text-white rounded-2xl p-4 relative overflow-hidden shadow-md">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-bold tracking-wide">✦ You're in profit today!</span>
-            <span id="dash-today-delta-pct" class="text-xs font-bold bg-[#181328] text-white px-2 py-0.5 rounded-full">+0.79%</span>
+            <span class="text-xs font-bold tracking-wide text-[#F6F4F1]/90">✦ Today's Gain Delta</span>
+            <span id="dash-today-delta-pct" class="text-xs font-bold bg-[#1F1D20] text-[#A79986] px-2 py-0.5 rounded-full">+0.79%</span>
           </div>
-          <div class="font-serif text-[20px] font-normal leading-tight">
-            Today's Gain: <span id="dash-today-delta" class="font-bold">+₹ 2,140.00</span>
+          <div class="font-serif text-[22px] font-normal leading-tight">
+            Today's Change: <span id="dash-today-delta" class="font-bold">+₹ 2,140.00</span>
           </div>
-          <div class="text-[11px] opacity-80 mt-1 flex items-center justify-between">
+          <div class="text-[11px] text-white/80 mt-1 flex items-center justify-between">
             <span id="dash-prev-close">Prev Close: ₹ 2,70,948.00</span>
-            <span class="font-bold">EOD Reconciled</span>
+            <span class="font-semibold text-[#A79986]">EOD Reconciled</span>
           </div>
         </div>
 
-        <!-- Recent Trades List (Image 1 "Goals" / Image 2 style) -->
-        <div class="pt-2">
+        <!-- Recent Trades List -->
+        <div class="pt-1">
           <div class="flex items-center justify-between mb-3 px-1">
-            <h3 class="font-serif text-[20px] text-white">Recent Trades</h3>
-            <span class="w-6 h-6 rounded-full bg-[#1e1e26] border border-white/10 flex items-center justify-center text-xs font-bold text-[#cfc2fc]">
+            <h3 class="font-serif text-[20px] text-[#F6F4F1]">Recent Trades</h3>
+            <span class="px-2 py-0.5 rounded-full bg-[#362F2E] border border-[rgba(167,153,134,0.2)] text-xs font-bold text-[#A79986]">
               3
             </span>
           </div>
 
           <div class="space-y-2.5">
-            <!-- Sample Card 1 (Image 2 Style) -->
-            <div class="bg-[#18181f] border border-white/5 rounded-2xl p-3.5 hover:border-white/15 transition-all cursor-pointer" onclick="window.App.switchView('trade-journal')">
+            <!-- Trade 1 -->
+            <div data-path="trade-journal" class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 hover:border-[rgba(167,153,134,0.35)] transition-all cursor-pointer">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-[#24242e] flex items-center justify-center text-white">
-                    <span class="material-symbols-outlined text-[20px] text-[#cfc2fc]">trending_up</span>
+                  <div class="w-10 h-10 rounded-xl bg-[#362F2E] border border-[rgba(167,153,134,0.2)] flex items-center justify-center text-white">
+                    <span class="material-symbols-outlined text-[20px] text-[#A79986]">trending_up</span>
                   </div>
                   <div>
-                    <h4 class="font-serif text-[16px] text-white leading-tight">Tata Power Company</h4>
-                    <span class="text-[11px] text-[#8e8e98]">TATAPOWER · Groww · Breakout</span>
+                    <h4 class="font-serif text-[16px] text-[#F6F4F1] leading-tight">Tata Power Company</h4>
+                    <span class="text-[11px] text-[#A79986]">TATAPOWER · Groww · Breakout</span>
                   </div>
                 </div>
                 <div class="text-right">
-                  <div class="font-serif text-[15px] font-semibold text-[#d5f6be]">+₹ 2,444.20</div>
-                  <span class="text-[10px] text-[#a5f368] font-bold">+5.92%</span>
+                  <div class="font-serif text-[15px] font-semibold text-[#82D172]">+₹ 2,444.20</div>
+                  <span class="text-[10px] text-[#82D172] font-bold">+5.92%</span>
                 </div>
               </div>
-              <div class="mt-2.5 w-full bg-[#24242e] h-1 rounded-full overflow-hidden">
-                <div class="bg-[#cfc2fc] h-full rounded-full" style="width: 70%"></div>
+              <div class="mt-2.5 w-full bg-[#362F2E] h-1 rounded-full overflow-hidden">
+                <div class="bg-[#803E2F] h-full rounded-full" style="width: 70%"></div>
               </div>
             </div>
 
-            <!-- Sample Card 2 -->
-            <div class="bg-[#18181f] border border-white/5 rounded-2xl p-3.5 hover:border-white/15 transition-all cursor-pointer" onclick="window.App.switchView('trade-journal')">
+            <!-- Trade 2 -->
+            <div data-path="trade-journal" class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 hover:border-[rgba(167,153,134,0.35)] transition-all cursor-pointer">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-[#24242e] flex items-center justify-center text-white">
-                    <span class="material-symbols-outlined text-[20px] text-[#d5f6be]">bolt</span>
+                  <div class="w-10 h-10 rounded-xl bg-[#362F2E] border border-[rgba(167,153,134,0.2)] flex items-center justify-center text-white">
+                    <span class="material-symbols-outlined text-[20px] text-[#82D172]">bolt</span>
                   </div>
                   <div>
-                    <h4 class="font-serif text-[16px] text-white leading-tight">State Bank of India</h4>
-                    <span class="text-[11px] text-[#8e8e98]">SBIN · Zerodha · Swing</span>
+                    <h4 class="font-serif text-[16px] text-[#F6F4F1] leading-tight">State Bank of India</h4>
+                    <span class="text-[11px] text-[#A79986]">SBIN · Zerodha · Swing</span>
                   </div>
                 </div>
                 <div class="text-right">
-                  <div class="font-serif text-[15px] font-semibold text-[#d5f6be]">+₹ 1,820.00</div>
-                  <span class="text-[10px] text-[#a5f368] font-bold">+3.40%</span>
+                  <div class="font-serif text-[15px] font-semibold text-[#82D172]">+₹ 1,820.00</div>
+                  <span class="text-[10px] text-[#82D172] font-bold">+3.40%</span>
                 </div>
               </div>
-              <div class="mt-2.5 w-full bg-[#24242e] h-1 rounded-full overflow-hidden">
-                <div class="bg-[#cfc2fc] h-full rounded-full" style="width: 55%"></div>
+              <div class="mt-2.5 w-full bg-[#362F2E] h-1 rounded-full overflow-hidden">
+                <div class="bg-[#803E2F] h-full rounded-full" style="width: 55%"></div>
               </div>
             </div>
 
-            <!-- Sample Card 3 -->
-            <div class="bg-[#18181f] border border-white/5 rounded-2xl p-3.5 hover:border-white/15 transition-all cursor-pointer" onclick="window.App.switchView('trade-journal')">
+            <!-- Trade 3 -->
+            <div data-path="trade-journal" class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 hover:border-[rgba(167,153,134,0.35)] transition-all cursor-pointer">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-[#24242e] flex items-center justify-center text-white">
-                    <span class="material-symbols-outlined text-[20px] text-red-400">trending_down</span>
+                  <div class="w-10 h-10 rounded-xl bg-[#362F2E] border border-[rgba(167,153,134,0.2)] flex items-center justify-center text-white">
+                    <span class="material-symbols-outlined text-[20px] text-[#E05D4D]">trending_down</span>
                   </div>
                   <div>
-                    <h4 class="font-serif text-[16px] text-white leading-tight">HDFC Bank Limited</h4>
-                    <span class="text-[11px] text-[#8e8e98]">HDFCBANK · Groww · Pullback</span>
+                    <h4 class="font-serif text-[16px] text-[#F6F4F1] leading-tight">HDFC Bank Limited</h4>
+                    <span class="text-[11px] text-[#A79986]">HDFCBANK · Groww · Pullback</span>
                   </div>
                 </div>
                 <div class="text-right">
-                  <div class="font-serif text-[15px] font-semibold text-red-400">-₹ 640.00</div>
-                  <span class="text-[10px] text-red-400 font-bold">-1.20%</span>
+                  <div class="font-serif text-[15px] font-semibold text-[#E05D4D]">-₹ 640.00</div>
+                  <span class="text-[10px] text-[#E05D4D] font-bold">-1.20%</span>
                 </div>
               </div>
-              <div class="mt-2.5 w-full bg-[#24242e] h-1 rounded-full overflow-hidden">
-                <div class="bg-red-400/80 h-full rounded-full" style="width: 25%"></div>
+              <div class="mt-2.5 w-full bg-[#362F2E] h-1 rounded-full overflow-hidden">
+                <div class="bg-[#E05D4D] h-full rounded-full" style="width: 25%"></div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Hidden Bars for App State Binding -->
+        <!-- Hidden state elements -->
         <div class="hidden">
           <div id="dash-bar-win"></div>
           <div id="dash-bar-loss"></div>
@@ -291,124 +276,119 @@
            VIEW 2: TRADE JOURNAL
            ==================================================================== -->
       <section id="view-trade-journal" class="view-panel space-y-4">
-        <!-- Title & Header -->
         <div class="flex items-center justify-between pt-1">
           <div>
-            <span class="text-xs text-[#8e8e98]">History & Entries</span>
-            <h2 class="font-serif text-[28px] text-white leading-tight">Trade Journal</h2>
+            <span class="text-xs text-[#A79986]">History & Entries</span>
+            <h2 class="font-serif text-[28px] text-[#F6F4F1] leading-tight">Trade Journal</h2>
           </div>
-          <button onclick="window.App.exportJournalCSV()" class="p-2 rounded-full bg-[#18181f] border border-white/10 text-white hover:bg-[#22222a]" title="Export CSV">
+          <button type="button" data-action="export-journal-csv" class="p-2.5 rounded-full bg-[#362F2E] border border-[rgba(167,153,134,0.25)] text-[#F6F4F1] hover:bg-[#803E2F]/40" title="Export CSV" aria-label="Export CSV">
             <span class="material-symbols-outlined text-[18px]">download</span>
           </button>
         </div>
 
-        <!-- 4 KPI Cards (Image 3 Style) -->
+        <!-- 4 KPI Cards -->
         <div class="grid grid-cols-2 gap-2.5">
-          <!-- Lilac Highlight Card: Today's Realised -->
-          <div class="bg-[#cfc2fc] text-[#181328] rounded-2xl p-3.5 flex flex-col justify-between">
-            <span class="text-[11px] font-bold uppercase tracking-wider">Today's P&L</span>
+          <div class="bg-[#803E2F] text-white rounded-2xl p-3.5 flex flex-col justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-white/90">Today's P&L</span>
             <div id="journal-kpi-today-pnl" class="font-serif text-[22px] font-normal leading-tight my-1 tabular-nums">+₹0.00</div>
-            <span id="journal-kpi-today-count" class="text-[10px] font-bold opacity-80">0 Closed</span>
+            <span id="journal-kpi-today-count" class="text-[10px] font-bold text-[#A79986]">0 Closed</span>
           </div>
 
-          <!-- Total Realised Card -->
-          <div class="bg-[#18181f] border border-white/5 rounded-2xl p-3.5 flex flex-col justify-between">
-            <span class="text-[11px] text-[#8e8e98] uppercase tracking-wider font-semibold">Total P&L</span>
-            <div id="journal-kpi-monthly-pnl" class="font-serif text-[22px] font-normal text-white leading-tight my-1 tabular-nums">+₹0.00</div>
-            <span class="text-[10px] text-[#8e8e98]">Verified Closed</span>
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 flex flex-col justify-between">
+            <span class="text-[11px] text-[#A79986] uppercase tracking-wider font-semibold">Total P&L</span>
+            <div id="journal-kpi-monthly-pnl" class="font-serif text-[22px] font-normal text-[#F6F4F1] leading-tight my-1 tabular-nums">+₹0.00</div>
+            <span class="text-[10px] text-[#A79986]">Verified Closed</span>
           </div>
 
-          <!-- Win Rate Card -->
-          <div class="bg-[#18181f] border border-white/5 rounded-2xl p-3.5 flex flex-col justify-between">
-            <span class="text-[11px] text-[#8e8e98] uppercase tracking-wider font-semibold">Win Rate</span>
-            <div id="journal-kpi-winrate" class="font-serif text-[22px] font-normal text-white leading-tight my-1 tabular-nums">0.0%</div>
-            <div class="w-full bg-[#24242e] h-1 rounded-full overflow-hidden flex">
-              <div id="journal-kpi-bar-win" class="bg-[#cfc2fc] h-full" style="width: 50%"></div>
-              <div id="journal-kpi-bar-loss" class="bg-red-400 h-full" style="width: 50%"></div>
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 flex flex-col justify-between">
+            <span class="text-[11px] text-[#A79986] uppercase tracking-wider font-semibold">Win Rate</span>
+            <div id="journal-kpi-winrate" class="font-serif text-[22px] font-normal text-[#F6F4F1] leading-tight my-1 tabular-nums">0.0%</div>
+            <div class="w-full bg-[#362F2E] h-1 rounded-full overflow-hidden flex">
+              <div id="journal-kpi-bar-win" class="bg-[#803E2F] h-full" style="width: 50%"></div>
+              <div id="journal-kpi-bar-loss" class="bg-[#E05D4D] h-full" style="width: 50%"></div>
             </div>
             <span id="journal-kpi-winloss-ratio" class="hidden"></span>
           </div>
 
-          <!-- Charges & Taxes Card -->
-          <div class="bg-[#18181f] border border-white/5 rounded-2xl p-3.5 flex flex-col justify-between">
-            <span class="text-[11px] text-[#8e8e98] uppercase tracking-wider font-semibold">Total Taxes</span>
-            <div id="journal-kpi-friction" class="font-serif text-[22px] font-normal text-white leading-tight my-1 tabular-nums">₹0.00</div>
-            <span class="text-[10px] text-[#8e8e98]">NSE & Brokerage</span>
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 flex flex-col justify-between">
+            <span class="text-[11px] text-[#A79986] uppercase tracking-wider font-semibold">Total Taxes</span>
+            <div id="journal-kpi-friction" class="font-serif text-[22px] font-normal text-[#F6F4F1] leading-tight my-1 tabular-nums">₹0.00</div>
+            <span class="text-[10px] text-[#A79986]">NSE & Brokerage</span>
           </div>
         </div>
 
         <!-- Log Trade Card / Form -->
-        <div class="bg-[#18181f] border border-white/5 rounded-2xl p-4">
-          <div class="flex items-center justify-between pb-2 mb-3 border-b border-white/5">
+        <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-4">
+          <div class="flex items-center justify-between pb-2 mb-3 border-b border-[rgba(167,153,134,0.15)]">
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-[18px] text-[#cfc2fc]">add_circle</span>
-              <h3 id="btnSaveTradeTextHeader" class="font-serif text-[18px] text-white">Log Swing Trade</h3>
+              <span class="material-symbols-outlined text-[18px] text-[#A79986]">add_circle</span>
+              <h3 id="btnSaveTradeTextHeader" class="font-serif text-[18px] text-[#F6F4F1]">Log Swing Trade</h3>
             </div>
-            <button id="btnClearTrade" type="button" class="text-xs text-[#8e8e98] hover:text-white">Reset</button>
+            <button id="btnClearTrade" type="button" data-action="reset-trade" class="text-xs text-[#A79986] hover:text-[#F6F4F1]">Reset</button>
           </div>
 
           <form id="tradeForm" onsubmit="event.preventDefault();" class="space-y-3">
             <div class="grid grid-cols-2 gap-2.5">
               <div>
-                <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="tradeDate">Date</label>
-                <input id="tradeDate" type="date" class="w-full bg-[#111116] border border-white/10 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#cfc2fc]"/>
+                <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="tradeDate">Date</label>
+                <input id="tradeDate" type="date" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-2.5 py-2 text-xs text-[#F6F4F1] focus:outline-none focus:border-[#803E2F]"/>
               </div>
               <div>
-                <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="stockSymbol">Symbol (NSE)</label>
-                <input id="stockSymbol" type="text" placeholder="TATAPOWER" class="w-full bg-[#111116] border border-white/10 rounded-xl px-2.5 py-2 text-xs text-white uppercase focus:outline-none focus:border-[#cfc2fc]"/>
+                <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="stockSymbol">Symbol (NSE)</label>
+                <input id="stockSymbol" type="text" placeholder="TATAPOWER" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-2.5 py-2 text-xs text-[#F6F4F1] uppercase focus:outline-none focus:border-[#803E2F]"/>
               </div>
             </div>
 
             <div>
-              <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="stockName">Company Name</label>
-              <input id="stockName" type="text" placeholder="Tata Power Company" class="w-full bg-[#111116] border border-white/10 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-[#cfc2fc]"/>
+              <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="stockName">Company Name</label>
+              <input id="stockName" type="text" placeholder="Tata Power Company" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-2.5 py-2 text-xs text-[#F6F4F1] focus:outline-none focus:border-[#803E2F]"/>
             </div>
 
-            <!-- Broker Toggle (Image 1 Style Pill) -->
+            <!-- Broker Toggle -->
             <div>
-              <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1">Broker</label>
-              <div class="grid grid-cols-2 p-1 bg-[#111116] rounded-xl border border-white/5 gap-1">
-                <button type="button" id="brokerGrowwBtn" onclick="window.App.selectJournalBroker('groww')" class="py-1.5 text-xs rounded-lg font-semibold bg-[#282833] text-white transition-all">Groww</button>
-                <button type="button" id="brokerZerodhaBtn" onclick="window.App.selectJournalBroker('zerodha')" class="py-1.5 text-xs rounded-lg font-semibold text-[#8e8e98] transition-all">Zerodha</button>
+              <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1">Broker</label>
+              <div class="grid grid-cols-2 p-1 bg-[#1F1D20] rounded-xl border border-[rgba(167,153,134,0.18)] gap-1">
+                <button type="button" id="brokerGrowwBtn" onclick="window.App.selectJournalBroker('groww')" class="py-1.5 text-xs rounded-lg font-semibold bg-[#362F2E] text-[#F6F4F1] transition-all">Groww</button>
+                <button type="button" id="brokerZerodhaBtn" onclick="window.App.selectJournalBroker('zerodha')" class="py-1.5 text-xs rounded-lg font-semibold text-[#A79986] transition-all">Zerodha</button>
               </div>
               <input id="selectedBroker" type="hidden" value="groww"/>
             </div>
 
             <div class="grid grid-cols-3 gap-2">
               <div>
-                <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="buyPrice">Buy (₹)</label>
-                <input id="buyPrice" type="number" step="0.05" inputmode="decimal" value="412.50" class="w-full bg-[#111116] border border-white/10 rounded-xl px-2 py-2 text-xs text-white text-right font-medium tabular-nums focus:outline-none focus:border-[#cfc2fc]"/>
+                <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="buyPrice">Buy (₹)</label>
+                <input id="buyPrice" type="number" step="0.05" inputmode="decimal" value="412.50" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-2 py-2 text-xs text-[#F6F4F1] text-right font-medium tabular-nums focus:outline-none focus:border-[#803E2F]"/>
               </div>
               <div>
-                <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="sellPrice">Sell (₹)</label>
-                <input id="sellPrice" type="number" step="0.05" inputmode="decimal" value="438.00" class="w-full bg-[#111116] border border-white/10 rounded-xl px-2 py-2 text-xs text-white text-right font-medium tabular-nums focus:outline-none focus:border-[#cfc2fc]"/>
+                <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="sellPrice">Sell (₹)</label>
+                <input id="sellPrice" type="number" step="0.05" inputmode="decimal" value="438.00" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-2 py-2 text-xs text-[#F6F4F1] text-right font-medium tabular-nums focus:outline-none focus:border-[#803E2F]"/>
               </div>
               <div>
-                <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="tradeQty">Quantity</label>
-                <input id="tradeQty" type="number" min="1" inputmode="numeric" value="100" class="w-full bg-[#111116] border border-white/10 rounded-xl px-2 py-2 text-xs text-white text-right font-medium tabular-nums focus:outline-none focus:border-[#cfc2fc]"/>
+                <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="tradeQty">Quantity</label>
+                <input id="tradeQty" type="number" min="1" inputmode="numeric" value="100" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-2 py-2 text-xs text-[#F6F4F1] text-right font-medium tabular-nums focus:outline-none focus:border-[#803E2F]"/>
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="tradeStrategy">Strategy</label>
-                <input id="tradeStrategy" type="text" value="Breakout" placeholder="Breakout" class="w-full bg-[#111116] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none"/>
+                <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="tradeStrategy">Strategy</label>
+                <input id="tradeStrategy" type="text" value="Breakout" placeholder="Breakout" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-2.5 py-1.5 text-xs text-[#F6F4F1] focus:outline-none"/>
               </div>
               <div>
-                <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="tradeNotes">Notes</label>
-                <input id="tradeNotes" type="text" placeholder="Optional" class="w-full bg-[#111116] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none"/>
+                <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="tradeNotes">Notes</label>
+                <input id="tradeNotes" type="text" placeholder="Optional" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-2.5 py-1.5 text-xs text-[#F6F4F1] focus:outline-none"/>
               </div>
             </div>
 
-            <!-- Live Calculation Banner -->
-            <div class="bg-[#121217] border border-white/5 rounded-xl p-3 flex items-center justify-between">
+            <!-- Live P&L Calculation Banner -->
+            <div class="bg-[#1F1D20] border border-[rgba(167,153,134,0.18)] rounded-xl p-3 flex items-center justify-between">
               <div>
-                <span class="text-[10px] text-[#8e8e98] block">Net Realised P&L</span>
-                <span id="liveNetPnL" class="font-serif text-[20px] font-semibold text-[#d5f6be] tabular-nums">+₹ 2,444.20</span>
+                <span class="text-[10px] text-[#A79986] block">Net Realised P&L</span>
+                <span id="liveNetPnL" class="font-serif text-[20px] font-semibold text-[#82D172] tabular-nums">+₹ 2,444.20</span>
               </div>
               <div class="text-right">
-                <span id="liveOutcomeStatus" class="px-2 py-0.5 rounded-full bg-[#20331b] text-[#a5f368] text-[10px] font-bold block mb-0.5">WIN</span>
-                <span id="liveNetRoi" class="text-xs text-[#d5f6be] font-medium">+5.92% ROI</span>
+                <span id="liveOutcomeStatus" class="px-2 py-0.5 rounded-full bg-[#46232A] text-[#A79986] text-[10px] font-bold block mb-0.5">WIN</span>
+                <span id="liveNetRoi" class="text-xs text-[#82D172] font-medium">+5.92% ROI</span>
               </div>
             </div>
 
@@ -417,29 +397,28 @@
               <span id="liveTaxesCharges"></span>
             </div>
 
-            <!-- Save Button -->
-            <button id="btnSaveTrade" type="button" class="w-full py-2.5 rounded-xl bg-[#cfc2fc] text-[#181328] font-semibold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[#cfc2fc]/20 hover:bg-[#dcd3fc] active:scale-95 transition-all">
+            <button id="btnSaveTrade" type="button" data-action="save-trade" class="w-full py-3 rounded-xl bg-[#803E2F] hover:bg-[#964a38] text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[rgba(128,62,47,0.35)] transition-all">
               <span class="material-symbols-outlined text-[16px]">save</span>
               <span id="btnSaveTradeText">Save Trade</span>
             </button>
           </form>
         </div>
 
-        <!-- Filter & Search Bar -->
+        <!-- Filter & Search -->
         <div class="space-y-2">
           <div class="relative">
-            <span class="material-symbols-outlined text-[18px] text-[#8e8e98] absolute left-3 top-2.5">search</span>
-            <input id="searchInput" type="text" placeholder="Search trades..." class="w-full bg-[#18181f] border border-white/10 rounded-full pl-9 pr-4 py-2 text-xs text-white focus:outline-none focus:border-[#cfc2fc]"/>
+            <span class="material-symbols-outlined text-[18px] text-[#A79986] absolute left-3 top-2.5">search</span>
+            <input id="searchInput" type="text" placeholder="Search trades..." class="w-full bg-[#2B272A] border border-[rgba(167,153,134,0.2)] rounded-full pl-9 pr-4 py-2 text-xs text-[#F6F4F1] focus:outline-none focus:border-[#803E2F]"/>
           </div>
 
           <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-            <button id="fltBrokerAll" onclick="window.App.setJournalBrokerFilter('all')" class="px-3 py-1 rounded-full bg-[#24242e] text-white font-semibold whitespace-nowrap">All Brokers</button>
-            <button id="fltBrokerGroww" onclick="window.App.setJournalBrokerFilter('groww')" class="px-3 py-1 rounded-full bg-[#18181f] text-[#8e8e98] whitespace-nowrap">Groww</button>
-            <button id="fltBrokerZerodha" onclick="window.App.setJournalBrokerFilter('zerodha')" class="px-3 py-1 rounded-full bg-[#18181f] text-[#8e8e98] whitespace-nowrap">Zerodha</button>
-            <button id="fltOutAll" onclick="window.App.setJournalOutcomeFilter('all')" class="px-3 py-1 rounded-full bg-[#24242e] text-white font-semibold whitespace-nowrap">All</button>
-            <button id="fltOutWin" onclick="window.App.setJournalOutcomeFilter('win')" class="px-3 py-1 rounded-full bg-[#18181f] text-[#8e8e98] whitespace-nowrap">Wins</button>
-            <button id="fltOutLoss" onclick="window.App.setJournalOutcomeFilter('loss')" class="px-3 py-1 rounded-full bg-[#18181f] text-[#8e8e98] whitespace-nowrap">Losses</button>
-            <select id="sortSelect" class="bg-[#18181f] border border-white/10 text-white rounded-full px-2 py-1 text-xs focus:outline-none">
+            <button id="fltBrokerAll" onclick="window.App.setJournalBrokerFilter('all')" class="px-3 py-1 rounded-full bg-[#362F2E] text-[#F6F4F1] font-semibold whitespace-nowrap">All Brokers</button>
+            <button id="fltBrokerGroww" onclick="window.App.setJournalBrokerFilter('groww')" class="px-3 py-1 rounded-full bg-[#2B272A] text-[#A79986] whitespace-nowrap">Groww</button>
+            <button id="fltBrokerZerodha" onclick="window.App.setJournalBrokerFilter('zerodha')" class="px-3 py-1 rounded-full bg-[#2B272A] text-[#A79986] whitespace-nowrap">Zerodha</button>
+            <button id="fltOutAll" onclick="window.App.setJournalOutcomeFilter('all')" class="px-3 py-1 rounded-full bg-[#362F2E] text-[#F6F4F1] font-semibold whitespace-nowrap">All</button>
+            <button id="fltOutWin" onclick="window.App.setJournalOutcomeFilter('win')" class="px-3 py-1 rounded-full bg-[#2B272A] text-[#A79986] whitespace-nowrap">Wins</button>
+            <button id="fltOutLoss" onclick="window.App.setJournalOutcomeFilter('loss')" class="px-3 py-1 rounded-full bg-[#2B272A] text-[#A79986] whitespace-nowrap">Losses</button>
+            <select id="sortSelect" class="bg-[#2B272A] border border-[rgba(167,153,134,0.2)] text-[#F6F4F1] rounded-full px-2 py-1 text-xs focus:outline-none">
               <option value="date-desc">Newest</option>
               <option value="date-asc">Oldest</option>
               <option value="pnl-desc">P&L High</option>
@@ -448,9 +427,9 @@
           </div>
         </div>
 
-        <!-- Trade List Table / Cards -->
-        <div class="bg-[#18181f] border border-white/5 rounded-2xl overflow-hidden">
-          <div class="p-3 border-b border-white/5 flex items-center justify-between text-xs text-[#8e8e98]">
+        <!-- Trade List -->
+        <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl overflow-hidden">
+          <div class="p-3 border-b border-[rgba(167,153,134,0.15)] flex items-center justify-between text-xs text-[#A79986]">
             <span id="footerCount">0 Records</span>
           </div>
           <div class="overflow-x-auto">
@@ -469,86 +448,83 @@
       <section id="view-portfolio-tracker" class="view-panel space-y-4">
         <div class="flex items-center justify-between pt-1">
           <div>
-            <span class="text-xs text-[#8e8e98]">Capital Allocation</span>
-            <h2 class="font-serif text-[28px] text-white leading-tight">Portfolio Tracker</h2>
+            <span class="text-xs text-[#A79986]">Capital Allocation</span>
+            <h2 class="font-serif text-[28px] text-[#F6F4F1] leading-tight">Portfolio Tracker</h2>
           </div>
-          <button onclick="window.App.exportPortfolioCSV()" class="p-2 rounded-full bg-[#18181f] border border-white/10 text-white hover:bg-[#22222a]" title="Export CSV">
+          <button type="button" data-action="export-portfolio-csv" class="p-2.5 rounded-full bg-[#362F2E] border border-[rgba(167,153,134,0.25)] text-[#F6F4F1] hover:bg-[#803E2F]/40" title="Export CSV" aria-label="Export CSV">
             <span class="material-symbols-outlined text-[18px]">download</span>
           </button>
         </div>
 
-        <!-- Daily Valuation Form -->
-        <div class="bg-[#18181f] border border-white/5 rounded-2xl p-4">
-          <div class="flex items-center justify-between pb-2 mb-3 border-b border-white/5">
-            <h3 class="font-serif text-[18px] text-white">Record Daily Valuation</h3>
-            <input id="snapshot-date" type="date" class="bg-[#111116] border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none"/>
+        <!-- Valuation Form -->
+        <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-4">
+          <div class="flex items-center justify-between pb-2 mb-3 border-b border-[rgba(167,153,134,0.15)]">
+            <h3 class="font-serif text-[18px] text-[#F6F4F1]">Record Daily Valuation</h3>
+            <input id="snapshot-date" type="date" class="bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-lg px-2 py-1 text-xs text-[#F6F4F1] focus:outline-none"/>
           </div>
 
           <div class="space-y-3">
-            <!-- Groww Block -->
-            <div class="bg-[#121217] rounded-xl p-3 border border-white/5">
+            <div class="bg-[#1F1D20] rounded-xl p-3 border border-[rgba(167,153,134,0.15)]">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-semibold text-white">Groww</span>
-                <span id="groww-subtotal" class="font-serif text-[15px] font-semibold text-white tabular-nums">₹2,24,226.00</span>
+                <span class="text-xs font-semibold text-[#F6F4F1]">Groww</span>
+                <span id="groww-subtotal" class="font-serif text-[15px] font-semibold text-[#F6F4F1] tabular-nums">₹2,24,226.00</span>
               </div>
               <div class="grid grid-cols-2 gap-2">
                 <div>
-                  <label class="block text-[10px] text-[#8e8e98] mb-0.5">Available Cash</label>
-                  <input id="groww-cash" type="number" step="any" inputmode="decimal" value="20000" class="w-full bg-[#18181f] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white tabular-nums"/>
+                  <label class="block text-[10px] text-[#A79986] mb-0.5">Available Cash</label>
+                  <input id="groww-cash" type="number" step="any" inputmode="decimal" value="20000" class="w-full bg-[#2B272A] border border-[rgba(167,153,134,0.2)] rounded-lg px-2 py-1.5 text-xs text-[#F6F4F1] tabular-nums"/>
                 </div>
                 <div>
-                  <label class="block text-[10px] text-[#8e8e98] mb-0.5">Invested Value</label>
-                  <input id="groww-invested" type="number" step="any" inputmode="decimal" value="204226" class="w-full bg-[#18181f] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white tabular-nums"/>
+                  <label class="block text-[10px] text-[#A79986] mb-0.5">Invested Value</label>
+                  <input id="groww-invested" type="number" step="any" inputmode="decimal" value="204226" class="w-full bg-[#2B272A] border border-[rgba(167,153,134,0.2)] rounded-lg px-2 py-1.5 text-xs text-[#F6F4F1] tabular-nums"/>
                 </div>
               </div>
             </div>
 
-            <!-- Zerodha Block -->
-            <div class="bg-[#121217] rounded-xl p-3 border border-white/5">
+            <div class="bg-[#1F1D20] rounded-xl p-3 border border-[rgba(167,153,134,0.15)]">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-semibold text-white">Zerodha Kite</span>
-                <span id="kite-subtotal" class="font-serif text-[15px] font-semibold text-white tabular-nums">₹48,862.00</span>
+                <span class="text-xs font-semibold text-[#F6F4F1]">Zerodha Kite</span>
+                <span id="kite-subtotal" class="font-serif text-[15px] font-semibold text-[#F6F4F1] tabular-nums">₹48,862.00</span>
               </div>
               <div class="grid grid-cols-2 gap-2">
                 <div>
-                  <label class="block text-[10px] text-[#8e8e98] mb-0.5">Available Cash</label>
-                  <input id="kite-cash" type="number" step="any" inputmode="decimal" value="33070" class="w-full bg-[#18181f] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white tabular-nums"/>
+                  <label class="block text-[10px] text-[#A79986] mb-0.5">Available Cash</label>
+                  <input id="kite-cash" type="number" step="any" inputmode="decimal" value="33070" class="w-full bg-[#2B272A] border border-[rgba(167,153,134,0.2)] rounded-lg px-2 py-1.5 text-xs text-[#F6F4F1] tabular-nums"/>
                 </div>
                 <div>
-                  <label class="block text-[10px] text-[#8e8e98] mb-0.5">Invested Value</label>
-                  <input id="kite-invested" type="number" step="any" inputmode="decimal" value="15792" class="w-full bg-[#18181f] border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white tabular-nums"/>
+                  <label class="block text-[10px] text-[#A79986] mb-0.5">Invested Value</label>
+                  <input id="kite-invested" type="number" step="any" inputmode="decimal" value="15792" class="w-full bg-[#2B272A] border border-[rgba(167,153,134,0.2)] rounded-lg px-2 py-1.5 text-xs text-[#F6F4F1] tabular-nums"/>
                 </div>
               </div>
             </div>
 
-            <!-- Combined Bar -->
-            <div class="bg-[#24242e] rounded-xl p-3 flex items-center justify-between">
+            <div class="bg-[#362F2E] border border-[rgba(167,153,134,0.2)] rounded-xl p-3 flex items-center justify-between">
               <div>
-                <span class="text-[10px] text-[#8e8e98] uppercase tracking-wider block">Combined Portfolio</span>
-                <span id="combined-total-value" class="font-serif text-[22px] font-semibold text-white tabular-nums">₹2,73,088.00</span>
+                <span class="text-[10px] text-[#A79986] uppercase tracking-wider block">Combined Portfolio</span>
+                <span id="combined-total-value" class="font-serif text-[22px] font-semibold text-[#F6F4F1] tabular-nums">₹2,73,088.00</span>
               </div>
               <div class="text-right">
-                <span class="text-[10px] text-[#8e8e98] uppercase tracking-wider block">DoD Delta</span>
-                <span id="combined-dod-delta" class="text-xs font-bold text-[#d5f6be] tabular-nums">+₹2,140.00 (+0.79%)</span>
+                <span class="text-[10px] text-[#A79986] uppercase tracking-wider block">DoD Delta</span>
+                <span id="combined-dod-delta" class="text-xs font-bold text-[#82D172] tabular-nums">+₹2,140.00 (+0.79%)</span>
               </div>
             </div>
 
-            <button id="save-snapshot-btn" type="button" class="w-full py-2.5 rounded-xl bg-[#cfc2fc] text-[#181328] font-semibold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[#cfc2fc]/20 hover:bg-[#dcd3fc] active:scale-95 transition-all">
+            <button id="save-snapshot-btn" type="button" data-action="save-snapshot" class="w-full py-3 rounded-xl bg-[#803E2F] hover:bg-[#964a38] text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[rgba(128,62,47,0.35)] transition-all">
               <span class="material-symbols-outlined text-[16px]">save</span>
               <span>Save Valuation Snapshot</span>
             </button>
           </div>
         </div>
 
-        <!-- Historical Snapshots Table -->
-        <div class="bg-[#18181f] border border-white/5 rounded-2xl overflow-hidden">
-          <div class="p-3 border-b border-white/5">
-            <h3 class="font-serif text-[16px] text-white">Snapshot History</h3>
+        <!-- Snapshots Table -->
+        <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl overflow-hidden">
+          <div class="p-3 border-b border-[rgba(167,153,134,0.15)]">
+            <h3 class="font-serif text-[16px] text-[#F6F4F1]">Snapshot History</h3>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="bg-[#121217] text-[#8e8e98] uppercase text-[10px]">
+                <tr class="bg-[#1F1D20] text-[#A79986] uppercase text-[10px]">
                   <th class="p-2.5">Date</th>
                   <th class="p-2.5 text-right">Groww</th>
                   <th class="p-2.5 text-right">Zerodha</th>
@@ -566,68 +542,63 @@
       </section>
 
       <!-- ====================================================================
-           VIEW 4: ANALYTICS (Image 3 Style)
+           VIEW 4: ANALYTICS
            ==================================================================== -->
       <section id="view-analytics" class="view-panel space-y-4">
         <div class="pt-1">
-          <span class="text-xs text-[#8e8e98]">Metrics & Edge</span>
-          <h2 class="font-serif text-[28px] text-white leading-tight">Analytics & Stats</h2>
+          <span class="text-xs text-[#A79986]">Metrics & Edge</span>
+          <h2 class="font-serif text-[28px] text-[#F6F4F1] leading-tight">Analytics & Stats</h2>
         </div>
 
-        <!-- 4 Grid Cards Matching Image 3 -->
         <div class="grid grid-cols-2 gap-2.5">
-          <!-- Lilac Accent Card 1: Net Realised P&L -->
-          <div class="bg-[#cfc2fc] text-[#181328] rounded-2xl p-4 flex flex-col justify-between">
+          <div class="bg-[#803E2F] text-white rounded-2xl p-4 flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between text-xs font-semibold mb-1">
                 <span>Net Realised P&L</span>
                 <span class="material-symbols-outlined text-[15px]">info</span>
               </div>
               <div id="analytics-total-val" class="font-serif text-[24px] font-normal leading-tight tabular-nums">+₹32,294.30</div>
-              <div id="analytics-abs-gain" class="text-[11px] font-bold mt-1">+3.5% ROI</div>
+              <div id="analytics-abs-gain" class="text-[11px] font-bold text-[#A79986] mt-1">+3.5% ROI</div>
             </div>
-            <button onclick="window.App.switchView('trade-journal')" class="mt-3 bg-[#181328] text-white py-1 px-3 rounded-full text-[10px] font-bold self-start">
+            <button type="button" data-path="trade-journal" class="mt-3 bg-[#1F1D20] text-[#A79986] py-1 px-3 rounded-full text-[10px] font-bold self-start">
               View Log
             </button>
           </div>
 
-          <!-- Card 2: Today's Delta -->
-          <div class="bg-[#18181f] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-4 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between text-xs text-[#8e8e98] mb-1">
+              <div class="flex items-center justify-between text-xs text-[#A79986] mb-1">
                 <span>Today's Change</span>
                 <span class="material-symbols-outlined text-[15px]">info</span>
               </div>
-              <div class="font-serif text-[24px] font-normal text-white leading-tight tabular-nums">+₹2,140.00</div>
-              <div class="text-[11px] text-[#a5f368] font-bold mt-1">+0.79% DoD</div>
+              <div class="font-serif text-[24px] font-normal text-[#F6F4F1] leading-tight tabular-nums">+₹2,140.00</div>
+              <div class="text-[11px] text-[#82D172] font-bold mt-1">+0.79% DoD</div>
             </div>
-            <div class="text-[10px] text-[#8e8e98] mt-3">EOD Reconciled</div>
+            <div class="text-[10px] text-[#A79986] mt-3">EOD Reconciled</div>
           </div>
 
-          <!-- Card 3: Win Rate -->
-          <div class="bg-[#18181f] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
-            <div class="flex items-center justify-between text-xs text-[#8e8e98] mb-1">
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-[#A79986] mb-1">
               <span>Hit Rate</span>
-              <span id="analytics-hit-rate" class="text-[#cfc2fc] font-bold">75%</span>
+              <span id="analytics-hit-rate" class="text-[#803E2F] font-bold">75%</span>
             </div>
-            <div id="analytics-win-ratio-bar" class="w-full bg-[#24242e] h-1.5 rounded-full overflow-hidden flex my-2"></div>
-            <div id="analytics-win-ratio-details" class="text-[10px] text-[#8e8e98] flex justify-between"></div>
-            <div class="text-[10px] text-[#8e8e98] mt-2 flex justify-between">
+            <div id="analytics-win-ratio-bar" class="w-full bg-[#362F2E] h-1.5 rounded-full overflow-hidden flex my-2"></div>
+            <div id="analytics-win-ratio-details" class="text-[10px] text-[#A79986] flex justify-between"></div>
+            <div class="text-[10px] text-[#A79986] mt-2 flex justify-between">
               <span>Payoff:</span>
-              <span id="analytics-payoff-ratio" class="text-white font-medium">1.15 : 1</span>
+              <span id="analytics-payoff-ratio" class="text-[#F6F4F1] font-medium">1.15 : 1</span>
             </div>
           </div>
 
-          <!-- Card 4: Profit Factor -->
-          <div class="bg-[#18181f] border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
-            <div class="flex items-center justify-between text-xs text-[#8e8e98] mb-1">
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-4 flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-[#A79986] mb-1">
               <span>Profit Factor</span>
-              <span class="material-symbols-outlined text-[15px] text-[#d5f6be]">trending_up</span>
+              <span class="material-symbols-outlined text-[15px] text-[#82D172]">trending_up</span>
             </div>
-            <div id="analytics-profit-factor" class="font-serif text-[24px] font-normal text-white leading-tight tabular-nums">2.85</div>
-            <div class="text-[10px] text-[#8e8e98] mt-2 flex justify-between">
-              <span id="analytics-gross-wins" class="text-[#d5f6be] font-semibold">+₹0</span>
-              <span id="analytics-gross-losses" class="text-red-400 font-semibold">-₹0</span>
+            <div id="analytics-profit-factor" class="font-serif text-[24px] font-normal text-[#F6F4F1] leading-tight tabular-nums">2.85</div>
+            <div class="text-[10px] text-[#A79986] mt-2 flex justify-between">
+              <span id="analytics-gross-wins" class="text-[#82D172] font-semibold">+₹0</span>
+              <span id="analytics-gross-losses" class="text-[#E05D4D] font-semibold">-₹0</span>
             </div>
           </div>
         </div>
@@ -638,28 +609,26 @@
           <span id="analytics-avg-loss"></span>
         </div>
 
-        <!-- Equity Curve Chart -->
-        <div class="bg-[#18181f] border border-white/5 rounded-2xl p-4 space-y-2">
+        <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-4 space-y-2">
           <div class="flex items-center justify-between">
-            <h3 class="font-serif text-[18px] text-white">Equity Curve</h3>
-            <span id="analytics-total-charges" class="text-[10px] text-[#8e8e98]">Charges: ₹0.00</span>
+            <h3 class="font-serif text-[18px] text-[#F6F4F1]">Equity Curve</h3>
+            <span id="analytics-total-charges" class="text-[10px] text-[#A79986]">Charges: ₹0.00</span>
           </div>
-          <div class="relative w-full h-44 overflow-hidden rounded-xl bg-[#121217] p-2 border border-white/5">
+          <div class="relative w-full h-44 overflow-hidden rounded-xl bg-[#1F1D20] p-2 border border-[rgba(167,153,134,0.12)]">
             <svg id="analytics-equity-svg" class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 900 240"></svg>
           </div>
         </div>
 
-        <!-- Outliers -->
         <div class="grid grid-cols-2 gap-2.5">
-          <div class="bg-[#18181f] border border-white/5 rounded-2xl p-3">
-            <span class="text-[10px] text-[#8e8e98] uppercase tracking-wider block font-semibold mb-1">Best Winner</span>
-            <span id="analytics-max-win-symbol" class="px-2 py-0.5 rounded-full bg-[#20331b] text-[#a5f368] text-[10px] font-bold inline-block mb-1">-</span>
-            <div id="analytics-max-win-val" class="font-serif text-[18px] text-[#d5f6be] font-normal tabular-nums">+₹0.00</div>
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3">
+            <span class="text-[10px] text-[#A79986] uppercase tracking-wider block font-semibold mb-1">Best Winner</span>
+            <span id="analytics-max-win-symbol" class="px-2 py-0.5 rounded-full bg-[#46232A] text-[#A79986] text-[10px] font-bold inline-block mb-1">-</span>
+            <div id="analytics-max-win-val" class="font-serif text-[18px] text-[#82D172] font-normal tabular-nums">+₹0.00</div>
           </div>
-          <div class="bg-[#18181f] border border-white/5 rounded-2xl p-3">
-            <span class="text-[10px] text-[#8e8e98] uppercase tracking-wider block font-semibold mb-1">Worst Loser</span>
-            <span id="analytics-max-loss-symbol" class="px-2 py-0.5 rounded-full bg-red-950 text-red-300 text-[10px] font-bold inline-block mb-1">-</span>
-            <div id="analytics-max-loss-val" class="font-serif text-[18px] text-red-400 font-normal tabular-nums">-₹0.00</div>
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3">
+            <span class="text-[10px] text-[#A79986] uppercase tracking-wider block font-semibold mb-1">Worst Loser</span>
+            <span id="analytics-max-loss-symbol" class="px-2 py-0.5 rounded-full bg-[#46232A] text-[#E05D4D] text-[10px] font-bold inline-block mb-1">-</span>
+            <div id="analytics-max-loss-val" class="font-serif text-[18px] text-[#E05D4D] font-normal tabular-nums">-₹0.00</div>
           </div>
         </div>
       </section>
@@ -670,103 +639,102 @@
       <section id="view-nse-calculator" class="view-panel space-y-4">
         <div class="flex items-center justify-between pt-1">
           <div>
-            <span class="text-xs text-[#8e8e98]">Deterministic Tariff Engine</span>
-            <h2 class="font-serif text-[28px] text-white leading-tight">NSE Calculator</h2>
+            <span class="text-xs text-[#A79986]">Deterministic Tariff Engine</span>
+            <h2 class="font-serif text-[28px] text-[#F6F4F1] leading-tight">NSE Calculator</h2>
           </div>
-          <button onclick="window.App.transferCalculatorToJournal()" class="p-2 rounded-full bg-[#cfc2fc] text-[#181328] hover:bg-[#dcd3fc]" title="Transfer to Trade Journal">
+          <button type="button" data-action="transfer-calc" class="p-2.5 rounded-full bg-[#803E2F] text-white hover:bg-[#964a38]" title="Transfer to Trade Journal" aria-label="Transfer to Journal">
             <span class="material-symbols-outlined text-[18px]">send</span>
           </button>
         </div>
 
-        <!-- Segment Switcher Pills -->
+        <!-- Segment Pills -->
         <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-          <button id="seg-delivery" onclick="window.App.setCalculatorSegment('delivery')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#282833] text-white font-semibold whitespace-nowrap">
+          <button id="seg-delivery" onclick="window.App.setCalculatorSegment('delivery')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#803E2F] text-white font-semibold whitespace-nowrap">
             Delivery (Swing)
           </button>
-          <button id="seg-intraday" onclick="window.App.setCalculatorSegment('intraday')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#18181f] text-[#8e8e98] whitespace-nowrap">
+          <button id="seg-intraday" onclick="window.App.setCalculatorSegment('intraday')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#2B272A] text-[#A79986] whitespace-nowrap">
             Intraday
           </button>
-          <button id="seg-futures" onclick="window.App.setCalculatorSegment('futures')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#18181f] text-[#8e8e98] whitespace-nowrap">
+          <button id="seg-futures" onclick="window.App.setCalculatorSegment('futures')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#2B272A] text-[#A79986] whitespace-nowrap">
             Futures
           </button>
-          <button id="seg-options" onclick="window.App.setCalculatorSegment('options')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#18181f] text-[#8e8e98] whitespace-nowrap">
+          <button id="seg-options" onclick="window.App.setCalculatorSegment('options')" type="button" class="px-3.5 py-1.5 rounded-full bg-[#2B272A] text-[#A79986] whitespace-nowrap">
             Options
           </button>
         </div>
 
         <!-- Broker Toggle Pills -->
-        <div class="grid grid-cols-2 p-1 bg-[#18181f] rounded-2xl border border-white/5 gap-1">
-          <button id="broker-groww" onclick="window.App.setCalculatorBroker('groww')" type="button" class="py-2 rounded-xl text-xs font-semibold bg-[#282833] text-white transition-all flex items-center justify-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-[#d5f6be]"></span>
+        <div class="grid grid-cols-2 p-1 bg-[#1F1D20] rounded-2xl border border-[rgba(167,153,134,0.18)] gap-1">
+          <button id="broker-groww" onclick="window.App.setCalculatorBroker('groww')" type="button" class="py-2 rounded-xl text-xs font-semibold bg-[#362F2E] text-[#F6F4F1] transition-all flex items-center justify-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-[#82D172]"></span>
             <span>Groww</span>
           </button>
-          <button id="broker-zerodha" onclick="window.App.setCalculatorBroker('zerodha')" type="button" class="py-2 rounded-xl text-xs font-semibold text-[#8e8e98] transition-all flex items-center justify-center gap-1.5">
+          <button id="broker-zerodha" onclick="window.App.setCalculatorBroker('zerodha')" type="button" class="py-2 rounded-xl text-xs font-semibold text-[#A79986] transition-all flex items-center justify-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-neutral-600"></span>
             <span>Zerodha Kite</span>
           </button>
         </div>
 
         <!-- Inputs Card -->
-        <div class="bg-[#18181f] border border-white/5 rounded-2xl p-4 space-y-3">
+        <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-4 space-y-3">
           <div class="grid grid-cols-2 gap-2.5">
             <div>
-              <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="calc-buy-price">Buy Price (₹)</label>
-              <input id="calc-buy-price" type="number" step="0.05" inputmode="decimal" value="1450.00" oninput="window.App.calculateAllCalculator()" class="w-full bg-[#111116] border border-white/10 rounded-xl px-2.5 py-2 text-sm text-white font-medium text-right tabular-nums focus:outline-none focus:border-[#cfc2fc]"/>
+              <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="calc-buy-price">Buy Price (₹)</label>
+              <input id="calc-buy-price" type="number" step="0.05" inputmode="decimal" value="1450.00" oninput="window.App.calculateAllCalculator()" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-2.5 py-2 text-sm text-[#F6F4F1] font-medium text-right tabular-nums focus:outline-none focus:border-[#803E2F]"/>
             </div>
             <div>
-              <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="calc-sell-price">Sell Price (₹)</label>
-              <input id="calc-sell-price" type="number" step="0.05" inputmode="decimal" value="1530.00" oninput="window.App.calculateAllCalculator()" class="w-full bg-[#111116] border border-white/10 rounded-xl px-2.5 py-2 text-sm text-white font-medium text-right tabular-nums focus:outline-none focus:border-[#cfc2fc]"/>
+              <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="calc-sell-price">Sell Price (₹)</label>
+              <input id="calc-sell-price" type="number" step="0.05" inputmode="decimal" value="1530.00" oninput="window.App.calculateAllCalculator()" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-2.5 py-2 text-sm text-[#F6F4F1] font-medium text-right tabular-nums focus:outline-none focus:border-[#803E2F]"/>
             </div>
           </div>
 
           <div>
-            <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="calc-trade-qty">Quantity (Shares)</label>
-            <input id="calc-trade-qty" type="number" min="1" inputmode="numeric" value="100" oninput="window.App.calculateAllCalculator()" class="w-full bg-[#111116] border border-white/10 rounded-xl px-3 py-2 text-sm text-white font-medium text-right tabular-nums focus:outline-none focus:border-[#cfc2fc]"/>
+            <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="calc-trade-qty">Quantity (Shares)</label>
+            <input id="calc-trade-qty" type="number" min="1" inputmode="numeric" value="100" oninput="window.App.calculateAllCalculator()" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-3 py-2 text-sm text-[#F6F4F1] font-medium text-right tabular-nums focus:outline-none focus:border-[#803E2F]"/>
           </div>
 
-          <!-- Quick Increments -->
           <div class="grid grid-cols-4 gap-1.5 pt-0.5">
-            <button type="button" onclick="window.App.adjustCalculatorQty(25)" class="py-1.5 rounded-lg bg-[#24242e] text-xs font-semibold text-white hover:bg-[#2e2e3a]">+25</button>
-            <button type="button" onclick="window.App.adjustCalculatorQty(50)" class="py-1.5 rounded-lg bg-[#24242e] text-xs font-semibold text-white hover:bg-[#2e2e3a]">+50</button>
-            <button type="button" onclick="window.App.adjustCalculatorQty(100)" class="py-1.5 rounded-lg bg-[#24242e] text-xs font-semibold text-white hover:bg-[#2e2e3a]">+100</button>
-            <button type="button" onclick="window.App.adjustCalculatorQty(500)" class="py-1.5 rounded-lg bg-[#24242e] text-xs font-semibold text-white hover:bg-[#2e2e3a]">+500</button>
+            <button type="button" onclick="window.App.adjustCalculatorQty(25)" class="py-1.5 rounded-lg bg-[#362F2E] text-xs font-semibold text-[#F6F4F1] hover:bg-[#803E2F]/40">+25</button>
+            <button type="button" onclick="window.App.adjustCalculatorQty(50)" class="py-1.5 rounded-lg bg-[#362F2E] text-xs font-semibold text-[#F6F4F1] hover:bg-[#803E2F]/40">+50</button>
+            <button type="button" onclick="window.App.adjustCalculatorQty(100)" class="py-1.5 rounded-lg bg-[#362F2E] text-xs font-semibold text-[#F6F4F1] hover:bg-[#803E2F]/40">+100</button>
+            <button type="button" onclick="window.App.adjustCalculatorQty(500)" class="py-1.5 rounded-lg bg-[#362F2E] text-xs font-semibold text-[#F6F4F1] hover:bg-[#803E2F]/40">+500</button>
           </div>
 
-          <div id="calc-turnover-display" class="text-center text-[11px] text-[#8e8e98] pt-1">
+          <div id="calc-turnover-display" class="text-center text-[11px] text-[#A79986] pt-1">
             Buy: ₹0 | Sell: ₹0 | Total: ₹0
           </div>
         </div>
 
-        <!-- Breakeven Exit Target Card (Lilac Accent) -->
-        <div class="bg-[#cfc2fc] text-[#181328] rounded-2xl p-4 flex items-center justify-between">
+        <!-- Breakeven Exit Target Card -->
+        <div class="bg-[#803E2F] text-white rounded-2xl p-4 flex items-center justify-between">
           <div>
-            <span class="text-[10px] font-bold uppercase tracking-wider block">Breakeven Exit Target</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider block text-white/90">Breakeven Exit Target</span>
             <div id="breakeven-price" class="font-serif text-[24px] font-normal leading-tight tabular-nums">₹1,452.40</div>
-            <span id="breakeven-gap" class="text-[11px] font-bold">+₹2.40 / share buffer</span>
+            <span id="breakeven-gap" class="text-[11px] font-bold text-[#A79986]">+₹2.40 / share buffer</span>
           </div>
-          <div class="w-10 h-10 rounded-full bg-[#181328] text-white flex items-center justify-center">
+          <div class="w-10 h-10 rounded-full bg-[#1F1D20] text-[#A79986] flex items-center justify-center">
             <span class="material-symbols-outlined text-[20px]">verified</span>
           </div>
         </div>
 
         <!-- Net Summary Grid -->
         <div class="grid grid-cols-3 gap-2">
-          <div class="bg-[#18181f] border border-white/5 rounded-xl p-3">
-            <span class="text-[10px] text-[#8e8e98] uppercase block">Gross P&L</span>
-            <div id="metric-gross-pnl" class="font-serif text-[17px] font-semibold text-white tabular-nums mt-0.5">+₹8,000</div>
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-xl p-3">
+            <span class="text-[10px] text-[#A79986] uppercase block">Gross P&L</span>
+            <div id="metric-gross-pnl" class="font-serif text-[17px] font-semibold text-[#F6F4F1] tabular-nums mt-0.5">+₹8,000</div>
           </div>
-          <div class="bg-[#18181f] border border-white/5 rounded-xl p-3">
-            <span class="text-[10px] text-[#8e8e98] uppercase block">Taxes</span>
-            <div id="metric-total-charges" class="font-serif text-[17px] font-semibold text-red-400 tabular-nums mt-0.5">-₹452.80</div>
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-xl p-3">
+            <span class="text-[10px] text-[#A79986] uppercase block">Taxes</span>
+            <div id="metric-total-charges" class="font-serif text-[17px] font-semibold text-[#E05D4D] tabular-nums mt-0.5">-₹452.80</div>
             <span id="metric-charges-drag" class="hidden"></span>
           </div>
-          <div class="bg-[#18181f] border border-white/5 rounded-xl p-3">
+          <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-xl p-3">
             <div class="flex items-center justify-between">
-              <span class="text-[10px] text-[#8e8e98] uppercase">Net P&L</span>
-              <span id="pnl-status-pill" class="text-[9px] font-bold text-[#a5f368]">WIN</span>
+              <span class="text-[10px] text-[#A79986] uppercase">Net P&L</span>
+              <span id="pnl-status-pill" class="text-[9px] font-bold text-[#82D172]">WIN</span>
             </div>
-            <div id="metric-net-pnl" class="font-serif text-[17px] font-semibold text-[#d5f6be] tabular-nums mt-0.5">+₹7,547</div>
-            <span id="metric-net-roi" class="text-[10px] font-bold text-[#d5f6be]">+5.2%</span>
+            <div id="metric-net-pnl" class="font-serif text-[17px] font-semibold text-[#82D172] tabular-nums mt-0.5">+₹7,547</div>
+            <span id="metric-net-roi" class="text-[10px] font-bold text-[#82D172]">+5.2%</span>
           </div>
         </div>
 
@@ -776,54 +744,54 @@
           <div id="bar-charges"></div>
         </div>
 
-        <!-- Tariff Matrix Breakdown -->
-        <div class="bg-[#18181f] border border-white/5 rounded-2xl overflow-hidden text-xs">
-          <div class="p-3 border-b border-white/5 flex items-center justify-between">
-            <span class="font-serif text-[16px] text-white">Charges Breakdown</span>
-            <button onclick="window.App.copyCalculatorSummary()" class="text-xs text-[#cfc2fc] hover:underline">Copy</button>
+        <!-- Charges Breakdown Table -->
+        <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl overflow-hidden text-xs">
+          <div class="p-3 border-b border-[rgba(167,153,134,0.15)] flex items-center justify-between">
+            <span class="font-serif text-[16px] text-[#F6F4F1]">Charges Breakdown</span>
+            <button type="button" data-action="copy-calc" class="text-xs text-[#A79986] hover:underline">Copy</button>
           </div>
           <table class="w-full text-left border-collapse">
-            <tbody class="divide-y divide-white/5">
+            <tbody class="divide-y divide-[rgba(167,153,134,0.12)]">
               <tr>
-                <td class="p-2.5 text-[#8e8e98]">Brokerage</td>
-                <td id="row-brokerage-formula" class="p-2.5 text-[10px] text-[#8e8e98]">₹20 or 0.05%</td>
-                <td id="cell-brokerage" class="p-2.5 text-right font-semibold text-white tabular-nums">₹40.00</td>
+                <td class="p-2.5 text-[#A79986]">Brokerage</td>
+                <td id="row-brokerage-formula" class="p-2.5 text-[10px] text-[#A79986]">₹20 or 0.05%</td>
+                <td id="cell-brokerage" class="p-2.5 text-right font-semibold text-[#F6F4F1] tabular-nums">₹40.00</td>
               </tr>
               <tr>
-                <td class="p-2.5 text-[#8e8e98]">STT (0.1%)</td>
-                <td class="p-2.5 text-[10px] text-[#8e8e98]">Buy & Sell</td>
-                <td id="cell-stt" class="p-2.5 text-right font-semibold text-white tabular-nums">₹298.00</td>
+                <td class="p-2.5 text-[#A79986]">STT (0.1%)</td>
+                <td class="p-2.5 text-[10px] text-[#A79986]">Buy & Sell</td>
+                <td id="cell-stt" class="p-2.5 text-right font-semibold text-[#F6F4F1] tabular-nums">₹298.00</td>
               </tr>
               <tr>
-                <td class="p-2.5 text-[#8e8e98]">Stamp Duty</td>
-                <td class="p-2.5 text-[10px] text-[#8e8e98]">0.015%</td>
-                <td id="cell-stamp" class="p-2.5 text-right font-semibold text-white tabular-nums">₹22.00</td>
+                <td class="p-2.5 text-[#A79986]">Stamp Duty</td>
+                <td class="p-2.5 text-[10px] text-[#A79986]">0.015%</td>
+                <td id="cell-stamp" class="p-2.5 text-right font-semibold text-[#F6F4F1] tabular-nums">₹22.00</td>
               </tr>
               <tr>
-                <td class="p-2.5 text-[#8e8e98]">Exchange (NSE)</td>
-                <td class="p-2.5 text-[10px] text-[#8e8e98]">0.00325%</td>
-                <td id="cell-exch" class="p-2.5 text-right font-semibold text-white tabular-nums">₹9.68</td>
+                <td class="p-2.5 text-[#A79986]">Exchange (NSE)</td>
+                <td class="p-2.5 text-[10px] text-[#A79986]">0.00325%</td>
+                <td id="cell-exch" class="p-2.5 text-right font-semibold text-[#F6F4F1] tabular-nums">₹9.68</td>
               </tr>
               <tr>
-                <td class="p-2.5 text-[#8e8e98]">SEBI & IPFT</td>
-                <td class="p-2.5 text-[10px] text-[#8e8e98]">Turnover</td>
-                <td id="cell-sebi" class="p-2.5 text-right font-semibold text-white tabular-nums">₹0.60</td>
+                <td class="p-2.5 text-[#A79986]">SEBI & IPFT</td>
+                <td class="p-2.5 text-[10px] text-[#A79986]">Turnover</td>
+                <td id="cell-sebi" class="p-2.5 text-right font-semibold text-[#F6F4F1] tabular-nums">₹0.60</td>
                 <td id="cell-ipft" class="hidden">₹0.30</td>
               </tr>
               <tr>
-                <td class="p-2.5 text-[#8e8e98]">CDSL DP Charges</td>
-                <td class="p-2.5 text-[10px] text-[#8e8e98]">Sell side</td>
-                <td id="cell-dp" class="p-2.5 text-right font-semibold text-white tabular-nums">₹13.50</td>
+                <td class="p-2.5 text-[#A79986]">CDSL DP Charges</td>
+                <td class="p-2.5 text-[10px] text-[#A79986]">Sell side</td>
+                <td id="cell-dp" class="p-2.5 text-right font-semibold text-[#F6F4F1] tabular-nums">₹13.50</td>
               </tr>
               <tr>
-                <td class="p-2.5 text-[#8e8e98]">GST (18%)</td>
-                <td class="p-2.5 text-[10px] text-[#8e8e98]">Brokerage+Exch</td>
-                <td id="cell-gst" class="p-2.5 text-right font-semibold text-white tabular-nums">₹11.43</td>
+                <td class="p-2.5 text-[#A79986]">GST (18%)</td>
+                <td class="p-2.5 text-[10px] text-[#A79986]">Brokerage+Exch</td>
+                <td id="cell-gst" class="p-2.5 text-right font-semibold text-[#F6F4F1] tabular-nums">₹11.43</td>
               </tr>
-              <tr class="bg-[#121217] font-bold">
-                <td class="p-3 text-white">Total Taxes</td>
+              <tr class="bg-[#1F1D20] font-bold">
+                <td class="p-3 text-[#F6F4F1]">Total Taxes</td>
                 <td></td>
-                <td id="cell-total-deductions" class="p-3 text-right text-red-400 tabular-nums">₹395.21</td>
+                <td id="cell-total-deductions" class="p-3 text-right text-[#E05D4D] tabular-nums">₹395.21</td>
               </tr>
             </tbody>
           </table>
@@ -835,184 +803,172 @@
            ==================================================================== -->
       <section id="view-settings-and-backup" class="view-panel space-y-4">
         <div class="pt-1">
-          <span class="text-xs text-[#8e8e98]">System & Storage</span>
-          <h2 class="font-serif text-[28px] text-white leading-tight">Settings</h2>
+          <span class="text-xs text-[#A79986]">System & Storage</span>
+          <h2 class="font-serif text-[28px] text-[#F6F4F1] leading-tight">Settings</h2>
         </div>
 
-        <div class="bg-[#18181f] border border-white/5 rounded-2xl p-4 space-y-3">
-          <h3 class="font-serif text-[18px] text-white">Broker Defaults</h3>
+        <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-4 space-y-3">
+          <h3 class="font-serif text-[18px] text-[#F6F4F1]">Broker Defaults</h3>
           <div>
-            <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="settings-default-broker">Default Broker</label>
-            <select id="settings-default-broker" class="w-full bg-[#111116] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+            <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="settings-default-broker">Default Broker</label>
+            <select id="settings-default-broker" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-3 py-2 text-xs text-[#F6F4F1] focus:outline-none">
               <option value="groww">Groww (Delivery ₹20 / 0.05%)</option>
               <option value="zerodha">Zerodha Kite (Free Delivery)</option>
             </select>
           </div>
           <div>
-            <label class="block text-[10px] text-[#8e8e98] uppercase font-semibold mb-1" for="settings-dp-charge">CDSL DP Charge (₹ / scrip)</label>
-            <input id="settings-dp-charge" type="number" step="0.5" class="w-full bg-[#111116] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none" value="13.50"/>
+            <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="settings-dp-charge">CDSL DP Charge (₹ / scrip)</label>
+            <input id="settings-dp-charge" type="number" step="0.5" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-3 py-2 text-xs text-[#F6F4F1] focus:outline-none" value="13.50"/>
           </div>
-          <button onclick="window.App.savePreferences()" class="py-2 px-4 rounded-xl bg-[#282833] text-white text-xs font-semibold hover:bg-[#323240] transition-colors">
+          <button type="button" data-action="save-preferences" class="py-2.5 px-4 rounded-xl bg-[#803E2F] hover:bg-[#964a38] text-white text-xs font-semibold transition-colors">
             Save Preferences
           </button>
         </div>
 
-        <div class="bg-[#18181f] border border-white/5 rounded-2xl p-4 space-y-3">
-          <h3 class="font-serif text-[18px] text-white">Data Management</h3>
+        <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-4 space-y-3">
+          <h3 class="font-serif text-[18px] text-[#F6F4F1]">Data Management</h3>
           <div class="flex items-center gap-2">
-            <button onclick="window.App.downloadFullBackup()" class="flex-1 py-2.5 rounded-xl bg-[#cfc2fc] text-[#181328] font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+            <button type="button" data-action="export-backup" class="flex-1 py-2.5 rounded-xl bg-[#803E2F] hover:bg-[#964a38] text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm">
               <span class="material-symbols-outlined text-[16px]">download</span>
               <span>Export Backup</span>
             </button>
-            <label class="flex-1 py-2.5 rounded-xl bg-[#24242e] text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer hover:bg-[#2d2d38]">
+            <label class="flex-1 py-2.5 rounded-xl bg-[#362F2E] border border-[rgba(167,153,134,0.2)] text-[#F6F4F1] font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer hover:bg-[#3E3D38]">
               <span class="material-symbols-outlined text-[16px]">upload_file</span>
               <span>Restore</span>
               <input type="file" accept=".json" class="hidden" onchange="window.App.handleRestoreBackup(event)"/>
             </label>
           </div>
 
-          <div class="pt-2 border-t border-white/5 flex items-center justify-between">
-            <button onclick="window.App.handleResetToSampleData()" class="text-xs text-[#8e8e98] hover:text-white">Reload Sample Data</button>
-            <button onclick="window.App.handleClearAllDatabase()" class="text-xs text-red-400 hover:text-red-300">Clear All Data</button>
+          <div class="pt-2 border-t border-[rgba(167,153,134,0.15)] flex items-center justify-between">
+            <button type="button" data-action="reload-sample" class="text-xs text-[#A79986] hover:text-[#F6F4F1]">Reload Sample Data</button>
+            <button type="button" data-action="clear-all" class="text-xs text-[#E05D4D] hover:text-red-300">Clear All Data</button>
           </div>
         </div>
       </section>
 
     </main>
 
-    <!-- ====================================================================
-         BOTTOM FLOATING DOCK (Exact Navigation Placement from Image 1)
-         ==================================================================== -->
-    <div class="bottom-dock-wrapper">
-      <nav class="bottom-dock rounded-full px-3 py-2 flex items-center justify-between max-w-[390px] w-[calc(100%-2rem)] mx-auto">
-        <!-- 1: Dashboard (Home) -->
-        <button type="button" class="nav-link dock-item active flex items-center justify-center w-11 h-11" data-path="dashboard" onclick="window.App.switchView('dashboard')" aria-label="Dashboard">
-          <div class="dock-icon-box w-10 h-10 rounded-full flex items-center justify-center text-[#8e8e98] transition-all">
-            <span class="material-symbols-outlined text-[22px]">home</span>
-          </div>
-        </button>
+    <!-- LAYER 3: PERMANENTLY FIXED BOTTOM NAVIGATION TAB BAR (Anchored at bottom, NEVER scrolls away!) -->
+    <nav class="app-bottom-nav">
+      <!-- 1: Dashboard (Home) -->
+      <button type="button" class="nav-tab-item active" data-path="dashboard" aria-label="Dashboard" title="Dashboard">
+        <span class="material-symbols-outlined text-[24px]">home</span>
+      </button>
 
-        <!-- 2: Journal -->
-        <button type="button" class="nav-link dock-item flex items-center justify-center w-11 h-11" data-path="trade-journal" onclick="window.App.switchView('trade-journal')" aria-label="Trade Journal">
-          <div class="dock-icon-box w-10 h-10 rounded-full flex items-center justify-center text-[#8e8e98] transition-all">
-            <span class="material-symbols-outlined text-[20px]">search</span>
-          </div>
-        </button>
+      <!-- 2: Journal (Search) -->
+      <button type="button" class="nav-tab-item" data-path="trade-journal" aria-label="Trade Journal" title="Journal">
+        <span class="material-symbols-outlined text-[22px]">search</span>
+      </button>
 
-        <!-- 3: Center Action (+) Button (Soft Lilac Centerpiece from Image 1) -->
-        <button type="button" class="center-action-btn w-12 h-12 rounded-full flex items-center justify-center font-bold" onclick="window.App.openActionSheet()" aria-label="Quick Actions">
-          <span class="material-symbols-outlined text-[26px]">add</span>
-        </button>
+      <!-- 3: Center Highlight Action Button (+) -->
+      <button type="button" class="nav-center-action-btn" data-action="open-action-sheet" aria-label="Quick Actions" title="Actions">
+        <span class="material-symbols-outlined text-[28px]">add</span>
+      </button>
 
-        <!-- 4: Portfolio Tracker (Wallet) -->
-        <button type="button" class="nav-link dock-item flex items-center justify-center w-11 h-11" data-path="portfolio-tracker" onclick="window.App.switchView('portfolio-tracker')" aria-label="Portfolio">
-          <div class="dock-icon-box w-10 h-10 rounded-full flex items-center justify-center text-[#8e8e98] transition-all">
-            <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
-          </div>
-        </button>
+      <!-- 4: Portfolio Tracker (Wallet) -->
+      <button type="button" class="nav-tab-item" data-path="portfolio-tracker" aria-label="Portfolio Tracker" title="Portfolio">
+        <span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
+      </button>
 
-        <!-- 5: NSE Calculator (Exchange/Arrows) -->
-        <button type="button" class="nav-link dock-item flex items-center justify-center w-11 h-11" data-path="nse-calculator" onclick="window.App.switchView('nse-calculator')" aria-label="Calculator">
-          <div class="dock-icon-box w-10 h-10 rounded-full flex items-center justify-center text-[#8e8e98] transition-all">
-            <span class="material-symbols-outlined text-[20px]">swap_horiz</span>
-          </div>
-        </button>
-      </nav>
-    </div>
+      <!-- 5: NSE Calculator (Exchange/Arrows) -->
+      <button type="button" class="nav-tab-item" data-path="nse-calculator" aria-label="NSE Calculator" title="Calculator">
+        <span class="material-symbols-outlined text-[22px]">swap_horiz</span>
+      </button>
+    </nav>
 
-  </div> <!-- End App Container Shell -->
+  </div> <!-- End App Viewport -->
 
   <!-- ====================================================================
-       iOS ACTION SHEET MODAL (Triggered by Center Lilac (+) Button)
+       iOS ACTION SHEET MODAL
        ==================================================================== -->
-  <div id="action-sheet-overlay" class="action-sheet-overlay hidden" onclick="window.App.closeActionSheet(event)">
-    <div class="action-sheet-container bg-[#18181f] border border-white/10 rounded-3xl p-5 max-w-[420px] w-full mx-auto space-y-3 shadow-2xl" onclick="event.stopPropagation()">
-      <div class="flex items-center justify-between pb-2 border-b border-white/10">
-        <span class="font-serif text-[20px] text-white">Quick Actions</span>
-        <button type="button" onclick="window.App.closeActionSheet()" class="w-8 h-8 rounded-full bg-[#24242e] flex items-center justify-center text-white" aria-label="Close">
+  <div id="action-sheet-overlay" class="action-sheet-overlay hidden" data-action="close-action-sheet">
+    <div class="action-sheet-container" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 border-b border-[rgba(167,153,134,0.18)]">
+        <span class="font-serif text-[22px] text-[#F6F4F1]">Quick Actions</span>
+        <button type="button" data-action="close-action-sheet" class="w-8 h-8 rounded-full bg-[#362F2E] flex items-center justify-center text-[#F6F4F1]" aria-label="Close">
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
 
-      <div class="grid grid-cols-1 gap-2 pt-1">
-        <button type="button" onclick="window.App.switchView('trade-journal')" class="w-full bg-[#22222b] hover:bg-[#2c2c38] active:bg-[#343444] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
-          <div class="w-10 h-10 rounded-xl bg-[#cfc2fc] text-[#181328] flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-[20px]">add_box</span>
+      <div class="space-y-2 pt-3">
+        <button type="button" data-path="trade-journal" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-colors text-left border border-[rgba(167,153,134,0.12)]">
+          <div class="w-10 h-10 rounded-xl bg-[#803E2F] text-white flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[22px]">add_box</span>
           </div>
           <div>
-            <div class="text-sm font-semibold text-white">Log New Trade</div>
-            <div class="text-[11px] text-[#8e8e98]">Record completed swing trade with P&L</div>
+            <div class="text-sm font-semibold text-[#F6F4F1]">Log New Trade</div>
+            <div class="text-[11px] text-[#A79986]">Record completed swing trade with P&L</div>
           </div>
         </button>
 
-        <button type="button" onclick="window.App.switchView('nse-calculator')" class="w-full bg-[#22222b] hover:bg-[#2c2c38] active:bg-[#343444] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
-          <div class="w-10 h-10 rounded-xl bg-[#d5f6be] text-[#142809] flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-[20px]">calculate</span>
+        <button type="button" data-path="nse-calculator" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-colors text-left border border-[rgba(167,153,134,0.12)]">
+          <div class="w-10 h-10 rounded-xl bg-[#46232A] text-[#A79986] flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[22px]">calculate</span>
           </div>
           <div>
-            <div class="text-sm font-semibold text-white">Calculate NSE Charges</div>
-            <div class="text-[11px] text-[#8e8e98]">Check breakeven & brokerage before entry</div>
+            <div class="text-sm font-semibold text-[#F6F4F1]">Calculate NSE Charges</div>
+            <div class="text-[11px] text-[#A79986]">Check breakeven & brokerage before entry</div>
           </div>
         </button>
 
-        <button type="button" onclick="window.App.switchView('portfolio-tracker')" class="w-full bg-[#22222b] hover:bg-[#2c2c38] active:bg-[#343444] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
-          <div class="w-10 h-10 rounded-xl bg-[#282833] text-white flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-[20px]">calendar_today</span>
+        <button type="button" data-path="portfolio-tracker" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-colors text-left border border-[rgba(167,153,134,0.12)]">
+          <div class="w-10 h-10 rounded-xl bg-[#3E3D38] text-[#F6F4F1] flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[22px]">calendar_today</span>
           </div>
           <div>
-            <div class="text-sm font-semibold text-white">Record Daily Valuation</div>
-            <div class="text-[11px] text-[#8e8e98]">Update Groww & Zerodha EOD balances</div>
+            <div class="text-sm font-semibold text-[#F6F4F1]">Record Daily Valuation</div>
+            <div class="text-[11px] text-[#A79986]">Update Groww & Zerodha EOD balances</div>
           </div>
         </button>
 
-        <button type="button" onclick="window.App.switchView('analytics')" class="w-full bg-[#22222b] hover:bg-[#2c2c38] active:bg-[#343444] text-white p-3 rounded-2xl flex items-center gap-3 transition-colors text-left">
-          <div class="w-10 h-10 rounded-xl bg-[#282833] text-[#cfc2fc] flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-[20px]">insights</span>
+        <button type="button" data-path="analytics" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-colors text-left border border-[rgba(167,153,134,0.12)]">
+          <div class="w-10 h-10 rounded-xl bg-[#3E3D38] text-[#A79986] flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[22px]">insights</span>
           </div>
           <div>
-            <div class="text-sm font-semibold text-white">View Analytics & Win Rate</div>
-            <div class="text-[11px] text-[#8e8e98]">Inspect equity curve & performance stats</div>
+            <div class="text-sm font-semibold text-[#F6F4F1]">View Analytics & Win Rate</div>
+            <div class="text-[11px] text-[#A79986]">Inspect equity curve & performance stats</div>
           </div>
         </button>
       </div>
 
-      <button type="button" onclick="window.App.closeActionSheet()" class="w-full py-2.5 mt-2 rounded-xl bg-[#24242e] text-white font-semibold text-xs text-center hover:bg-[#2e2e3a] active:scale-98 transition-all">
+      <button type="button" data-action="close-action-sheet" class="w-full py-3 mt-3 rounded-xl bg-[#362F2E] text-[#A79986] font-semibold text-xs text-center hover:bg-[#3E3D38] active:scale-98 transition-all border border-[rgba(167,153,134,0.15)]">
         Cancel
       </button>
     </div>
   </div>
 
   <!-- Delete Trade Modal -->
-  <div id="deleteModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#18181f] border border-white/10 max-w-sm w-full rounded-2xl p-5 shadow-2xl">
-      <h3 class="font-serif text-[20px] text-white mb-1">Delete Trade?</h3>
-      <p class="text-xs text-[#8e8e98] mb-4">
-        Permanently remove trade record for <strong id="deleteStockName" class="text-white">STOCK</strong>.
+  <div id="deleteModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.25)] max-w-sm w-full rounded-2xl p-5 shadow-2xl">
+      <h3 class="font-serif text-[20px] text-[#F6F4F1] mb-1">Delete Trade?</h3>
+      <p class="text-xs text-[#A79986] mb-4">
+        Permanently remove trade record for <strong id="deleteStockName" class="text-[#F6F4F1]">STOCK</strong>.
       </p>
       <div class="flex items-center justify-end gap-2">
-        <button onclick="window.App.closeDeleteModal()" class="px-4 py-2 rounded-xl bg-[#24242e] text-white text-xs font-semibold">Cancel</button>
-        <button onclick="window.App.executeDeleteTrade()" class="px-4 py-2 rounded-xl bg-red-500 text-white text-xs font-semibold">Delete</button>
+        <button onclick="window.App.closeDeleteModal()" class="px-4 py-2 rounded-xl bg-[#362F2E] text-[#F6F4F1] text-xs font-semibold">Cancel</button>
+        <button onclick="window.App.executeDeleteTrade()" class="px-4 py-2 rounded-xl bg-[#E05D4D] text-white text-xs font-semibold">Delete</button>
       </div>
     </div>
   </div>
 
   <!-- Delete Snapshot Modal -->
-  <div id="delete-snapshot-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#18181f] border border-white/10 max-w-sm w-full rounded-2xl p-5 shadow-2xl">
-      <h3 class="font-serif text-[20px] text-white mb-1">Delete Snapshot?</h3>
-      <p class="text-xs text-[#8e8e98] mb-4">
+  <div id="delete-snapshot-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.25)] max-w-sm w-full rounded-2xl p-5 shadow-2xl">
+      <h3 class="font-serif text-[20px] text-[#F6F4F1] mb-1">Delete Snapshot?</h3>
+      <p class="text-xs text-[#A79986] mb-4">
         Delete the recorded valuation for this date.
       </p>
       <div class="flex items-center justify-end gap-2">
-        <button onclick="window.App.closeDeleteSnapshotModal()" class="px-4 py-2 rounded-xl bg-[#24242e] text-white text-xs font-semibold">Cancel</button>
-        <button onclick="window.App.executeDeleteSnapshot()" class="px-4 py-2 rounded-xl bg-red-500 text-white text-xs font-semibold">Delete</button>
+        <button onclick="window.App.closeDeleteSnapshotModal()" class="px-4 py-2 rounded-xl bg-[#362F2E] text-[#F6F4F1] text-xs font-semibold">Cancel</button>
+        <button onclick="window.App.executeDeleteSnapshot()" class="px-4 py-2 rounded-xl bg-[#E05D4D] text-white text-xs font-semibold">Delete</button>
       </div>
     </div>
   </div>
 
   <!-- Global Toast Notification -->
-  <div id="global-toast" class="toast-container fixed top-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1e1e26] text-white shadow-2xl border border-white/15 -translate-y-20 opacity-0 pointer-events-none transition-all duration-300">
-    <span id="global-toast-icon" class="material-symbols-outlined text-[18px] text-[#cfc2fc]">check_circle</span>
+  <div id="global-toast" class="toast-container flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#362F2E] text-[#F6F4F1] shadow-2xl border border-[rgba(167,153,134,0.3)]">
+    <span id="global-toast-icon" class="material-symbols-outlined text-[18px] text-[#82D172]">check_circle</span>
     <span id="global-toast-text" class="text-xs font-medium">Saved</span>
   </div>
 
