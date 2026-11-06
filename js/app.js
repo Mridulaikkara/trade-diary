@@ -9,8 +9,8 @@
   // Application State
   const AppState = {
     currentView: 'dashboard',
-    trades: [],
-    snapshots: [],
+    trades: (typeof TradeDB !== 'undefined' && typeof TradeDB.getInitialTrades === 'function') ? TradeDB.getInitialTrades() : [],
+    snapshots: (typeof TradeDB !== 'undefined' && typeof TradeDB.getInitialSnapshots === 'function') ? TradeDB.getInitialSnapshots() : [],
     settings: {
       defaultBroker: 'groww',
       customDp: 13.50
@@ -91,14 +91,14 @@
 
     if (isLive) {
       el.innerHTML = `
-        <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-        <span class="font-data-mono-sm text-data-mono-sm text-secondary font-semibold">NSE Live Session</span>
+        <span class="w-2 h-2 rounded-full bg-[#82D172] animate-pulse"></span>
+        <span class="text-xs text-[#82D172] font-semibold">NSE Live Session</span>
       `;
     } else {
       const label = (day === 0 || day === 6) ? 'NSE Weekend (Closed)' : 'NSE Market Closed';
       el.innerHTML = `
-        <span class="w-2 h-2 rounded-full bg-outline-variant"></span>
-        <span class="font-data-mono-sm text-data-mono-sm text-on-surface-variant font-medium">${label}</span>
+        <span class="w-2 h-2 rounded-full bg-[#A79986]/40"></span>
+        <span class="text-xs text-[#A79986] font-medium">${label}</span>
       `;
     }
   }
@@ -112,13 +112,13 @@
       if (navigator.onLine) {
         if (offlineIcon) {
           offlineIcon.textContent = 'offline_bolt';
-          offlineIcon.className = 'material-symbols-outlined text-[16px] text-secondary';
+          offlineIcon.className = 'material-symbols-outlined text-[16px] text-[#82D172]';
           offlineIcon.title = 'PWA Offline Native (Connected)';
         }
         if (syncStatusText) {
           syncStatusText.innerHTML = `
-            <span class="w-2 h-2 rounded-full bg-secondary"></span>
-            <span class="font-label-sm text-label-sm text-on-surface-variant font-medium tracking-wide uppercase">Local Storage • Sync Active • All data stored in browser IndexedDB</span>
+            <span class="w-2 h-2 rounded-full bg-[#82D172]"></span>
+            <span class="text-xs text-[#A79986] font-medium tracking-wide uppercase">Local Storage • Sync Active • All data stored in browser IndexedDB</span>
           `;
         }
       } else {
@@ -282,17 +282,25 @@
     });
   }
 
-  // Load All Data from IndexedDB
+  // Load All Data from IndexedDB (preserves memory state if empty)
   async function reloadAllData() {
     try {
-      AppState.trades = await TradeDB.getTrades();
-      AppState.snapshots = await TradeDB.getSnapshots();
-      AppState.settings.defaultBroker = (await TradeDB.getSetting('defaultBroker')) || 'groww';
-      AppState.settings.customDp = Number(await TradeDB.getSetting('customDp')) || 13.50;
+      const dbTrades = await TradeDB.getTrades();
+      if (Array.isArray(dbTrades) && dbTrades.length > 0) {
+        AppState.trades = dbTrades;
+      }
+      const dbSnapshots = await TradeDB.getSnapshots();
+      if (Array.isArray(dbSnapshots) && dbSnapshots.length > 0) {
+        AppState.snapshots = dbSnapshots;
+      }
+      const b = await TradeDB.getSetting('defaultBroker');
+      if (b) AppState.settings.defaultBroker = b;
+      const dp = await TradeDB.getSetting('customDp');
+      if (dp) AppState.settings.customDp = Number(dp);
 
       updateGlobalHeaderValuation();
     } catch (err) {
-      console.error('Data reload failed:', err);
+      console.warn('Data reload non-blocking warning:', err);
     }
   }
 
@@ -334,15 +342,11 @@
     const prevCloseEl = document.getElementById('dash-prev-close');
 
     if (todayDeltaEl) {
-      todayDeltaEl.className = deltaVal >= 0
-        ? 'font-display-lg text-display-lg text-secondary tracking-tight font-bold'
-        : 'font-display-lg text-display-lg text-error tracking-tight font-bold';
+      todayDeltaEl.className = 'font-bold';
       todayDeltaEl.textContent = (deltaVal >= 0 ? '+' : '') + fmtINR(deltaVal);
     }
     if (todayDeltaPctEl) {
-      todayDeltaPctEl.className = deltaVal >= 0
-        ? 'px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-data-mono-sm text-data-mono-sm font-semibold'
-        : 'px-2 py-0.5 rounded bg-error-container text-on-error-container font-data-mono-sm text-data-mono-sm font-semibold';
+      todayDeltaPctEl.className = 'text-xs font-bold bg-[#1F1D20] text-[#A79986] px-2 py-0.5 rounded-full';
       todayDeltaPctEl.textContent = (deltaVal >= 0 ? '+' : '') + deltaPct + '%';
     }
     if (prevCloseEl && prevSnapshot) {
@@ -365,9 +369,7 @@
     const totalRealisedEl = document.getElementById('dash-realised-pnl');
     const realisedRoiEl = document.getElementById('dash-realised-roi');
     if (totalRealisedEl) {
-      totalRealisedEl.className = realisedPnL >= 0
-        ? 'font-display-lg text-display-lg text-secondary tracking-tight font-bold'
-        : 'font-display-lg text-display-lg text-error tracking-tight font-bold';
+      totalRealisedEl.className = realisedPnL >= 0 ? 'font-bold text-[#82D172]' : 'font-bold text-[#E05D4D]';
       totalRealisedEl.textContent = (realisedPnL >= 0 ? '+' : '') + fmtINR(realisedPnL);
     }
     if (realisedRoiEl && totalInvestedCost > 0) {
@@ -574,8 +576,8 @@
     const todayCountEl = document.getElementById('journal-kpi-today-count');
     if (todayEl) {
       todayEl.className = todayRealised >= 0
-        ? 'font-display-lg text-display-lg text-secondary tabular-nums font-semibold'
-        : 'font-display-lg text-display-lg text-error tabular-nums font-semibold';
+        ? 'font-serif text-[22px] font-normal leading-tight my-1 tabular-nums text-[#82D172]'
+        : 'font-serif text-[22px] font-normal leading-tight my-1 tabular-nums text-[#E05D4D]';
       todayEl.textContent = (todayRealised >= 0 ? '+' : '') + fmtINR(todayRealised);
     }
     if (todayCountEl) todayCountEl.textContent = `${todayClosedCount} Closed`;
@@ -583,8 +585,8 @@
     const monthlyEl = document.getElementById('journal-kpi-monthly-pnl');
     if (monthlyEl) {
       monthlyEl.className = totalRealised >= 0
-        ? 'font-display-lg text-display-lg text-secondary tabular-nums font-semibold'
-        : 'font-display-lg text-display-lg text-error tabular-nums font-semibold';
+        ? 'font-serif text-[22px] font-normal text-[#F6F4F1] leading-tight my-1 tabular-nums'
+        : 'font-serif text-[22px] font-normal text-[#E05D4D] leading-tight my-1 tabular-nums';
       monthlyEl.textContent = (totalRealised >= 0 ? '+' : '') + fmtINR(totalRealised);
     }
 
@@ -733,19 +735,22 @@
     if (chargesEl) chargesEl.textContent = '-' + fmtINR(res.totalCharges);
     if (netEl) {
       netEl.className = res.netPnL >= 0
-        ? 'font-display-lg text-display-lg font-bold text-secondary'
-        : 'font-display-lg text-display-lg font-bold text-error';
+        ? 'font-serif text-[20px] font-semibold text-[#82D172] tabular-nums'
+        : 'font-serif text-[20px] font-semibold text-[#E05D4D] tabular-nums';
       netEl.textContent = (res.netPnL >= 0 ? '+' : '') + fmtINR(res.netPnL);
     }
-    if (roiEl) roiEl.textContent = (res.netRoi >= 0 ? '+' : '') + res.netRoi.toFixed(2) + '% ROI';
+    if (roiEl) {
+      roiEl.className = res.netRoi >= 0 ? 'text-xs text-[#82D172] font-medium' : 'text-xs text-[#E05D4D] font-medium';
+      roiEl.textContent = (res.netRoi >= 0 ? '+' : '') + res.netRoi.toFixed(2) + '% ROI';
+    }
 
     if (statusPill) {
       if (res.netPnL >= 0) {
-        statusPill.textContent = 'PROFITABLE WIN';
-        statusPill.className = 'px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-data-mono-sm text-data-mono-sm font-semibold';
+        statusPill.textContent = 'WIN';
+        statusPill.className = 'px-2 py-0.5 rounded-full bg-[#46232A] text-[#82D172] text-[10px] font-bold block mb-0.5';
       } else {
-        statusPill.textContent = 'DEFICIT / LOSS';
-        statusPill.className = 'px-2 py-0.5 rounded bg-error-container text-on-error-container font-data-mono-sm text-data-mono-sm font-semibold';
+        statusPill.textContent = 'LOSS';
+        statusPill.className = 'px-2 py-0.5 rounded-full bg-[#46232A] text-[#E05D4D] text-[10px] font-bold block mb-0.5';
       }
     }
   }
@@ -971,8 +976,8 @@
       const diff = comb - prev.combinedTotal;
       const pct = prev.combinedTotal > 0 ? ((diff / prev.combinedTotal) * 100).toFixed(2) : '0.00';
       deltaEl.className = diff >= 0
-        ? 'font-data-mono-md text-data-mono-md text-secondary font-semibold'
-        : 'font-data-mono-md text-data-mono-md text-error font-semibold';
+        ? 'text-xs font-bold text-[#82D172] tabular-nums'
+        : 'text-xs font-bold text-[#E05D4D] tabular-nums';
       deltaEl.textContent = `${diff >= 0 ? '+' : ''}${fmtINR(diff)} (${diff >= 0 ? '+' : ''}${pct}%)`;
     }
   }
@@ -1218,14 +1223,14 @@
     if (hitRateEl) hitRateEl.textContent = `${winRate}% Hit Rate`;
     if (winRatioBar) {
       winRatioBar.innerHTML = `
-        <div class="h-full bg-secondary" style="width: ${winRate}%;"></div>
-        <div class="h-full bg-error" style="width: ${(100 - Number(winRate)).toFixed(1)}%;"></div>
+        <div class="h-full bg-[#82D172]" style="width: ${winRate}%;"></div>
+        <div class="h-full bg-[#E05D4D]" style="width: ${(100 - Number(winRate)).toFixed(1)}%;"></div>
       `;
     }
     if (winRatioDetails) {
       winRatioDetails.innerHTML = `
-        <span class="text-secondary font-semibold">${winCount} Wins (${winRate}%)</span>
-        <span class="text-error font-semibold">${lossCount} Losses (${(100 - Number(winRate)).toFixed(1)}%)</span>
+        <span class="text-[#82D172] font-semibold">${winCount} Wins (${winRate}%)</span>
+        <span class="text-[#E05D4D] font-semibold">${lossCount} Losses (${(100 - Number(winRate)).toFixed(1)}%)</span>
       `;
     }
     if (profitFactorEl) profitFactorEl.textContent = profitFactor;
@@ -1438,24 +1443,24 @@
     if (chargesEl) chargesEl.textContent = '-' + fmtINR(res.totalCharges);
     if (netEl) {
       netEl.className = res.netPnL >= 0
-        ? 'font-display-lg text-display-lg font-bold text-secondary mt-0.5'
-        : 'font-display-lg text-display-lg font-bold text-error mt-0.5';
+        ? 'font-serif text-[17px] font-semibold text-[#82D172] tabular-nums mt-0.5'
+        : 'font-serif text-[17px] font-semibold text-[#E05D4D] tabular-nums mt-0.5';
       netEl.textContent = (res.netPnL >= 0 ? '+' : '') + fmtINR(res.netPnL);
     }
     if (netRoiEl) {
       netRoiEl.className = res.netPnL >= 0
-        ? 'font-data-mono-md text-data-mono-md font-semibold text-secondary'
-        : 'font-data-mono-md text-data-mono-md font-semibold text-error';
+        ? 'text-[10px] font-bold text-[#82D172]'
+        : 'text-[10px] font-bold text-[#E05D4D]';
       netRoiEl.textContent = (res.netRoi >= 0 ? '+' : '') + res.netRoi.toFixed(2) + '% ROI';
     }
 
     if (pillEl) {
       if (res.netPnL >= 0) {
-        pillEl.textContent = 'PROFITABLE';
-        pillEl.className = 'px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-data-mono-sm text-data-mono-sm font-bold';
+        pillEl.textContent = 'WIN';
+        pillEl.className = 'text-[9px] font-bold text-[#82D172]';
       } else {
-        pillEl.textContent = 'DEFICIT / LOSS';
-        pillEl.className = 'px-2 py-0.5 rounded bg-error-container text-on-error-container font-data-mono-sm text-data-mono-sm font-bold';
+        pillEl.textContent = 'LOSS';
+        pillEl.className = 'text-[9px] font-bold text-[#E05D4D]';
       }
     }
 
@@ -1659,34 +1664,106 @@
     }
   }
 
-  // App Initialization
-  async function initApp() {
-    // 1. Initialize DB
-    await TradeDB.init();
-    await reloadAllData();
-
-    // 2. Connectivity & Market Clock
-    initConnectivityMonitor();
-    updateMarketStatus();
-    setInterval(updateMarketStatus, 30000);
-
-    // 3. Register Hotkeys & PWA
-    initKeyboardShortcuts();
-    initPwaInstall();
-    registerServiceWorker();
-
-    // 4. Handle initial URL hash
-    const initialHash = window.location.hash.replace('#', '') || 'dashboard';
-    switchView(initialHash);
-
-    window.addEventListener('hashchange', () => {
-      const hash = window.location.hash.replace('#', '') || 'dashboard';
-      if (hash !== AppState.currentView) {
-        switchView(hash);
+  // Journal Filter Controls
+  function setJournalBrokerFilter(broker) {
+    AppState.journalFilter.broker = broker;
+    ['all', 'groww', 'zerodha'].forEach(b => {
+      const btn = document.getElementById(`fltBroker${b.charAt(0).toUpperCase() + b.slice(1)}`);
+      if (!btn) return;
+      if (b === broker) {
+        btn.className = 'px-3 py-1 rounded-full bg-[#803E2F] text-white font-semibold whitespace-nowrap';
+      } else {
+        btn.className = 'px-3 py-1 rounded-full bg-[#2B272A] text-[#A79986] whitespace-nowrap';
       }
     });
+    renderJournalTable();
+  }
 
-    // 5. Wire Form Events
+  function setJournalOutcomeFilter(outcome) {
+    AppState.journalFilter.outcome = outcome;
+    ['all', 'win', 'loss'].forEach(o => {
+      const btn = document.getElementById(`fltOut${o.charAt(0).toUpperCase() + o.slice(1)}`);
+      if (!btn) return;
+      if (o === outcome) {
+        btn.className = 'px-3 py-1 rounded-full bg-[#803E2F] text-white font-semibold whitespace-nowrap';
+      } else {
+        btn.className = 'px-3 py-1 rounded-full bg-[#2B272A] text-[#A79986] whitespace-nowrap';
+      }
+    });
+    renderJournalTable();
+  }
+
+  // Universal Global Event Delegation (Synchronous, instant tap response for Safari & Chrome)
+  function setupEventDelegation() {
+    document.addEventListener('click', (e) => {
+      // 1. Navigation Tabs & data-path buttons
+      const navBtn = e.target.closest('[data-path]');
+      if (navBtn) {
+        e.preventDefault();
+        const path = navBtn.getAttribute('data-path');
+        if (path) switchView(path);
+        return;
+      }
+
+      // 2. Action Buttons & data-action triggers
+      const actionBtn = e.target.closest('[data-action]');
+      if (actionBtn) {
+        const action = actionBtn.getAttribute('data-action');
+        e.preventDefault();
+
+        switch (action) {
+          case 'open-action-sheet':
+            openActionSheet();
+            break;
+          case 'close-action-sheet':
+            closeActionSheet();
+            break;
+          case 'quick-calc':
+            switchView('nse-calculator');
+            break;
+          case 'open-settings':
+            switchView('settings-and-backup');
+            break;
+          case 'save-preferences':
+            savePreferences();
+            break;
+          case 'export-backup':
+            downloadFullBackup();
+            break;
+          case 'reload-sample':
+            handleResetToSampleData();
+            break;
+          case 'clear-all':
+            handleClearAllDatabase();
+            break;
+          case 'save-trade':
+            handleSaveTrade();
+            break;
+          case 'reset-trade':
+            resetTradeForm();
+            break;
+          case 'export-journal-csv':
+            exportJournalCSV();
+            break;
+          case 'save-snapshot':
+            handleSaveSnapshot();
+            break;
+          case 'export-portfolio-csv':
+            exportPortfolioCSV();
+            break;
+          case 'transfer-calc':
+            transferCalculatorToJournal();
+            break;
+          case 'copy-calc':
+            copyCalculatorSummary();
+            break;
+        }
+      }
+    });
+  }
+
+  // Form input and change listeners
+  function setupFormEvents() {
     const saveTradeBtn = document.getElementById('btnSaveTrade');
     if (saveTradeBtn) saveTradeBtn.addEventListener('click', handleSaveTrade);
 
@@ -1708,6 +1785,12 @@
       if (el) el.addEventListener('input', calculateJournalFormMath);
     });
 
+    // Inputs listener for calculator
+    ['calc-buy-price', 'calc-sell-price', 'calc-trade-qty'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', calculateAllCalculator);
+    });
+
     // Search & Filter listeners
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -1724,70 +1807,46 @@
         renderJournalTable();
       });
     }
+  }
 
-    // 6. Universal Global Event Delegation (Guaranteed Mobile Safari & Chrome Tap Response)
-    document.addEventListener('click', (e) => {
-      // Handle Navigation Tabs
-      const navBtn = e.target.closest('[data-path]');
-      if (navBtn) {
-        e.preventDefault();
-        const path = navBtn.getAttribute('data-path');
-        if (path) switchView(path);
-        return;
-      }
+  // Synchronous App Initialization (Never blocks on async storage)
+  function initApp() {
+    // 1. Immediately attach event delegation & form events
+    setupEventDelegation();
+    setupFormEvents();
 
-      // Handle Data Actions
-      const actionBtn = e.target.closest('[data-action]');
-      if (actionBtn) {
-        const action = actionBtn.getAttribute('data-action');
-        if (action === 'open-action-sheet') {
-          e.preventDefault();
-          openActionSheet();
-        } else if (action === 'close-action-sheet') {
-          e.preventDefault();
-          closeActionSheet();
-        } else if (action === 'quick-calc') {
-          e.preventDefault();
-          switchView('nse-calculator');
-        } else if (action === 'open-settings') {
-          e.preventDefault();
-          switchView('settings-and-backup');
-        } else if (action === 'save-preferences') {
-          e.preventDefault();
-          savePreferences();
-        } else if (action === 'export-backup') {
-          e.preventDefault();
-          downloadFullBackup();
-        } else if (action === 'reload-sample') {
-          e.preventDefault();
-          handleResetToSampleData();
-        } else if (action === 'clear-all') {
-          e.preventDefault();
-          handleClearAllDatabase();
-        } else if (action === 'save-trade') {
-          e.preventDefault();
-          handleSaveTrade();
-        } else if (action === 'reset-trade') {
-          e.preventDefault();
-          resetTradeForm();
-        } else if (action === 'export-journal-csv') {
-          e.preventDefault();
-          exportJournalCSV();
-        } else if (action === 'save-snapshot') {
-          e.preventDefault();
-          handleSaveSnapshot();
-        } else if (action === 'export-portfolio-csv') {
-          e.preventDefault();
-          exportPortfolioCSV();
-        } else if (action === 'transfer-calc') {
-          e.preventDefault();
-          transferCalculatorToJournal();
-        } else if (action === 'copy-calc') {
-          e.preventDefault();
-          copyCalculatorSummary();
-        }
+    // 2. Connectivity & Market Clock
+    initConnectivityMonitor();
+    updateMarketStatus();
+    setInterval(updateMarketStatus, 30000);
+
+    // 3. Register Hotkeys & PWA
+    initKeyboardShortcuts();
+    initPwaInstall();
+    registerServiceWorker();
+
+    // 4. Handle initial URL hash and render immediately from synchronous state
+    const initialHash = window.location.hash.replace('#', '') || 'dashboard';
+    switchView(initialHash);
+
+    window.addEventListener('hashchange', () => {
+      const hash = window.location.hash.replace('#', '') || 'dashboard';
+      if (hash !== AppState.currentView) {
+        switchView(hash);
       }
     });
+
+    // 5. Background non-blocking IndexedDB sync
+    (async () => {
+      try {
+        await TradeDB.init();
+        await reloadAllData();
+        // Update current view with any persisted data
+        switchView(AppState.currentView);
+      } catch (dbErr) {
+        console.warn('Background database sync notice:', dbErr);
+      }
+    })();
   }
 
   // Expose global controller
@@ -1797,6 +1856,12 @@
     toggleMobileSidebar,
     closeMobileSidebar,
     showToast,
+    // Form and Action Handlers
+    handleSaveTrade,
+    resetTradeForm,
+    handleSaveSnapshot,
+    updateSnapshotFormCalculations,
+    calculateJournalFormMath,
     // Calculator
     setCalculatorBroker,
     setCalculatorSegment,
@@ -1813,32 +1878,8 @@
     executeDeleteTrade,
     closeDeleteModal,
     exportJournalCSV,
-    setJournalBrokerFilter: (broker) => {
-      AppState.journalFilter.broker = broker;
-      ['all', 'groww', 'zerodha'].forEach(b => {
-        const btn = document.getElementById(`fltBroker${b.charAt(0).toUpperCase() + b.slice(1)}`);
-        if (!btn) return;
-        if (b === broker) {
-          btn.className = 'px-3 py-1 rounded-full bg-[#803E2F] text-white font-semibold whitespace-nowrap';
-        } else {
-          btn.className = 'px-3 py-1 rounded-full bg-[#362F2E] text-[#A79986] whitespace-nowrap';
-        }
-      });
-      renderJournalTable();
-    },
-    setJournalOutcomeFilter: (outcome) => {
-      AppState.journalFilter.outcome = outcome;
-      ['all', 'win', 'loss'].forEach(o => {
-        const btn = document.getElementById(`fltOut${o.charAt(0).toUpperCase() + o.slice(1)}`);
-        if (!btn) return;
-        if (o === outcome) {
-          btn.className = 'px-3 py-1 rounded-full bg-[#803E2F] text-white font-semibold whitespace-nowrap';
-        } else {
-          btn.className = 'px-3 py-1 rounded-full bg-[#362F2E] text-[#A79986] whitespace-nowrap';
-        }
-      });
-      renderJournalTable();
-    },
+    setJournalBrokerFilter,
+    setJournalOutcomeFilter,
     // Action Sheet Modal Controls
     openActionSheet,
     closeActionSheet,

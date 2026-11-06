@@ -269,7 +269,7 @@
   <!-- LAYER 1: FIXED TOP HEADER -->
   <header class="app-header fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2.5 bg-[#1F1D20] border-b border-[rgba(167,153,134,0.16)] max-w-[480px] mx-auto" style="padding-top: max(env(safe-area-inset-top, 44px), 14px);">
     <!-- Left: Quick Calc Pill -->
-    <button type="button" data-action="quick-calc" class="flex items-center gap-1.5 bg-[#362F2E] border border-[rgba(167,153,134,0.25)] px-3 py-1.5 rounded-full text-xs font-semibold text-[#F6F4F1] hover:bg-[#803E2F]/40 active:scale-95 transition-all">
+    <button type="button" onclick="window.App.switchView('nse-calculator')" data-action="quick-calc" class="flex items-center gap-1.5 bg-[#362F2E] border border-[rgba(167,153,134,0.25)] px-3 py-1.5 rounded-full text-xs font-semibold text-[#F6F4F1] hover:bg-[#803E2F]/40 active:scale-95 transition-all">
       <span class="material-symbols-outlined text-[15px] text-[#A79986]">add</span>
       <span>Quick Calc</span>
     </button>
@@ -281,7 +281,7 @@
     </div>
 
     <!-- Right: Settings Avatar Button -->
-    <button type="button" data-action="open-settings" class="w-9 h-9 rounded-full bg-[#362F2E] border border-[rgba(167,153,134,0.25)] flex items-center justify-center text-[#F6F4F1] hover:bg-[#803E2F]/30 active:scale-95 transition-all" title="Settings" aria-label="Settings">
+    <button type="button" onclick="window.App.switchView('settings-and-backup')" data-action="open-settings" class="w-9 h-9 rounded-full bg-[#362F2E] border border-[rgba(167,153,134,0.25)] flex items-center justify-center text-[#F6F4F1] hover:bg-[#803E2F]/30 active:scale-95 transition-all" title="Settings" aria-label="Settings">
       <span class="material-symbols-outlined text-[18px]">settings</span>
     </button>
   </header>
@@ -371,7 +371,7 @@
             <span id="dash-realised-roi" class="ml-1">(+3.5% ROI)</span>
           </div>
 
-          <button type="button" data-path="trade-journal" class="absolute right-4 bottom-4 bg-[#803E2F] text-white px-3.5 py-1.5 rounded-full text-xs font-bold shadow hover:bg-[#964a38] transition-all">
+          <button type="button" onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="absolute right-4 bottom-4 bg-[#803E2F] text-white px-3.5 py-1.5 rounded-full text-xs font-bold shadow hover:bg-[#964a38] active:scale-95 transition-all">
             Find out
           </button>
         </div>
@@ -402,7 +402,7 @@
 
           <div class="space-y-2.5">
             <!-- Trade 1 -->
-            <div data-path="trade-journal" class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 hover:border-[rgba(167,153,134,0.35)] transition-all cursor-pointer">
+            <div onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 hover:border-[rgba(167,153,134,0.35)] active:scale-98 transition-all cursor-pointer">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-xl bg-[#362F2E] border border-[rgba(167,153,134,0.2)] flex items-center justify-center text-white">
@@ -424,7 +424,7 @@
             </div>
 
             <!-- Trade 2 -->
-            <div data-path="trade-journal" class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 hover:border-[rgba(167,153,134,0.35)] transition-all cursor-pointer">
+            <div onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 hover:border-[rgba(167,153,134,0.35)] active:scale-98 transition-all cursor-pointer">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-xl bg-[#362F2E] border border-[rgba(167,153,134,0.2)] flex items-center justify-center text-white">
@@ -446,7 +446,7 @@
             </div>
 
             <!-- Trade 3 -->
-            <div data-path="trade-journal" class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 hover:border-[rgba(167,153,134,0.35)] transition-all cursor-pointer">
+            <div onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-3.5 hover:border-[rgba(167,153,134,0.35)] active:scale-98 transition-all cursor-pointer">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-xl bg-[#362F2E] border border-[rgba(167,153,134,0.2)] flex items-center justify-center text-white">
@@ -485,7 +485,7 @@
             <span class="text-xs text-[#A79986]">History & Entries</span>
             <h2 class="font-serif text-[28px] text-[#F6F4F1] leading-tight">Trade Journal</h2>
           </div>
-          <button type="button" data-action="export-journal-csv" class="p-2.5 rounded-full bg-[#362F2E] border border-[rgba(167,153,134,0.25)] text-[#F6F4F1] hover:bg-[#803E2F]/40" title="Export CSV" aria-label="Export CSV">
+          <button type="button" onclick="window.App.exportJournalCSV()" data-action="export-journal-csv" class="p-2.5 rounded-full bg-[#362F2E] border border-[rgba(167,153,134,0.25)] text-[#F6F4F1] hover:bg-[#803E2F]/40 active:scale-95 transition-all" title="Export CSV" aria-label="Export CSV">
             <span class="material-symbols-outlined text-[18px]">download</span>
           </button>
         </div>
@@ -528,7 +528,7 @@
               <span class="material-symbols-outlined text-[18px] text-[#A79986]">add_circle</span>
               <h3 id="btnSaveTradeTextHeader" class="font-serif text-[18px] text-[#F6F4F1]">Log Swing Trade</h3>
             </div>
-            <button id="btnClearTrade" type="button" data-action="reset-trade" class="text-xs text-[#A79986] hover:text-[#F6F4F1]">Reset</button>
+            <button id="btnClearTrade" type="button" onclick="window.App.resetTradeForm()" data-action="reset-trade" class="text-xs text-[#A79986] hover:text-[#F6F4F1] active:scale-95 transition-all">Reset</button>
           </div>
 
           <form id="tradeForm" onsubmit="event.preventDefault();" class="space-y-3">
@@ -601,7 +601,7 @@
               <span id="liveTaxesCharges"></span>
             </div>
 
-            <button id="btnSaveTrade" type="button" data-action="save-trade" class="w-full py-3 rounded-xl bg-[#803E2F] hover:bg-[#964a38] text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[rgba(128,62,47,0.35)] transition-all">
+            <button id="btnSaveTrade" type="button" onclick="window.App.handleSaveTrade()" data-action="save-trade" class="w-full py-3 rounded-xl bg-[#803E2F] hover:bg-[#964a38] active:scale-98 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[rgba(128,62,47,0.35)] transition-all">
               <span class="material-symbols-outlined text-[16px]">save</span>
               <span id="btnSaveTradeText">Save Trade</span>
             </button>
@@ -655,7 +655,7 @@
             <span class="text-xs text-[#A79986]">Capital Allocation</span>
             <h2 class="font-serif text-[28px] text-[#F6F4F1] leading-tight">Portfolio Tracker</h2>
           </div>
-          <button type="button" data-action="export-portfolio-csv" class="p-2.5 rounded-full bg-[#362F2E] border border-[rgba(167,153,134,0.25)] text-[#F6F4F1] hover:bg-[#803E2F]/40" title="Export CSV" aria-label="Export CSV">
+          <button type="button" onclick="window.App.exportPortfolioCSV()" data-action="export-portfolio-csv" class="p-2.5 rounded-full bg-[#362F2E] border border-[rgba(167,153,134,0.25)] text-[#F6F4F1] hover:bg-[#803E2F]/40 active:scale-95 transition-all" title="Export CSV" aria-label="Export CSV">
             <span class="material-symbols-outlined text-[18px]">download</span>
           </button>
         </div>
@@ -713,7 +713,7 @@
               </div>
             </div>
 
-            <button id="save-snapshot-btn" type="button" data-action="save-snapshot" class="w-full py-3 rounded-xl bg-[#803E2F] hover:bg-[#964a38] text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[rgba(128,62,47,0.35)] transition-all">
+            <button id="save-snapshot-btn" type="button" onclick="window.App.handleSaveSnapshot()" data-action="save-snapshot" class="w-full py-3 rounded-xl bg-[#803E2F] hover:bg-[#964a38] active:scale-98 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[rgba(128,62,47,0.35)] transition-all">
               <span class="material-symbols-outlined text-[16px]">save</span>
               <span>Save Valuation Snapshot</span>
             </button>
@@ -764,7 +764,7 @@
               <div id="analytics-total-val" class="font-serif text-[24px] font-normal leading-tight tabular-nums">+₹32,294.30</div>
               <div id="analytics-abs-gain" class="text-[11px] font-bold text-[#A79986] mt-1">+3.5% ROI</div>
             </div>
-            <button type="button" data-path="trade-journal" class="mt-3 bg-[#1F1D20] text-[#A79986] py-1 px-3 rounded-full text-[10px] font-bold self-start">
+            <button type="button" onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="mt-3 bg-[#1F1D20] text-[#A79986] py-1 px-3 rounded-full text-[10px] font-bold self-start active:scale-95 transition-all">
               View Log
             </button>
           </div>
@@ -846,7 +846,7 @@
             <span class="text-xs text-[#A79986]">Deterministic Tariff Engine</span>
             <h2 class="font-serif text-[28px] text-[#F6F4F1] leading-tight">NSE Calculator</h2>
           </div>
-          <button type="button" data-action="transfer-calc" class="p-2.5 rounded-full bg-[#803E2F] text-white hover:bg-[#964a38]" title="Transfer to Trade Journal" aria-label="Transfer to Journal">
+          <button type="button" onclick="window.App.transferCalculatorToJournal()" data-action="transfer-calc" class="p-2.5 rounded-full bg-[#803E2F] text-white hover:bg-[#964a38] active:scale-95 transition-all" title="Transfer to Trade Journal" aria-label="Transfer to Journal">
             <span class="material-symbols-outlined text-[18px]">send</span>
           </button>
         </div>
@@ -952,7 +952,7 @@
         <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl overflow-hidden text-xs">
           <div class="p-3 border-b border-[rgba(167,153,134,0.15)] flex items-center justify-between">
             <span class="font-serif text-[16px] text-[#F6F4F1]">Charges Breakdown</span>
-            <button type="button" data-action="copy-calc" class="text-xs text-[#A79986] hover:underline">Copy</button>
+            <button type="button" onclick="window.App.copyCalculatorSummary()" data-action="copy-calc" class="text-xs text-[#A79986] hover:text-[#F6F4F1] active:scale-95 transition-all">Copy</button>
           </div>
           <table class="w-full text-left border-collapse">
             <tbody class="divide-y divide-[rgba(167,153,134,0.12)]">
@@ -1024,7 +1024,7 @@
             <label class="block text-[10px] text-[#A79986] uppercase font-semibold mb-1" for="settings-dp-charge">CDSL DP Charge (₹ / scrip)</label>
             <input id="settings-dp-charge" type="number" step="0.5" class="w-full bg-[#1F1D20] border border-[rgba(167,153,134,0.2)] rounded-xl px-3 py-2 text-xs text-[#F6F4F1] focus:outline-none" value="13.50"/>
           </div>
-          <button type="button" data-action="save-preferences" class="py-2.5 px-4 rounded-xl bg-[#803E2F] hover:bg-[#964a38] text-white text-xs font-semibold transition-colors">
+          <button type="button" onclick="window.App.savePreferences()" data-action="save-preferences" class="py-2.5 px-4 rounded-xl bg-[#803E2F] hover:bg-[#964a38] active:scale-95 text-white text-xs font-semibold transition-all">
             Save Preferences
           </button>
         </div>
@@ -1032,11 +1032,11 @@
         <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.18)] rounded-2xl p-4 space-y-3">
           <h3 class="font-serif text-[18px] text-[#F6F4F1]">Data Management</h3>
           <div class="flex items-center gap-2">
-            <button type="button" data-action="export-backup" class="flex-1 py-2.5 rounded-xl bg-[#803E2F] hover:bg-[#964a38] text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+            <button type="button" onclick="window.App.downloadFullBackup()" data-action="export-backup" class="flex-1 py-2.5 rounded-xl bg-[#803E2F] hover:bg-[#964a38] active:scale-95 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all">
               <span class="material-symbols-outlined text-[16px]">download</span>
               <span>Export Backup</span>
             </button>
-            <label class="flex-1 py-2.5 rounded-xl bg-[#362F2E] border border-[rgba(167,153,134,0.2)] text-[#F6F4F1] font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer hover:bg-[#3E3D38]">
+            <label class="flex-1 py-2.5 rounded-xl bg-[#362F2E] border border-[rgba(167,153,134,0.2)] text-[#F6F4F1] font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer hover:bg-[#3E3D38] active:scale-95 transition-all">
               <span class="material-symbols-outlined text-[16px]">upload_file</span>
               <span>Restore</span>
               <input type="file" accept=".json" class="hidden" onchange="window.App.handleRestoreBackup(event)"/>
@@ -1044,8 +1044,8 @@
           </div>
 
           <div class="pt-2 border-t border-[rgba(167,153,134,0.15)] flex items-center justify-between">
-            <button type="button" data-action="reload-sample" class="text-xs text-[#A79986] hover:text-[#F6F4F1]">Reload Sample Data</button>
-            <button type="button" data-action="clear-all" class="text-xs text-[#E05D4D] hover:text-red-300">Clear All Data</button>
+            <button type="button" onclick="window.App.handleResetToSampleData()" data-action="reload-sample" class="text-xs text-[#A79986] hover:text-[#F6F4F1] active:scale-95 transition-all">Reload Sample Data</button>
+            <button type="button" onclick="window.App.handleClearAllDatabase()" data-action="clear-all" class="text-xs text-[#E05D4D] hover:text-red-300 active:scale-95 transition-all">Clear All Data</button>
           </div>
         </div>
       </section>
@@ -1055,27 +1055,27 @@
   <!-- LAYER 3: FIXED BOTTOM NAVIGATION - Permanently docked at the bottom of the screen -->
   <nav class="app-bottom-nav fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-3 py-2 bg-[#1A181A] border-t border-[rgba(167,153,134,0.18)] max-w-[480px] mx-auto shadow-2xl" style="padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px);">
     <!-- 1: Dashboard (Home) -->
-    <button type="button" class="nav-tab-item active" data-path="dashboard" aria-label="Dashboard" title="Dashboard">
+    <button type="button" onclick="window.App.switchView('dashboard')" class="nav-tab-item active" data-path="dashboard" aria-label="Dashboard" title="Dashboard">
       <span class="material-symbols-outlined text-[24px]">home</span>
     </button>
 
     <!-- 2: Journal (Search) -->
-    <button type="button" class="nav-tab-item" data-path="trade-journal" aria-label="Trade Journal" title="Journal">
+    <button type="button" onclick="window.App.switchView('trade-journal')" class="nav-tab-item" data-path="trade-journal" aria-label="Trade Journal" title="Journal">
       <span class="material-symbols-outlined text-[22px]">search</span>
     </button>
 
     <!-- 3: Center Highlight Action Button (+) -->
-    <button type="button" class="nav-center-action-btn" data-action="open-action-sheet" aria-label="Quick Actions" title="Actions">
+    <button type="button" onclick="window.App.openActionSheet()" class="nav-center-action-btn" data-action="open-action-sheet" aria-label="Quick Actions" title="Actions">
       <span class="material-symbols-outlined text-[28px]">add</span>
     </button>
 
     <!-- 4: Portfolio Tracker (Wallet) -->
-    <button type="button" class="nav-tab-item" data-path="portfolio-tracker" aria-label="Portfolio Tracker" title="Portfolio">
+    <button type="button" onclick="window.App.switchView('portfolio-tracker')" class="nav-tab-item" data-path="portfolio-tracker" aria-label="Portfolio Tracker" title="Portfolio">
       <span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
     </button>
 
     <!-- 5: NSE Calculator (Exchange/Arrows) -->
-    <button type="button" class="nav-tab-item" data-path="nse-calculator" aria-label="NSE Calculator" title="Calculator">
+    <button type="button" onclick="window.App.switchView('nse-calculator')" class="nav-tab-item" data-path="nse-calculator" aria-label="NSE Calculator" title="Calculator">
       <span class="material-symbols-outlined text-[22px]">swap_horiz</span>
     </button>
   </nav>
@@ -1087,13 +1087,13 @@
     <div class="action-sheet-container" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between pb-3 border-b border-[rgba(167,153,134,0.18)]">
         <span class="font-serif text-[22px] text-[#F6F4F1]">Quick Actions</span>
-        <button type="button" data-action="close-action-sheet" class="w-8 h-8 rounded-full bg-[#362F2E] flex items-center justify-center text-[#F6F4F1]" aria-label="Close">
+        <button type="button" onclick="window.App.closeActionSheet()" data-action="close-action-sheet" class="w-8 h-8 rounded-full bg-[#362F2E] flex items-center justify-center text-[#F6F4F1]" aria-label="Close">
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
 
       <div class="space-y-2 pt-3">
-        <button type="button" data-path="trade-journal" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-colors text-left border border-[rgba(167,153,134,0.12)]">
+        <button type="button" onclick="window.App.switchView('trade-journal')" data-path="trade-journal" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 active:scale-98 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-all text-left border border-[rgba(167,153,134,0.12)]">
           <div class="w-10 h-10 rounded-xl bg-[#803E2F] text-white flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-[22px]">add_box</span>
           </div>
@@ -1103,7 +1103,7 @@
           </div>
         </button>
 
-        <button type="button" data-path="nse-calculator" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-colors text-left border border-[rgba(167,153,134,0.12)]">
+        <button type="button" onclick="window.App.switchView('nse-calculator')" data-path="nse-calculator" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 active:scale-98 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-all text-left border border-[rgba(167,153,134,0.12)]">
           <div class="w-10 h-10 rounded-xl bg-[#46232A] text-[#A79986] flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-[22px]">calculate</span>
           </div>
@@ -1113,7 +1113,7 @@
           </div>
         </button>
 
-        <button type="button" data-path="portfolio-tracker" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-colors text-left border border-[rgba(167,153,134,0.12)]">
+        <button type="button" onclick="window.App.switchView('portfolio-tracker')" data-path="portfolio-tracker" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 active:scale-98 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-all text-left border border-[rgba(167,153,134,0.12)]">
           <div class="w-10 h-10 rounded-xl bg-[#3E3D38] text-[#F6F4F1] flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-[22px]">calendar_today</span>
           </div>
@@ -1123,7 +1123,7 @@
           </div>
         </button>
 
-        <button type="button" data-path="analytics" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-colors text-left border border-[rgba(167,153,134,0.12)]">
+        <button type="button" onclick="window.App.switchView('analytics')" data-path="analytics" class="w-full bg-[#362F2E] hover:bg-[#803E2F]/20 active:scale-98 text-white p-3.5 rounded-2xl flex items-center gap-3.5 transition-all text-left border border-[rgba(167,153,134,0.12)]">
           <div class="w-10 h-10 rounded-xl bg-[#3E3D38] text-[#A79986] flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-[22px]">insights</span>
           </div>
@@ -1134,7 +1134,7 @@
         </button>
       </div>
 
-      <button type="button" data-action="close-action-sheet" class="w-full py-3 mt-3 rounded-xl bg-[#362F2E] text-[#A79986] font-semibold text-xs text-center hover:bg-[#3E3D38] active:scale-98 transition-all border border-[rgba(167,153,134,0.15)]">
+      <button type="button" onclick="window.App.closeActionSheet()" data-action="close-action-sheet" class="w-full py-3 mt-3 rounded-xl bg-[#362F2E] text-[#A79986] font-semibold text-xs text-center hover:bg-[#3E3D38] active:scale-98 transition-all border border-[rgba(167,153,134,0.15)]">
         Cancel
       </button>
     </div>

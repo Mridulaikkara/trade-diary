@@ -246,50 +246,79 @@ const TradeDB = (function() {
     }
   ];
 
-  // Open database connection
+  // Memory Store fallback for Safari Private Browsing mode
+  const memoryStore = {
+    trades: [...INITIAL_TRADES],
+    snapshots: [...INITIAL_SNAPSHOTS],
+    settings: [
+      { key: 'defaultBroker', value: 'groww' },
+      { key: 'customDp', value: 13.50 },
+      { key: 'lastUpdated', value: new Date().toISOString() }
+    ]
+  };
+
+  // Open database connection with fail-safe timeout & private browsing detection
   function openDB() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       if (dbInstance) {
         return resolve(dbInstance);
       }
 
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-
-        // Trades Store
-        if (!db.objectStoreNames.contains('trades')) {
-          const tradeStore = db.createObjectStore('trades', { keyPath: 'id', autoIncrement: true });
-          tradeStore.createIndex('date', 'date', { unique: false });
-          tradeStore.createIndex('broker', 'broker', { unique: false });
-          tradeStore.createIndex('outcome', 'outcome', { unique: false });
-          tradeStore.createIndex('stockSymbol', 'stockSymbol', { unique: false });
+      try {
+        if (typeof indexedDB === 'undefined') {
+          return resolve(null);
         }
 
-        // Snapshots Store (date is key)
-        if (!db.objectStoreNames.contains('snapshots')) {
-          const snapshotStore = db.createObjectStore('snapshots', { keyPath: 'date' });
-          snapshotStore.createIndex('date', 'date', { unique: true });
-        }
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-        // Settings Store
-        if (!db.objectStoreNames.contains('settings')) {
-          db.createObjectStore('settings', { keyPath: 'key' });
-        }
-      };
+        request.onupgradeneeded = (event) => {
+          try {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('trades')) {
+              const tradeStore = db.createObjectStore('trades', { keyPath: 'id', autoIncrement: true });
+              tradeStore.createIndex('date', 'date', { unique: false });
+              tradeStore.createIndex('broker', 'broker', { unique: false });
+              tradeStore.createIndex('outcome', 'outcome', { unique: false });
+              tradeStore.createIndex('stockSymbol', 'stockSymbol', { unique: false });
+            }
+            if (!db.objectStoreNames.contains('snapshots')) {
+              const snapshotStore = db.createObjectStore('snapshots', { keyPath: 'date' });
+              snapshotStore.createIndex('date', 'date', { unique: true });
+            }
+            if (!db.objectStoreNames.contains('settings')) {
+              db.createObjectStore('settings', { keyPath: 'key' });
+            }
+          } catch (e) {
+            console.warn('Upgrade error:', e);
+          }
+        };
 
-      request.onsuccess = async (event) => {
-        dbInstance = event.target.result;
-        // Check if database needs seeding
-        await seedInitialDataIfNeeded();
-        resolve(dbInstance);
-      };
+        request.onsuccess = (event) => {
+          dbInstance = event.target.result;
+          resolve(dbInstance);
+        };
 
-      request.onerror = (event) => {
-        console.error('IndexedDB error:', event.target.error);
-        reject(event.target.error);
-      };
+        request.onerror = (event) => {
+          console.warn('IndexedDB unavailable or blocked (e.g. Private Browsing):', event.target?.error);
+          resolve(null);
+        };
+
+        request.onblocked = () => {
+          console.warn('IndexedDB open blocked by another tab');
+          resolve(null);
+        };
+
+        // Safety timeout: Never let the app hang on openDB
+        setTimeout(() => {
+          if (!dbInstance) {
+            resolve(null);
+          }
+        }, 500);
+
+      } catch (err) {
+        console.warn('IndexedDB exception:', err);
+        resolve(null);
+      }
     });
   }
 
@@ -321,76 +350,152 @@ const TradeDB = (function() {
     }
   }
 
-  // Helper transaction methods
+  // Helper transaction methods with memory fallback
   function count(storeName) {
-    return new Promise(async (resolve, reject) => {
-      const db = await openDB();
-      const tx = db.transaction(storeName, 'readonly');
-      const store = tx.objectStore(storeName);
-      const req = store.count();
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
+    return new Promise(async (resolve) => {
+      try {
+        const db = await openDB();
+        if (!db) {
+          return resolve(memoryStore[storeName] ? memoryStore[storeName].length : 0);
+        }
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const req = store.count();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(memoryStore[storeName] ? memoryStore[storeName].length : 0);
+      } catch (e) {
+        resolve(memoryStore[storeName] ? memoryStore[storeName].length : 0);
+      }
     });
   }
 
   function getAll(storeName) {
-    return new Promise(async (resolve, reject) => {
-      const db = await openDB();
-      const tx = db.transaction(storeName, 'readonly');
-      const store = tx.objectStore(storeName);
-      const req = store.getAll();
-      req.onsuccess = () => resolve(req.result || []);
-      req.onerror = () => reject(req.error);
+    return new Promise(async (resolve) => {
+      try {
+        const db = await openDB();
+        if (!db) {
+          return resolve(memoryStore[storeName] || []);
+        }
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const req = store.getAll();
+        req.onsuccess = () => {
+          const list = req.result || [];
+          if (list.length === 0 && memoryStore[storeName]) {
+            return resolve(memoryStore[storeName]);
+          }
+          resolve(list);
+        };
+        req.onerror = () => resolve(memoryStore[storeName] || []);
+      } catch (e) {
+        resolve(memoryStore[storeName] || []);
+      }
     });
   }
 
   function getRecord(storeName, key) {
-    return new Promise(async (resolve, reject) => {
-      const db = await openDB();
-      const tx = db.transaction(storeName, 'readonly');
-      const store = tx.objectStore(storeName);
-      const req = store.get(key);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
+    return new Promise(async (resolve) => {
+      try {
+        const db = await openDB();
+        if (!db) {
+          const list = memoryStore[storeName] || [];
+          const found = list.find(item => item.id === key || item.key === key || item.date === key);
+          return resolve(found);
+        }
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
+        const req = store.get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      } catch (e) {
+        resolve(null);
+      }
     });
   }
 
   function addRecord(storeName, record) {
-    return new Promise(async (resolve, reject) => {
-      const db = await openDB();
-      const tx = db.transaction(storeName, 'readwrite');
-      const store = tx.objectStore(storeName);
-      const req = store.put(record); // put works for insert or overwrite
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
+    return new Promise(async (resolve) => {
+      try {
+        // Also update memoryStore
+        if (memoryStore[storeName]) {
+          const keyField = storeName === 'snapshots' ? 'date' : (storeName === 'settings' ? 'key' : 'id');
+          if (!record[keyField] && storeName === 'trades') {
+            record.id = Date.now();
+          }
+          const idx = memoryStore[storeName].findIndex(item => item[keyField] === record[keyField]);
+          if (idx >= 0) {
+            memoryStore[storeName][idx] = record;
+          } else {
+            memoryStore[storeName].push(record);
+          }
+        }
+
+        const db = await openDB();
+        if (!db) return resolve(record);
+
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        const req = store.put(record);
+        req.onsuccess = () => resolve(req.result || record);
+        req.onerror = () => resolve(record);
+      } catch (e) {
+        resolve(record);
+      }
     });
   }
 
   function deleteRecord(storeName, key) {
-    return new Promise(async (resolve, reject) => {
-      const db = await openDB();
-      const tx = db.transaction(storeName, 'readwrite');
-      const store = tx.objectStore(storeName);
-      const req = store.delete(key);
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => reject(req.error);
+    return new Promise(async (resolve) => {
+      try {
+        if (memoryStore[storeName]) {
+          const keyField = storeName === 'snapshots' ? 'date' : 'id';
+          memoryStore[storeName] = memoryStore[storeName].filter(item => item[keyField] !== key);
+        }
+
+        const db = await openDB();
+        if (!db) return resolve(true);
+
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        const req = store.delete(key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => resolve(true);
+      } catch (e) {
+        resolve(true);
+      }
     });
   }
 
   function clearStore(storeName) {
-    return new Promise(async (resolve, reject) => {
-      const db = await openDB();
-      const tx = db.transaction(storeName, 'readwrite');
-      const store = tx.objectStore(storeName);
-      const req = store.clear();
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => reject(req.error);
+    return new Promise(async (resolve) => {
+      try {
+        if (memoryStore[storeName]) memoryStore[storeName] = [];
+        const db = await openDB();
+        if (!db) return resolve(true);
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
+        const req = store.clear();
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => resolve(true);
+      } catch (e) {
+        resolve(true);
+      }
     });
   }
 
   // Public Database API
   return {
-    init: openDB,
+    init: async () => {
+      const db = await openDB();
+      if (db) {
+        await seedInitialDataIfNeeded();
+      }
+      return true;
+    },
+
+    // Synchronous initial data getters (guaranteed instant availability)
+    getInitialTrades: () => JSON.parse(JSON.stringify(INITIAL_TRADES)),
+    getInitialSnapshots: () => JSON.parse(JSON.stringify(INITIAL_SNAPSHOTS)),
 
     // Trades
     getTrades: () => getAll('trades'),
