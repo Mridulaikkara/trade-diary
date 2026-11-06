@@ -1649,18 +1649,21 @@
     }
   }
 
-  // Register Service Worker
+  // Unregister Service Workers and Purge Caches to guarantee live updates
   function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then((reg) => {
-            console.log('TradeLedger Service Worker registered:', reg.scope);
-          })
-          .catch((err) => {
-            console.warn('Service Worker registration failed:', err);
-          });
-      });
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const reg of registrations) {
+          reg.unregister();
+        }
+      }).catch(() => {});
+    }
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        for (const name of names) {
+          caches.delete(name);
+        }
+      }).catch(() => {});
     }
   }
 
@@ -1849,8 +1852,19 @@
     })();
   }
 
-  // Expose global controller
-  window.App = {
+  // Connect hook for inline view switcher
+  window.App = window.App || {};
+  window.App._onViewSwitch = function(viewName) {
+    if (viewName === 'dashboard') renderDashboard();
+    if (viewName === 'trade-journal') renderJournal();
+    if (viewName === 'portfolio-tracker') renderPortfolio();
+    if (viewName === 'analytics') renderAnalytics();
+    if (viewName === 'nse-calculator') calculateAllCalculator();
+    if (viewName === 'settings-and-backup') renderSettings();
+  };
+
+  // Expose and extend global controller
+  Object.assign(window.App, {
     init: initApp,
     switchView,
     toggleMobileSidebar,
@@ -1895,7 +1909,7 @@
     handleClearAllDatabase,
     savePreferences,
     triggerPwaInstall
-  };
+  });
 
   // Start on DOM ready
   if (document.readyState === 'loading') {

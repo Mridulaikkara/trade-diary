@@ -5,6 +5,113 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
   <title>Trade Diary</title>
 
+  <!-- Instant Inline Cache-Purging & Fail-Safe Navigation Engine (Frame 0 Execution) -->
+  <script>
+    // 1. Force purge any lingering service worker caches immediately
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        for (var i = 0; i < regs.length; i++) regs[i].unregister();
+      }).catch(function(){});
+    }
+    if ('caches' in window) {
+      caches.keys().then(function(keys) {
+        for (var i = 0; i < keys.length; i++) caches.delete(keys[i]);
+      }).catch(function(){});
+    }
+
+    // 2. Global immediate controller: ensures 100% responsive touches even before scripts load
+    window.App = window.App || {};
+
+    window.App.switchView = function(viewName) {
+      if (!viewName) viewName = 'dashboard';
+      var valid = ['dashboard', 'trade-journal', 'portfolio-tracker', 'analytics', 'nse-calculator', 'settings-and-backup'];
+      if (valid.indexOf(viewName) === -1) viewName = 'dashboard';
+
+      // Update panels display
+      var panels = document.querySelectorAll('.view-panel');
+      for (var i = 0; i < panels.length; i++) {
+        panels[i].classList.remove('active');
+        panels[i].style.display = 'none';
+      }
+      var target = document.getElementById('view-' + viewName);
+      if (target) {
+        target.classList.add('active');
+        target.style.display = 'block';
+      }
+
+      // Update bottom dock tab highlights
+      var tabs = document.querySelectorAll('.nav-tab-item, .dock-item');
+      for (var j = 0; j < tabs.length; j++) {
+        if (tabs[j].getAttribute('data-path') === viewName) {
+          tabs[j].classList.add('active');
+          tabs[j].setAttribute('aria-current', 'page');
+        } else {
+          tabs[j].classList.remove('active');
+          tabs[j].removeAttribute('aria-current');
+        }
+      }
+
+      // Close open modals
+      window.App.closeActionSheet();
+      var delTradeModal = document.getElementById('deleteModal');
+      if (delTradeModal) {
+        delTradeModal.style.setProperty('display', 'none', 'important');
+        delTradeModal.style.setProperty('pointer-events', 'none', 'important');
+      }
+      var delSnapModal = document.getElementById('delete-snapshot-modal');
+      if (delSnapModal) {
+        delSnapModal.style.setProperty('display', 'none', 'important');
+        delSnapModal.style.setProperty('pointer-events', 'none', 'important');
+      }
+
+      // Update URL hash safely without navigation interrupt
+      try { history.replaceState(null, '', '#' + viewName); } catch(e){}
+      window.scrollTo(0, 0);
+
+      // Trigger full data re-render if orchestrator has loaded
+      if (typeof window.App._onViewSwitch === 'function') {
+        window.App._onViewSwitch(viewName);
+      }
+    };
+
+    window.App.openActionSheet = function() {
+      var sheet = document.getElementById('action-sheet-overlay');
+      if (!sheet) return;
+      sheet.classList.remove('hidden');
+      sheet.style.setProperty('display', 'flex', 'important');
+      sheet.style.setProperty('pointer-events', 'auto', 'important');
+    };
+
+    window.App.closeActionSheet = function(e) {
+      if (e && e.target && e.target.closest && e.target.closest('.action-sheet-container') && !e.target.closest('button')) {
+        return;
+      }
+      var sheet = document.getElementById('action-sheet-overlay');
+      if (!sheet) return;
+      sheet.classList.add('hidden');
+      sheet.style.setProperty('display', 'none', 'important');
+      sheet.style.setProperty('pointer-events', 'none', 'important');
+    };
+
+    // Instant mobile glass touch capture (Zero 300ms delay, immune to touch cancellation)
+    document.addEventListener('pointerup', function(e) {
+      var nav = e.target.closest('[data-path]');
+      if (nav) {
+        var p = nav.getAttribute('data-path');
+        if (p) window.App.switchView(p);
+        return;
+      }
+      var act = e.target.closest('[data-action]');
+      if (act) {
+        var a = act.getAttribute('data-action');
+        if (a === 'open-action-sheet') window.App.openActionSheet();
+        else if (a === 'close-action-sheet') window.App.closeActionSheet();
+        else if (a === 'quick-calc') window.App.switchView('nse-calculator');
+        else if (a === 'open-settings') window.App.switchView('settings-and-backup');
+      }
+    }, { passive: true });
+  </script>
+
   <!-- PWA & Mobile Meta for iOS / iPhone 17 Pro -->
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#1F1D20"/>
@@ -57,9 +164,9 @@
       -webkit-tap-highlight-color: transparent;
       cursor: pointer;
     }
-    button:active, [data-action]:active, [data-path]:active {
-      transform: scale(0.96);
-      transition: transform 0.08s ease;
+    button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active, .nav-center-action-btn:active {
+      opacity: 0.72 !important;
+      transform: none !important;
     }
     .font-serif { font-family: 'Newsreader', 'Playfair Display', Georgia, serif; }
     .tabular-nums { font-variant-numeric: tabular-nums lining-nums; }
@@ -75,7 +182,8 @@
       width: 100% !important;
       max-width: 480px !important;
       margin: 0 auto !important;
-      z-index: 9999 !important;
+      z-index: 99999 !important;
+      pointer-events: auto !important;
       background-color: #1F1D20 !important;
       background: rgba(31, 29, 32, 0.96) !important;
       -webkit-backdrop-filter: blur(20px) !important;
@@ -99,7 +207,8 @@
       width: 100% !important;
       max-width: 480px !important;
       margin: 0 auto !important;
-      z-index: 9999 !important;
+      z-index: 99999 !important;
+      pointer-events: auto !important;
       background-color: #1A181A !important;
       background: rgba(26, 24, 26, 0.97) !important;
       -webkit-backdrop-filter: blur(24px) !important;
@@ -169,9 +278,8 @@
       outline: none;
       box-shadow: 0 4px 18px rgba(128, 62, 47, 0.6);
       flex-shrink: 0;
-      transition: transform 0.1s ease;
+      cursor: pointer;
     }
-    .nav-center-action-btn:active { transform: scale(0.92) !important; }
 
     .view-panel { display: none; }
     .view-panel.active { display: block; animation: fadeInPanel 0.18s ease-out; }
@@ -193,7 +301,7 @@
       padding: 16px;
       padding-bottom: calc(max(env(safe-area-inset-bottom, 20px), 16px) + 12px);
     }
-    .action-sheet-overlay.hidden { display: none !important; }
+    .action-sheet-overlay.hidden { display: none !important; pointer-events: none !important; }
     .action-sheet-container {
       width: 100%;
       max-width: 440px;
@@ -225,7 +333,7 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
-    #deleteModal.hidden, #delete-snapshot-modal.hidden { display: none !important; }
+    #deleteModal.hidden, #delete-snapshot-modal.hidden { display: none !important; pointer-events: none !important; }
   </style>
 
   <!-- Tailwind CSS Engine -->
@@ -1083,7 +1191,7 @@
   <!-- ====================================================================
        iOS ACTION SHEET MODAL
        ==================================================================== -->
-  <div id="action-sheet-overlay" class="action-sheet-overlay hidden" data-action="close-action-sheet">
+  <div id="action-sheet-overlay" class="action-sheet-overlay hidden" style="display: none !important; pointer-events: none !important;" data-action="close-action-sheet" onclick="window.App.closeActionSheet()">
     <div class="action-sheet-container" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between pb-3 border-b border-[rgba(167,153,134,0.18)]">
         <span class="font-serif text-[22px] text-[#F6F4F1]">Quick Actions</span>
@@ -1141,7 +1249,7 @@
   </div>
 
   <!-- Delete Trade Modal -->
-  <div id="deleteModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="deleteModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 p-4" style="display: none !important; pointer-events: none !important;">
     <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.25)] max-w-sm w-full rounded-2xl p-5 shadow-2xl">
       <h3 class="font-serif text-[20px] text-[#F6F4F1] mb-1">Delete Trade?</h3>
       <p class="text-xs text-[#A79986] mb-4">
@@ -1155,7 +1263,7 @@
   </div>
 
   <!-- Delete Snapshot Modal -->
-  <div id="delete-snapshot-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="delete-snapshot-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 p-4" style="display: none !important; pointer-events: none !important;">
     <div class="bg-[#2B272A] border border-[rgba(167,153,134,0.25)] max-w-sm w-full rounded-2xl p-5 shadow-2xl">
       <h3 class="font-serif text-[20px] text-[#F6F4F1] mb-1">Delete Snapshot?</h3>
       <p class="text-xs text-[#A79986] mb-4">
@@ -1174,9 +1282,9 @@
     <span id="global-toast-text" class="text-xs font-medium">Saved</span>
   </div>
 
-  <!-- Application Engine Scripts -->
-  <script src="js/calculator.js"></script>
-  <script src="js/db.js"></script>
-  <script src="js/app.js"></script>
+  <!-- Application Engine Scripts (Cache-Busted for Guaranteed Immediate Update) -->
+  <script src="js/calculator.js?v=20261106_1220"></script>
+  <script src="js/db.js?v=20261106_1220"></script>
+  <script src="js/app.js?v=20261106_1220"></script>
 </body>
 </html>
