@@ -5,67 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
   <title>Trade Diary</title>
 
-  <!-- Instant Inline Navigation Engine (Zero-Latency Frame 0 Execution) -->
-  <script>
-    // 1. Force purge any lingering service worker caches immediately
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        for (var i = 0; i < regs.length; i++) regs[i].unregister();
-      }).catch(function(){});
-    }
-    if ('caches' in window) {
-      caches.keys().then(function(keys) {
-        for (var i = 0; i < keys.length; i++) caches.delete(keys[i]);
-      }).catch(function(){});
-    }
-
-    // 2. Global immediate controller: ensures 100% responsive touches
-    window.App = window.App || {};
-
-    window.App.switchView = function(viewName) {
-      if (!viewName) viewName = 'dashboard';
-      var valid = ['dashboard', 'portfolio-tracker', 'nse-calculator', 'settings-and-backup'];
-      if (valid.indexOf(viewName) === -1) viewName = 'dashboard';
-
-      // Update panels display
-      var panels = document.querySelectorAll('.view-panel');
-      for (var i = 0; i < panels.length; i++) {
-        panels[i].classList.remove('active');
-        panels[i].style.display = 'none';
-      }
-      var target = document.getElementById('view-' + viewName);
-      if (target) {
-        target.classList.add('active');
-        target.style.display = 'block';
-      }
-
-      // Update bottom dock tab highlights
-      var tabs = document.querySelectorAll('.nav-tab-item');
-      for (var j = 0; j < tabs.length; j++) {
-        if (tabs[j].getAttribute('data-path') === viewName) {
-          tabs[j].classList.add('active');
-          tabs[j].setAttribute('aria-current', 'page');
-        } else {
-          tabs[j].classList.remove('active');
-          tabs[j].removeAttribute('aria-current');
-        }
-      }
-
-      // Update URL hash safely without navigation interrupt
-      try { history.replaceState(null, '', '#' + viewName); } catch(e){}
-      window.scrollTo(0, 0);
-
-      // Trigger full data re-render if orchestrator has loaded
-      if (typeof window.App._onViewSwitch === 'function') {
-        window.App._onViewSwitch(viewName);
-      }
-    };
-
-    // NOTE: No pointerup handler here. All event handling is done via
-    // setupEventDelegation() in app.js using a single 'click' listener.
-    // This avoids double-firing and iOS Safari event conflicts.
-  </script>
-
   <!-- PWA & Mobile Meta for iOS / Android -->
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#14213D"/>
@@ -258,9 +197,9 @@
       opacity: 1;
     }
 
-    /* Delete modal — visibility controlled entirely by JS setting style.display */
-    #delete-snapshot-modal {
-      z-index: 100000;
+    #delete-snapshot-modal.hidden {
+      display: none !important;
+      pointer-events: none !important;
     }
   </style>
 
@@ -293,13 +232,76 @@
 
   <!-- Core App Stylesheet -->
   <link rel="stylesheet" href="css/app.css"/>
+
+  <!-- Instant Inline Navigation Engine (Zero-Latency Frame 0 Execution) -->
+  <script>
+    // Force purge any lingering service worker caches immediately
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        for (var i = 0; i < regs.length; i++) regs[i].unregister();
+      }).catch(function(){});
+    }
+    if ('caches' in window) {
+      caches.keys().then(function(keys) {
+        for (var i = 0; i < keys.length; i++) caches.delete(keys[i]);
+      }).catch(function(){});
+    }
+
+    window.App = window.App || {};
+
+    window.App.switchView = function(viewName) {
+      if (!viewName) viewName = 'dashboard';
+      var valid = ['dashboard', 'portfolio-tracker', 'nse-calculator', 'settings-and-backup'];
+      if (valid.indexOf(viewName) === -1) viewName = 'dashboard';
+
+      var panels = document.querySelectorAll('.view-panel');
+      for (var i = 0; i < panels.length; i++) {
+        panels[i].classList.remove('active');
+        panels[i].style.display = 'none';
+      }
+      var target = document.getElementById('view-' + viewName);
+      if (target) {
+        target.classList.add('active');
+        target.style.display = 'block';
+      }
+
+      var tabs = document.querySelectorAll('.nav-tab-item');
+      for (var j = 0; j < tabs.length; j++) {
+        if (tabs[j].getAttribute('data-path') === viewName) {
+          tabs[j].classList.add('active');
+          tabs[j].setAttribute('aria-current', 'page');
+        } else {
+          tabs[j].classList.remove('active');
+          tabs[j].removeAttribute('aria-current');
+        }
+      }
+
+      var delSnapModal = document.getElementById('delete-snapshot-modal');
+      if (delSnapModal) {
+        delSnapModal.style.setProperty('display', 'none', 'important');
+        delSnapModal.style.setProperty('pointer-events', 'none', 'important');
+      }
+
+      try { history.replaceState(null, '', '#' + viewName); } catch(e){}
+      window.scrollTo(0, 0);
+
+      if (typeof window.App._onViewSwitch === 'function') {
+        window.App._onViewSwitch(viewName);
+      }
+    };
+  </script>
+
+  <!-- Core Application Scripts in Head (Pre-compiled & Ready at Frame 0) -->
+  <script src="js/calculator.js?v=20261113_2230"></script>
+  <script src="js/db.js?v=20261113_2230"></script>
+  <script src="js/app.js?v=20261113_2230"></script>
 </head>
 <body class="bg-[#0D1527] text-[#F4EDE0] antialiased m-0 p-0 font-sans selection:bg-[#F4EDE0] selection:text-[#14213D]" style="background-color: #0D1527 !important; color: #F4EDE0 !important; cursor: pointer;">
 
   <!-- LAYER 1: FIXED TOP HEADER -->
   <header class="app-header fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2.5 bg-[#14213D] border-b border-[rgba(244,237,224,0.14)] max-w-[480px] mx-auto" style="padding-top: max(env(safe-area-inset-top, 44px), 14px);">
     <!-- Left: Brand Logo / Title -->
-    <div class="flex items-center gap-2 cursor-pointer" data-action="go-home">
+    <div class="flex items-center gap-2 cursor-pointer" onclick="window.App.switchView('dashboard')" data-action="go-home">
       <span class="font-serif text-[19px] font-semibold text-[#F4EDE0] tracking-tight">Trade Diary</span>
       <span class="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.14)] text-[#F4EDE0]/75 font-semibold">Portfolio</span>
     </div>
@@ -311,7 +313,7 @@
     </div>
 
     <!-- Right: Settings Button -->
-    <button type="button" data-action="open-settings" class="w-9 h-9 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] flex items-center justify-center text-[#F4EDE0] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all" title="Settings" aria-label="Settings">
+    <button type="button" onclick="window.App.switchView('settings-and-backup')" data-action="open-settings" class="w-9 h-9 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] flex items-center justify-center text-[#F4EDE0] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all" title="Settings" aria-label="Settings">
       <span class="material-symbols-outlined text-[18px]">settings</span>
     </button>
   </header>
@@ -476,7 +478,7 @@
           <span class="text-xs text-[#F4EDE0]/70">Mark-to-Market Ledger</span>
           <h2 class="font-serif text-[28px] text-[#F4EDE0] leading-tight">Portfolio Tracker</h2>
         </div>
-        <button type="button" data-action="export-portfolio-csv" class="p-2.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] text-[#F4EDE0] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all" title="Export CSV" aria-label="Export CSV">
+        <button type="button" onclick="window.App.exportPortfolioCSV()" data-action="export-portfolio-csv" class="p-2.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] text-[#F4EDE0] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all" title="Export CSV" aria-label="Export CSV">
           <span class="material-symbols-outlined text-[18px]">download</span>
         </button>
       </div>
@@ -498,11 +500,11 @@
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="groww-cash">Available Cash (₹)</label>
-                <input id="groww-cash" type="number" step="any" inputmode="decimal" value="20000" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <input id="groww-cash" type="number" step="any" inputmode="decimal" value="20000" oninput="window.App.updateSnapshotFormCalculations()" onchange="window.App.updateSnapshotFormCalculations()" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
               <div>
                 <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="groww-invested">Invested Value (₹)</label>
-                <input id="groww-invested" type="number" step="any" inputmode="decimal" value="204226" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <input id="groww-invested" type="number" step="any" inputmode="decimal" value="204226" oninput="window.App.updateSnapshotFormCalculations()" onchange="window.App.updateSnapshotFormCalculations()" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
             </div>
           </div>
@@ -516,11 +518,11 @@
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="kite-cash">Available Cash (₹)</label>
-                <input id="kite-cash" type="number" step="any" inputmode="decimal" value="33070" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <input id="kite-cash" type="number" step="any" inputmode="decimal" value="33070" oninput="window.App.updateSnapshotFormCalculations()" onchange="window.App.updateSnapshotFormCalculations()" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
               <div>
                 <label class="block text-[10px] text-[#F4EDE0]/70 mb-0.5" for="kite-invested">Invested Value (₹)</label>
-                <input id="kite-invested" type="number" step="any" inputmode="decimal" value="15792" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+                <input id="kite-invested" type="number" step="any" inputmode="decimal" value="15792" oninput="window.App.updateSnapshotFormCalculations()" onchange="window.App.updateSnapshotFormCalculations()" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
               </div>
             </div>
           </div>
@@ -531,7 +533,7 @@
               <label class="text-xs font-semibold text-[#F4EDE0]" for="snapshot-deposit">Net Deposit / Withdrawal Today (₹)</label>
               <span class="text-[10px] text-[#F4EDE0]/60">Positive = Deposit, Negative = Withdrawal</span>
             </div>
-            <input id="snapshot-deposit" type="number" step="any" inputmode="decimal" value="0" placeholder="0" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
+            <input id="snapshot-deposit" type="number" step="any" inputmode="decimal" value="0" placeholder="0" oninput="window.App.updateSnapshotFormCalculations()" onchange="window.App.updateSnapshotFormCalculations()" class="w-full bg-[#14213D] border border-[rgba(244,237,224,0.18)] rounded-lg px-2.5 py-1.5 text-xs text-[#F4EDE0] tabular-nums"/>
             <p class="text-[10px] text-[#F4EDE0]/60 mt-1">Deducts deposits from portfolio growth to calculate true organic market returns.</p>
           </div>
 
@@ -553,7 +555,7 @@
             </div>
           </div>
 
-          <button id="save-snapshot-btn" type="button" data-action="save-snapshot" class="w-full py-3 rounded-xl bg-[#F4EDE0] hover:bg-[#E8DFCF] text-[#14213D] font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[rgba(244,237,224,0.15)] transition-all">
+          <button id="save-snapshot-btn" type="button" onclick="window.App.handleSaveSnapshot()" data-action="save-snapshot" class="w-full py-3 rounded-xl bg-[#F4EDE0] hover:bg-[#E8DFCF] text-[#14213D] font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-[rgba(244,237,224,0.15)] transition-all cursor-pointer">
             <span class="material-symbols-outlined text-[16px]">save</span>
             <span>Save Valuation Snapshot</span>
           </button>
@@ -596,34 +598,34 @@
           <span class="text-xs text-[#F4EDE0]/70">Deterministic Tariff Engine</span>
           <h2 class="font-serif text-[28px] text-[#F4EDE0] leading-tight">NSE Calculator</h2>
         </div>
-        <button type="button" data-action="copy-calc" class="p-2.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] text-[#F4EDE0] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all" title="Copy Calculation Summary" aria-label="Copy Summary">
+        <button type="button" onclick="window.App.copyCalculatorSummary()" data-action="copy-calc" class="p-2.5 rounded-full bg-[#1C2C4E] border border-[rgba(244,237,224,0.18)] text-[#F4EDE0] hover:bg-[#F4EDE0] hover:text-[#14213D] transition-all" title="Copy Calculation Summary" aria-label="Copy Summary">
           <span class="material-symbols-outlined text-[18px]">content_copy</span>
         </button>
       </div>
 
       <!-- Segment Pills -->
       <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-        <button id="seg-delivery" data-action="set-seg-delivery" type="button" class="px-3.5 py-1.5 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap shadow-sm">
+        <button id="seg-delivery" onclick="window.App.setCalculatorSegment('delivery')" data-action="set-seg-delivery" type="button" class="px-3.5 py-1.5 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap shadow-sm cursor-pointer">
           Delivery (Swing)
         </button>
-        <button id="seg-intraday" data-action="set-seg-intraday" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap">
+        <button id="seg-intraday" onclick="window.App.setCalculatorSegment('intraday')" data-action="set-seg-intraday" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap cursor-pointer">
           Intraday
         </button>
-        <button id="seg-futures" data-action="set-seg-futures" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap">
+        <button id="seg-futures" onclick="window.App.setCalculatorSegment('futures')" data-action="set-seg-futures" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap cursor-pointer">
           Futures
         </button>
-        <button id="seg-options" data-action="set-seg-options" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap">
+        <button id="seg-options" onclick="window.App.setCalculatorSegment('options')" data-action="set-seg-options" type="button" class="px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap cursor-pointer">
           Options
         </button>
       </div>
 
       <!-- Broker Toggle Pills -->
       <div class="grid grid-cols-2 p-1 bg-[#0B1220] rounded-2xl border border-[rgba(244,237,224,0.14)] gap-1">
-        <button id="broker-groww" data-action="set-broker-groww" type="button" class="py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5 shadow-sm">
+        <button id="broker-groww" onclick="window.App.setCalculatorBroker('groww')" data-action="set-broker-groww" type="button" class="py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
           <span id="broker-groww-dot" class="w-2 h-2 rounded-full bg-[#7AD9A5]"></span>
           <span>Groww</span>
         </button>
-        <button id="broker-zerodha" data-action="set-broker-zerodha" type="button" class="py-2 rounded-xl text-xs font-semibold text-[#F4EDE0]/70 transition-all flex items-center justify-center gap-1.5">
+        <button id="broker-zerodha" onclick="window.App.setCalculatorBroker('zerodha')" data-action="set-broker-zerodha" type="button" class="py-2 rounded-xl text-xs font-semibold text-[#F4EDE0]/70 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
           <span id="broker-zerodha-dot" class="w-2 h-2 rounded-full bg-neutral-500"></span>
           <span>Zerodha Kite</span>
         </button>
@@ -634,21 +636,21 @@
         <div class="grid grid-cols-2 gap-2.5">
           <div>
             <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="calc-buy-price">Buy Price (₹)</label>
-            <input id="calc-buy-price" type="number" step="0.05" inputmode="decimal" value="1450.00" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
+            <input id="calc-buy-price" type="number" step="0.05" inputmode="decimal" value="1450.00" oninput="window.App.calculateAllCalculator()" onchange="window.App.calculateAllCalculator()" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
           </div>
           <div>
             <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="calc-sell-price">Sell Price (₹)</label>
-            <input id="calc-sell-price" type="number" step="0.05" inputmode="decimal" value="1530.00" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
+            <input id="calc-sell-price" type="number" step="0.05" inputmode="decimal" value="1530.00" oninput="window.App.calculateAllCalculator()" onchange="window.App.calculateAllCalculator()" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-2.5 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
           </div>
         </div>
 
         <div>
           <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="calc-trade-qty">Quantity (Shares)</label>
-          <input id="calc-trade-qty" type="number" min="1" inputmode="numeric" value="100" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-3 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
+          <input id="calc-trade-qty" type="number" min="1" inputmode="numeric" value="100" oninput="window.App.calculateAllCalculator()" onchange="window.App.calculateAllCalculator()" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-3 py-2 text-sm text-[#F4EDE0] font-medium text-right tabular-nums focus:outline-none focus:border-[#F4EDE0]"/>
         </div>
 
         <!-- Prominent Calculate Brokerage & Net P&L Button -->
-        <button id="btn-run-calc" type="button" data-action="run-calc" class="w-full py-3 rounded-xl bg-[#F4EDE0] hover:bg-[#E8DFCF] text-[#14213D] font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[rgba(244,237,224,0.15)] active:scale-[0.98] transition-all cursor-pointer">
+        <button id="btn-run-calc" type="button" onclick="window.App.calculateAllCalculator()" data-action="run-calc" class="w-full py-3 rounded-xl bg-[#F4EDE0] hover:bg-[#E8DFCF] text-[#14213D] font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[rgba(244,237,224,0.15)] active:scale-[0.98] transition-all cursor-pointer">
           <span class="material-symbols-outlined text-[18px]">calculate</span>
           <span>Calculate Brokerage & Net P&L</span>
         </button>
@@ -701,7 +703,7 @@
       <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl overflow-hidden text-xs shadow-sm">
         <div class="p-3 border-b border-[rgba(244,237,224,0.12)] flex items-center justify-between">
           <span class="font-serif text-[16px] text-[#F4EDE0]">Charges Breakdown</span>
-          <button type="button" data-action="copy-calc" class="text-xs text-[#F4EDE0]/70 hover:text-[#F4EDE0] transition-all">Copy</button>
+          <button type="button" onclick="window.App.copyCalculatorSummary()" data-action="copy-calc" class="text-xs text-[#F4EDE0]/70 hover:text-[#F4EDE0] transition-all">Copy</button>
         </div>
         <table class="w-full text-left border-collapse">
           <tbody class="divide-y divide-[rgba(244,237,224,0.10)]">
@@ -773,7 +775,7 @@
           <label class="block text-[10px] text-[#F4EDE0]/70 uppercase font-semibold mb-1" for="settings-dp-charge">CDSL DP Charge (₹ / scrip)</label>
           <input id="settings-dp-charge" type="number" step="0.5" class="w-full bg-[#0B1220] border border-[rgba(244,237,224,0.18)] rounded-xl px-3 py-2 text-xs text-[#F4EDE0] focus:outline-none" value="13.50"/>
         </div>
-        <button type="button" data-action="save-preferences" class="py-2.5 px-4 rounded-xl bg-[#F4EDE0] hover:bg-[#E8DFCF] text-[#14213D] text-xs font-bold transition-all">
+        <button type="button" onclick="window.App.savePreferences()" data-action="save-preferences" class="py-2.5 px-4 rounded-xl bg-[#F4EDE0] hover:bg-[#E8DFCF] text-[#14213D] text-xs font-bold transition-all cursor-pointer">
           Save Preferences
         </button>
       </div>
@@ -781,7 +783,7 @@
       <div class="bg-[#14213D] border border-[rgba(244,237,224,0.14)] rounded-2xl p-4 space-y-3 shadow-sm">
         <h3 class="font-serif text-[18px] text-[#F4EDE0]">Data Management</h3>
         <div class="flex items-center gap-2">
-          <button type="button" data-action="export-backup" class="flex-1 py-2.5 rounded-xl bg-[#F4EDE0] hover:bg-[#E8DFCF] text-[#14213D] font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all">
+          <button type="button" onclick="window.App.downloadFullBackup()" data-action="export-backup" class="flex-1 py-2.5 rounded-xl bg-[#F4EDE0] hover:bg-[#E8DFCF] text-[#14213D] font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer">
             <span class="material-symbols-outlined text-[16px]">download</span>
             <span>Export Backup</span>
           </button>
@@ -793,8 +795,8 @@
         </div>
 
         <div class="pt-2 border-t border-[rgba(244,237,224,0.12)] flex items-center justify-between">
-          <button type="button" data-action="reload-sample" class="text-xs text-[#F4EDE0]/70 hover:text-[#F4EDE0] transition-all">Reload Sample Data</button>
-          <button type="button" data-action="clear-all" class="text-xs text-[#F87171] hover:text-red-300 transition-all">Clear All Data</button>
+          <button type="button" onclick="window.App.handleResetToSampleData()" data-action="reload-sample" class="text-xs text-[#F4EDE0]/70 hover:text-[#F4EDE0] transition-all cursor-pointer">Reload Sample Data</button>
+          <button type="button" onclick="window.App.handleClearAllDatabase()" data-action="clear-all" class="text-xs text-[#F87171] hover:text-red-300 transition-all cursor-pointer">Clear All Data</button>
         </div>
       </div>
     </section>
@@ -804,34 +806,34 @@
   <!-- LAYER 3: SIMPLIFIED FIXED BOTTOM NAVIGATION (Home · Portfolio · Calculator) -->
   <nav class="app-bottom-nav fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-5 py-2 bg-[#0E182B] border-t border-[rgba(244,237,224,0.14)] max-w-[480px] mx-auto shadow-2xl" style="padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px);">
     <!-- 1: Home -->
-    <button type="button" class="nav-tab-item active" data-path="dashboard" aria-label="Home" title="Home">
+    <button type="button" onclick="window.App.switchView('dashboard')" class="nav-tab-item active" data-path="dashboard" aria-label="Home" title="Home">
       <span class="material-symbols-outlined text-[24px]">home</span>
       <span class="nav-tab-label">Home</span>
     </button>
 
     <!-- 2: Portfolio Tracker -->
-    <button type="button" class="nav-tab-item" data-path="portfolio-tracker" aria-label="Portfolio Tracker" title="Portfolio">
+    <button type="button" onclick="window.App.switchView('portfolio-tracker')" class="nav-tab-item" data-path="portfolio-tracker" aria-label="Portfolio Tracker" title="Portfolio">
       <span class="material-symbols-outlined text-[24px]">account_balance_wallet</span>
       <span class="nav-tab-label">Portfolio</span>
     </button>
 
     <!-- 3: NSE Calculator -->
-    <button type="button" class="nav-tab-item" data-path="nse-calculator" aria-label="NSE Calculator" title="Calculator">
+    <button type="button" onclick="window.App.switchView('nse-calculator')" class="nav-tab-item" data-path="nse-calculator" aria-label="NSE Calculator" title="Calculator">
       <span class="material-symbols-outlined text-[24px]">calculate</span>
       <span class="nav-tab-label">Calculator</span>
     </button>
   </nav>
 
-  <!-- Delete Snapshot Modal -->
-  <div id="delete-snapshot-modal" style="display: none;" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100000] p-4">
+  <!-- Delete Snapshot Modal (Safely Hidden with pointer-events: none) -->
+  <div id="delete-snapshot-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100000] p-4" style="display: none !important; pointer-events: none !important;">
     <div class="bg-[#14213D] border border-[rgba(244,237,224,0.2)] max-w-sm w-full rounded-2xl p-5 shadow-2xl mx-auto mt-32">
       <h3 class="font-serif text-[20px] text-[#F4EDE0] mb-1">Delete Snapshot?</h3>
       <p class="text-xs text-[#F4EDE0]/70 mb-4">
         Delete the recorded valuation for this date.
       </p>
       <div class="flex items-center justify-end gap-2">
-        <button data-action="cancel-delete-snapshot" class="px-4 py-2 rounded-xl bg-[#1C2C4E] text-[#F4EDE0] text-xs font-semibold">Cancel</button>
-        <button data-action="confirm-delete-snapshot" class="px-4 py-2 rounded-xl bg-[#F87171] text-white text-xs font-bold">Delete</button>
+        <button type="button" onclick="window.App.closeDeleteSnapshotModal()" data-action="cancel-delete-snapshot" class="px-4 py-2 rounded-xl bg-[#1C2C4E] text-[#F4EDE0] text-xs font-semibold cursor-pointer">Cancel</button>
+        <button type="button" onclick="window.App.executeDeleteSnapshot()" data-action="confirm-delete-snapshot" class="px-4 py-2 rounded-xl bg-[#F87171] text-white text-xs font-bold cursor-pointer">Delete</button>
       </div>
     </div>
   </div>
@@ -842,9 +844,5 @@
     <span id="global-toast-text" class="text-xs font-medium">Saved</span>
   </div>
 
-  <!-- Application Engine Scripts (Cache-Busted for Guaranteed Immediate Update) -->
-  <script src="js/calculator.js?v=20261113_2220"></script>
-  <script src="js/db.js?v=20261113_2220"></script>
-  <script src="js/app.js?v=20261113_2220"></script>
 </body>
 </html>

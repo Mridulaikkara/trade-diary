@@ -183,11 +183,15 @@
     try { history.replaceState(null, '', `#${viewName}`); } catch(e){}
     window.scrollTo(0, 0);
 
-    // Render active view
-    if (viewName === 'dashboard') renderDashboard();
-    else if (viewName === 'portfolio-tracker') renderPortfolio();
-    else if (viewName === 'nse-calculator') calculateAllCalculator();
-    else if (viewName === 'settings-and-backup') renderSettings();
+    // Render active view with fail-safe error isolation
+    try {
+      if (viewName === 'dashboard') renderDashboard();
+      else if (viewName === 'portfolio-tracker') renderPortfolio();
+      else if (viewName === 'nse-calculator') calculateAllCalculator();
+      else if (viewName === 'settings-and-backup') renderSettings();
+    } catch (renderErr) {
+      console.warn('View render exception:', renderErr);
+    }
   }
 
   /* ==========================================================================
@@ -664,8 +668,9 @@
     AppState.deletingSnapshotDate = date;
     const modal = document.getElementById('delete-snapshot-modal');
     if (modal) {
-      modal.style.display = 'flex';
-      modal.style.pointerEvents = 'auto';
+      modal.classList.remove('hidden');
+      modal.style.setProperty('display', 'flex', 'important');
+      modal.style.setProperty('pointer-events', 'auto', 'important');
     }
   }
 
@@ -685,8 +690,9 @@
     AppState.deletingSnapshotDate = null;
     const modal = document.getElementById('delete-snapshot-modal');
     if (modal) {
-      modal.style.display = 'none';
-      modal.style.pointerEvents = 'none';
+      modal.classList.add('hidden');
+      modal.style.setProperty('display', 'none', 'important');
+      modal.style.setProperty('pointer-events', 'none', 'important');
     }
   }
 
