@@ -60,6 +60,10 @@ button, a, [role="button"], [data-action], [data-path], .nav-tab-item {
   cursor: pointer !important;
 }
 
+button *, a *, [role="button"] *, [data-action] *, [data-path] *, .nav-tab-item * {
+  pointer-events: none;
+}
+
 input, select, textarea {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;

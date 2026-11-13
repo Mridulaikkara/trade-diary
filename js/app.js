@@ -154,16 +154,16 @@
 
     AppState.currentView = viewName;
 
-    // Toggle panels
+    // Toggle panels with !important to prevent any CSS class conflict
     document.querySelectorAll('.view-panel').forEach(panel => {
       panel.classList.remove('active');
-      panel.style.display = 'none';
+      panel.style.setProperty('display', 'none', 'important');
     });
 
     const target = document.getElementById(`view-${viewName}`);
     if (target) {
       target.classList.add('active');
-      target.style.display = 'block';
+      target.style.setProperty('display', 'block', 'important');
     }
 
     // Toggle bottom dock items
@@ -1036,39 +1036,61 @@
     }
 
     function handleInteraction(e) {
+      let targetEl = e.target;
+      if (!targetEl) return;
+      if (targetEl.nodeType === 3) targetEl = targetEl.parentElement;
+      if (!targetEl || typeof targetEl.closest !== 'function') return;
+
       // 1. Navigation tabs (data-path)
-      const navBtn = e.target.closest('[data-path]');
+      const navBtn = targetEl.closest('[data-path]');
       if (navBtn) {
         const path = navBtn.getAttribute('data-path');
         if (path) {
-          const key = 'nav:' + path;
-          const now = Date.now();
-          if (key === lastActionKey && (now - lastActionTime) < 300) return;
-          lastActionKey = key;
-          lastActionTime = now;
           switchView(path);
           return;
         }
       }
 
       // 2. Action buttons (data-action)
-      const actionBtn = e.target.closest('[data-action]');
+      const actionBtn = targetEl.closest('[data-action]');
       if (actionBtn) {
         const action = actionBtn.getAttribute('data-action');
         if (action) {
-          const key = 'act:' + action;
-          const now = Date.now();
-          if (key === lastActionKey && (now - lastActionTime) < 300) return;
-          lastActionKey = key;
-          lastActionTime = now;
           dispatchAction(action, actionBtn);
         }
       }
     }
 
-    // Attach both pointerup (instant mobile touch) and click (mouse/fallback)
-    document.addEventListener('pointerup', handleInteraction, { passive: true });
+    // Attach click listener for bulletproof mobile and desktop interactions
     document.addEventListener('click', handleInteraction);
+
+    // Direct click listeners on all navigation tabs
+    document.querySelectorAll('.nav-tab-item').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        const path = tab.getAttribute('data-path');
+        if (path) switchView(path);
+      });
+    });
+
+    // Direct click listeners on broker toggle buttons
+    const gBroker = document.getElementById('broker-groww');
+    if (gBroker) gBroker.addEventListener('click', () => setCalculatorBroker('groww'));
+    const zBroker = document.getElementById('broker-zerodha');
+    if (zBroker) zBroker.addEventListener('click', () => setCalculatorBroker('zerodha'));
+
+    // Direct click listeners on segments
+    ['delivery', 'intraday', 'futures', 'options'].forEach(seg => {
+      const btn = document.getElementById(`seg-${seg}`);
+      if (btn) btn.addEventListener('click', () => setCalculatorSegment(seg));
+    });
+
+    // Direct click listener on calculate button
+    const calcBtn = document.getElementById('btn-run-calc');
+    if (calcBtn) calcBtn.addEventListener('click', () => calculateAllCalculator());
+
+    // Direct click listener on save snapshot button
+    const saveBtn = document.getElementById('save-snapshot-btn');
+    if (saveBtn) saveBtn.addEventListener('click', () => handleSaveSnapshot());
 
     // File restore input — handled via change event on the hidden file input
     const restoreInput = document.getElementById('restore-file-input');
@@ -1156,6 +1178,21 @@
     if (viewName === 'nse-calculator') calculateAllCalculator();
     if (viewName === 'settings-and-backup') renderSettings();
   };
+
+  // Wire up the underscore hooks for stubs
+  window.App._setCalculatorBroker = setCalculatorBroker;
+  window.App._setCalculatorSegment = setCalculatorSegment;
+  window.App._calculateAllCalculator = calculateAllCalculator;
+  window.App._updateSnapshotFormCalculations = updateSnapshotFormCalculations;
+  window.App._handleSaveSnapshot = handleSaveSnapshot;
+  window.App._copyCalculatorSummary = copyCalculatorSummary;
+  window.App._exportPortfolioCSV = exportPortfolioCSV;
+  window.App._closeDeleteSnapshotModal = closeDeleteSnapshotModal;
+  window.App._executeDeleteSnapshot = executeDeleteSnapshot;
+  window.App._downloadFullBackup = downloadFullBackup;
+  window.App._handleResetToSampleData = handleResetToSampleData;
+  window.App._handleClearAllDatabase = handleClearAllDatabase;
+  window.App._savePreferences = savePreferences;
 
   // Expose global methods (for the inline <head> stub and potential debugging)
   Object.assign(window.App, {

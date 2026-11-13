@@ -203,35 +203,8 @@
     }
   </style>
 
-  <!-- Tailwind CSS Engine -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script id="tailwind-config">
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            "canvas": "#0D1527",
-            "navy": "#14213D",
-            "card": "#14213D",
-            "card-elevated": "#1C2C4E",
-            "card-border": "rgba(244, 237, 224, 0.14)",
-            "cream": "#F4EDE0",
-            "cream-hover": "#E8DFCF",
-            "gain": "#7AD9A5",
-            "loss": "#F87171"
-          },
-          fontFamily: {
-            "serif": ["Newsreader", "Playfair Display", "Georgia", "serif"],
-            "sans": ["Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"]
-          }
-        }
-      }
-    };
-  </script>
-
-  <!-- Core App Stylesheet -->
-  <link rel="stylesheet" href="css/app.css"/>
+  <!-- Ultra-Fast Zero-Latency Compiled Stylesheet (Tailwind Utilities + Custom Navy & Cream CSS) -->
+  <link rel="stylesheet" href="css/styles.css?v=20261114_0530"/>
 
   <!-- Instant Inline Navigation Engine (Zero-Latency Frame 0 Execution) -->
   <script>
@@ -257,12 +230,12 @@
       var panels = document.querySelectorAll('.view-panel');
       for (var i = 0; i < panels.length; i++) {
         panels[i].classList.remove('active');
-        panels[i].style.display = 'none';
+        panels[i].style.setProperty('display', 'none', 'important');
       }
       var target = document.getElementById('view-' + viewName);
       if (target) {
         target.classList.add('active');
-        target.style.display = 'block';
+        target.style.setProperty('display', 'block', 'important');
       }
 
       var tabs = document.querySelectorAll('.nav-tab-item');
@@ -286,15 +259,60 @@
       window.scrollTo(0, 0);
 
       if (typeof window.App._onViewSwitch === 'function') {
-        window.App._onViewSwitch(viewName);
+        try { window.App._onViewSwitch(viewName); } catch(e){}
       }
+    };
+
+    // Stubs for inline action handlers
+    window.App.setCalculatorBroker = function(broker) {
+      if (typeof window.App._setCalculatorBroker === 'function') window.App._setCalculatorBroker(broker);
+    };
+    window.App.setCalculatorSegment = function(seg) {
+      if (typeof window.App._setCalculatorSegment === 'function') window.App._setCalculatorSegment(seg);
+    };
+    window.App.calculateAllCalculator = function() {
+      if (typeof window.App._calculateAllCalculator === 'function') window.App._calculateAllCalculator();
+    };
+    window.App.updateSnapshotFormCalculations = function() {
+      if (typeof window.App._updateSnapshotFormCalculations === 'function') window.App._updateSnapshotFormCalculations();
+    };
+    window.App.handleSaveSnapshot = function() {
+      if (typeof window.App._handleSaveSnapshot === 'function') window.App._handleSaveSnapshot();
+    };
+    window.App.copyCalculatorSummary = function() {
+      if (typeof window.App._copyCalculatorSummary === 'function') window.App._copyCalculatorSummary();
+    };
+    window.App.exportPortfolioCSV = function() {
+      if (typeof window.App._exportPortfolioCSV === 'function') window.App._exportPortfolioCSV();
+    };
+    window.App.closeDeleteSnapshotModal = function() {
+      var m = document.getElementById('delete-snapshot-modal');
+      if (m) {
+        m.style.setProperty('display', 'none', 'important');
+        m.style.setProperty('pointer-events', 'none', 'important');
+      }
+    };
+    window.App.executeDeleteSnapshot = function() {
+      if (typeof window.App._executeDeleteSnapshot === 'function') window.App._executeDeleteSnapshot();
+    };
+    window.App.downloadFullBackup = function() {
+      if (typeof window.App._downloadFullBackup === 'function') window.App._downloadFullBackup();
+    };
+    window.App.handleResetToSampleData = function() {
+      if (typeof window.App._handleResetToSampleData === 'function') window.App._handleResetToSampleData();
+    };
+    window.App.handleClearAllDatabase = function() {
+      if (typeof window.App._handleClearAllDatabase === 'function') window.App._handleClearAllDatabase();
+    };
+    window.App.savePreferences = function() {
+      if (typeof window.App._savePreferences === 'function') window.App._savePreferences();
     };
   </script>
 
   <!-- Core Application Scripts in Head (Pre-compiled & Ready at Frame 0) -->
-  <script src="js/calculator.js?v=20261113_2230"></script>
-  <script src="js/db.js?v=20261113_2230"></script>
-  <script src="js/app.js?v=20261113_2230"></script>
+  <script src="js/calculator.js?v=20261114_0530"></script>
+  <script src="js/db.js?v=20261114_0530"></script>
+  <script src="js/app.js?v=20261114_0530"></script>
 </head>
 <body class="bg-[#0D1527] text-[#F4EDE0] antialiased m-0 p-0 font-sans selection:bg-[#F4EDE0] selection:text-[#14213D]" style="background-color: #0D1527 !important; color: #F4EDE0 !important; cursor: pointer;">
 
