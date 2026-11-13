@@ -54,10 +54,18 @@ body {
 }
 
 /* Touch responsiveness - zero transform to prevent WebKit touch cancellation */
-button, a, input, select, [role="button"], [data-action], [data-path] {
+button, a, [role="button"], [data-action], [data-path], .nav-tab-item {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
+  cursor: pointer !important;
+}
+
+input, select, textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: text;
+  -webkit-user-select: text !important;
+  user-select: text !important;
 }
 
 button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {

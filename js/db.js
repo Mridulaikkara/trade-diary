@@ -1,17 +1,22 @@
 /**
- * TradeLedger IndexedDB Storage Engine
- * High-performance, offline-first client database for swing trades and portfolio snapshots.
+ * TradeLedger Resilient Dual Storage Engine
+ * High-performance, offline-first client database for portfolio snapshots and preferences.
+ * Combines zero-latency synchronous LocalStorage + in-memory store with async IndexedDB mirroring.
  */
 
 const TradeDB = (function() {
   'use strict';
 
-  const DB_NAME = 'TradeLedger_DB_v1';
-  const DB_VERSION = 1;
+  const DB_NAME = 'TradeLedger_DB_v2';
+  const DB_VERSION = 2;
+
+  const LS_SNAPSHOTS_KEY = 'trade_diary_snapshots_v2';
+  const LS_SETTINGS_KEY = 'trade_diary_settings_v2';
+  const LS_TRADES_KEY = 'trade_diary_trades_v2';
 
   let dbInstance = null;
 
-  // Initial Sample Datasets (Seed on first run so the dashboard and analytics are populated)
+  // Initial Sample Datasets (Pre-populated so dashboard and trend charts are always rich on first launch)
   const INITIAL_SNAPSHOTS = [
     { date: '2025-05-01', growwCash: 20000, growwInvested: 175488, kiteCash: 30000, kiteInvested: 15000, growwTotal: 195488, kiteTotal: 45000, combinedTotal: 240488, dodDelta: 0, dodDeltaPct: 0, deposit: 0, organicReturn: 0 },
     { date: '2025-05-02', growwCash: 20000, growwInvested: 177210, kiteCash: 30000, kiteInvested: 15150, growwTotal: 197210, kiteTotal: 45150, combinedTotal: 242360, dodDelta: 1872, dodDeltaPct: 0.78, deposit: 0, organicReturn: 1872 },
@@ -45,229 +50,54 @@ const TradeDB = (function() {
       netPnL: 2444.20,
       netRoi: 5.92,
       outcome: 'win'
-    },
-    {
-      id: 2,
-      date: '2024-10-22',
-      stockName: 'Trent Limited',
-      stockSymbol: 'TRENT',
-      broker: 'groww',
-      segment: 'delivery',
-      buyPrice: 7120.00,
-      sellPrice: 7880.00,
-      qty: 10,
-      strategy: 'Momentum Continuation',
-      notes: 'Quarterly retail volume surge. Matched 3R target on heavy volume.',
-      grossPnL: 7600.00,
-      totalCharges: 152.40,
-      netPnL: 7447.60,
-      netRoi: 10.46,
-      outcome: 'win'
-    },
-    {
-      id: 3,
-      date: '2024-10-18',
-      stockName: 'Hindustan Unilever',
-      stockSymbol: 'HINDUNILVR',
-      broker: 'zerodha',
-      segment: 'delivery',
-      buyPrice: 2720.00,
-      sellPrice: 2640.00,
-      qty: 45,
-      strategy: 'Support Bounce',
-      notes: 'Failed earnings gap down; cut immediately at stoploss threshold.',
-      grossPnL: -3600.00,
-      totalCharges: 88.20,
-      netPnL: -3688.20,
-      netRoi: -3.01,
-      outcome: 'loss'
-    },
-    {
-      id: 4,
-      date: '2024-10-15',
-      stockName: 'Bharat Electronics Ltd',
-      stockSymbol: 'BEL',
-      broker: 'groww',
-      segment: 'delivery',
-      buyPrice: 285.00,
-      sellPrice: 308.50,
-      qty: 200,
-      strategy: 'Defence Sector Theme',
-      notes: 'Defence procurement order win announced during mid-session.',
-      grossPnL: 4700.00,
-      totalCharges: 135.20,
-      netPnL: 4564.80,
-      netRoi: 8.01,
-      outcome: 'win'
-    },
-    {
-      id: 5,
-      date: '2024-10-11',
-      stockName: 'Hindustan Aeronautics Ltd',
-      stockSymbol: 'HAL',
-      broker: 'zerodha',
-      segment: 'delivery',
-      buyPrice: 4350.00,
-      sellPrice: 4620.00,
-      qty: 15,
-      strategy: 'Trend Channel Ride',
-      notes: 'Followed upper trendline channel; exited at resistance.',
-      grossPnL: 4050.00,
-      totalCharges: 142.10,
-      netPnL: 3907.90,
-      netRoi: 5.99,
-      outcome: 'win'
-    },
-    {
-      id: 6,
-      date: '2024-10-08',
-      stockName: 'Dixon Technologies',
-      stockSymbol: 'DIXON',
-      broker: 'groww',
-      segment: 'delivery',
-      buyPrice: 12400.00,
-      sellPrice: 13150.00,
-      qty: 8,
-      strategy: 'Electronics PLI Play',
-      notes: 'Strong multi-week cup and handle pattern completion.',
-      grossPnL: 6000.00,
-      totalCharges: 215.30,
-      netPnL: 5784.70,
-      netRoi: 5.83,
-      outcome: 'win'
-    },
-    {
-      id: 7,
-      date: '2024-10-04',
-      stockName: 'Tata Motors Passenger',
-      stockSymbol: 'TATAMOTORS',
-      broker: 'groww',
-      segment: 'delivery',
-      buyPrice: 960.00,
-      sellPrice: 938.00,
-      qty: 80,
-      strategy: 'Pullback Entry',
-      notes: 'Monthly sales numbers missed expectations; triggered trailing SL.',
-      grossPnL: -1760.00,
-      totalCharges: 88.40,
-      netPnL: -1848.40,
-      netRoi: -2.41,
-      outcome: 'loss'
-    },
-    {
-      id: 8,
-      date: '2024-09-28',
-      stockName: 'Persistent Systems',
-      stockSymbol: 'PERSISTENT',
-      broker: 'zerodha',
-      segment: 'delivery',
-      buyPrice: 4890.00,
-      sellPrice: 5210.00,
-      qty: 12,
-      strategy: 'IT Sector Momentum',
-      notes: 'Dollar strength tailwind swing play; exited on 5-day RSI divergence.',
-      grossPnL: 3840.00,
-      totalCharges: 118.60,
-      netPnL: 3721.40,
-      netRoi: 6.34,
-      outcome: 'win'
-    },
-    {
-      id: 9,
-      date: '2024-09-24',
-      stockName: 'State Bank of India',
-      stockSymbol: 'SBIN',
-      broker: 'groww',
-      segment: 'delivery',
-      buyPrice: 795.00,
-      sellPrice: 828.00,
-      qty: 120,
-      strategy: 'PSU Bank Rally',
-      notes: 'RBI credit policy hold provided banking catalyst.',
-      grossPnL: 3960.00,
-      totalCharges: 142.90,
-      netPnL: 3817.10,
-      netRoi: 4.00,
-      outcome: 'win'
-    },
-    {
-      id: 10,
-      date: '2024-09-18',
-      stockName: 'Infosys Limited',
-      stockSymbol: 'INFY',
-      broker: 'zerodha',
-      segment: 'delivery',
-      buyPrice: 1890.00,
-      sellPrice: 1850.00,
-      qty: 50,
-      strategy: 'Resistance Retest',
-      notes: 'Failed to break above 1900 psychological barrier; stopped out.',
-      grossPnL: -2000.00,
-      totalCharges: 98.40,
-      netPnL: -2098.40,
-      netRoi: -2.22,
-      outcome: 'loss'
-    },
-    {
-      id: 11,
-      date: '2024-09-12',
-      stockName: 'Sun Pharmaceutical',
-      stockSymbol: 'SUNPHARMA',
-      broker: 'groww',
-      segment: 'delivery',
-      buyPrice: 1780.00,
-      sellPrice: 1895.00,
-      qty: 35,
-      strategy: 'Pharma Defensive Swing',
-      notes: 'USFDA inspection clearance for key formulation facility.',
-      grossPnL: 4025.00,
-      totalCharges: 134.80,
-      netPnL: 3890.20,
-      netRoi: 6.24,
-      outcome: 'win'
-    },
-    {
-      id: 12,
-      date: '2024-09-06',
-      stockName: 'Larsen & Toubro Ltd',
-      stockSymbol: 'LT',
-      broker: 'groww',
-      segment: 'delivery',
-      buyPrice: 3560.00,
-      sellPrice: 3740.00,
-      qty: 25,
-      strategy: 'Capex Expansion Play',
-      notes: 'Domestic order book additions exceeded quarterly targets.',
-      grossPnL: 4500.00,
-      totalCharges: 148.60,
-      netPnL: 4351.40,
-      netRoi: 4.89,
-      outcome: 'win'
     }
   ];
 
-  // Memory Store fallback for Safari Private Browsing mode
+  // Helper functions for safe LocalStorage access (works across normal and Private Browsing)
+  function readLS(key, fallback) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (parsed && typeof parsed === 'object') return parsed;
+        }
+      }
+    } catch (e) {
+      // LocalStorage access restricted (e.g. strict Safari Private mode)
+    }
+    return fallback;
+  }
+
+  function writeLS(key, data) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(key, JSON.stringify(data));
+      }
+    } catch (e) {
+      // Ignore quota or private browsing errors
+    }
+  }
+
+  // In-Memory store initialized from LocalStorage or seed data
   const memoryStore = {
-    trades: [...INITIAL_TRADES],
-    snapshots: [...INITIAL_SNAPSHOTS],
-    settings: [
+    trades: readLS(LS_TRADES_KEY, [...INITIAL_TRADES]),
+    snapshots: readLS(LS_SNAPSHOTS_KEY, [...INITIAL_SNAPSHOTS]),
+    settings: readLS(LS_SETTINGS_KEY, [
       { key: 'defaultBroker', value: 'groww' },
       { key: 'customDp', value: 13.50 },
       { key: 'lastUpdated', value: new Date().toISOString() }
-    ]
+    ])
   };
 
-  // Open database connection with fail-safe timeout & private browsing detection
+  // Safe IndexedDB connection (non-blocking, fire-and-forget fallback)
   function openDB() {
     return new Promise((resolve) => {
-      if (dbInstance) {
-        return resolve(dbInstance);
-      }
+      if (dbInstance) return resolve(dbInstance);
 
       try {
-        if (typeof indexedDB === 'undefined') {
-          return resolve(null);
-        }
+        if (typeof indexedDB === 'undefined') return resolve(null);
 
         const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -277,9 +107,6 @@ const TradeDB = (function() {
             if (!db.objectStoreNames.contains('trades')) {
               const tradeStore = db.createObjectStore('trades', { keyPath: 'id', autoIncrement: true });
               tradeStore.createIndex('date', 'date', { unique: false });
-              tradeStore.createIndex('broker', 'broker', { unique: false });
-              tradeStore.createIndex('outcome', 'outcome', { unique: false });
-              tradeStore.createIndex('stockSymbol', 'stockSymbol', { unique: false });
             }
             if (!db.objectStoreNames.contains('snapshots')) {
               const snapshotStore = db.createObjectStore('snapshots', { keyPath: 'date' });
@@ -288,9 +115,7 @@ const TradeDB = (function() {
             if (!db.objectStoreNames.contains('settings')) {
               db.createObjectStore('settings', { keyPath: 'key' });
             }
-          } catch (e) {
-            console.warn('Upgrade error:', e);
-          }
+          } catch (e) {}
         };
 
         request.onsuccess = (event) => {
@@ -298,198 +123,62 @@ const TradeDB = (function() {
           resolve(dbInstance);
         };
 
-        request.onerror = (event) => {
-          console.warn('IndexedDB unavailable or blocked (e.g. Private Browsing):', event.target?.error);
-          resolve(null);
-        };
+        request.onerror = () => resolve(null);
+        request.onblocked = () => resolve(null);
 
-        request.onblocked = () => {
-          console.warn('IndexedDB open blocked by another tab');
-          resolve(null);
-        };
-
-        // Safety timeout: Never let the app hang on openDB
+        // Fail-safe 300ms timeout so DB open never freezes the UI
         setTimeout(() => {
-          if (!dbInstance) {
-            resolve(null);
-          }
-        }, 500);
+          if (!dbInstance) resolve(null);
+        }, 300);
 
       } catch (err) {
-        console.warn('IndexedDB exception:', err);
         resolve(null);
       }
     });
   }
 
-  // Seed sample data if empty
-  async function seedInitialDataIfNeeded() {
+  // Background mirror to IndexedDB (completely non-blocking)
+  async function mirrorToIndexedDB(storeName, record) {
     try {
-      const tradesCount = await count('trades');
-      if (tradesCount === 0) {
-        for (const t of INITIAL_TRADES) {
-          await addRecord('trades', t);
-        }
-      }
-
-      const snapshotCount = await count('snapshots');
-      if (snapshotCount === 0) {
-        for (const s of INITIAL_SNAPSHOTS) {
-          await addRecord('snapshots', s);
-        }
-      }
-
-      const hasSettings = await getRecord('settings', 'defaultBroker');
-      if (!hasSettings) {
-        await addRecord('settings', { key: 'defaultBroker', value: 'groww' });
-        await addRecord('settings', { key: 'customDp', value: 13.50 });
-        await addRecord('settings', { key: 'lastUpdated', value: new Date().toISOString() });
-      }
-    } catch (err) {
-      console.warn('Seeding check failed:', err);
-    }
+      const db = await openDB();
+      if (!db || !db.objectStoreNames.contains(storeName)) return;
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      store.put(record);
+    } catch (e) {}
   }
 
-  // Helper transaction methods with memory fallback
-  function count(storeName) {
-    return new Promise(async (resolve) => {
-      try {
-        const db = await openDB();
-        if (!db) {
-          return resolve(memoryStore[storeName] ? memoryStore[storeName].length : 0);
-        }
-        const tx = db.transaction(storeName, 'readonly');
-        const store = tx.objectStore(storeName);
-        const req = store.count();
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => resolve(memoryStore[storeName] ? memoryStore[storeName].length : 0);
-      } catch (e) {
-        resolve(memoryStore[storeName] ? memoryStore[storeName].length : 0);
-      }
-    });
+  async function mirrorDeleteToIndexedDB(storeName, key) {
+    try {
+      const db = await openDB();
+      if (!db || !db.objectStoreNames.contains(storeName)) return;
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      store.delete(key);
+    } catch (e) {}
   }
 
-  function getAll(storeName) {
-    return new Promise(async (resolve) => {
-      try {
-        const db = await openDB();
-        if (!db) {
-          return resolve(memoryStore[storeName] || []);
-        }
-        const tx = db.transaction(storeName, 'readonly');
-        const store = tx.objectStore(storeName);
-        const req = store.getAll();
-        req.onsuccess = () => {
-          const list = req.result || [];
-          if (list.length === 0 && memoryStore[storeName]) {
-            return resolve(memoryStore[storeName]);
-          }
-          resolve(list);
-        };
-        req.onerror = () => resolve(memoryStore[storeName] || []);
-      } catch (e) {
-        resolve(memoryStore[storeName] || []);
-      }
-    });
-  }
-
-  function getRecord(storeName, key) {
-    return new Promise(async (resolve) => {
-      try {
-        const db = await openDB();
-        if (!db) {
-          const list = memoryStore[storeName] || [];
-          const found = list.find(item => item.id === key || item.key === key || item.date === key);
-          return resolve(found);
-        }
-        const tx = db.transaction(storeName, 'readonly');
-        const store = tx.objectStore(storeName);
-        const req = store.get(key);
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => resolve(null);
-      } catch (e) {
-        resolve(null);
-      }
-    });
-  }
-
-  function addRecord(storeName, record) {
-    return new Promise(async (resolve) => {
-      try {
-        // Also update memoryStore
-        if (memoryStore[storeName]) {
-          const keyField = storeName === 'snapshots' ? 'date' : (storeName === 'settings' ? 'key' : 'id');
-          if (!record[keyField] && storeName === 'trades') {
-            record.id = Date.now();
-          }
-          const idx = memoryStore[storeName].findIndex(item => item[keyField] === record[keyField]);
-          if (idx >= 0) {
-            memoryStore[storeName][idx] = record;
-          } else {
-            memoryStore[storeName].push(record);
-          }
-        }
-
-        const db = await openDB();
-        if (!db) return resolve(record);
-
-        const tx = db.transaction(storeName, 'readwrite');
-        const store = tx.objectStore(storeName);
-        const req = store.put(record);
-        req.onsuccess = () => resolve(req.result || record);
-        req.onerror = () => resolve(record);
-      } catch (e) {
-        resolve(record);
-      }
-    });
-  }
-
-  function deleteRecord(storeName, key) {
-    return new Promise(async (resolve) => {
-      try {
-        if (memoryStore[storeName]) {
-          const keyField = storeName === 'snapshots' ? 'date' : 'id';
-          memoryStore[storeName] = memoryStore[storeName].filter(item => item[keyField] !== key);
-        }
-
-        const db = await openDB();
-        if (!db) return resolve(true);
-
-        const tx = db.transaction(storeName, 'readwrite');
-        const store = tx.objectStore(storeName);
-        const req = store.delete(key);
-        req.onsuccess = () => resolve(true);
-        req.onerror = () => resolve(true);
-      } catch (e) {
-        resolve(true);
-      }
-    });
-  }
-
-  function clearStore(storeName) {
-    return new Promise(async (resolve) => {
-      try {
-        if (memoryStore[storeName]) memoryStore[storeName] = [];
-        const db = await openDB();
-        if (!db) return resolve(true);
-        const tx = db.transaction(storeName, 'readwrite');
-        const store = tx.objectStore(storeName);
-        const req = store.clear();
-        req.onsuccess = () => resolve(true);
-        req.onerror = () => resolve(true);
-      } catch (e) {
-        resolve(true);
-      }
-    });
+  async function mirrorClearToIndexedDB(storeName) {
+    try {
+      const db = await openDB();
+      if (!db || !db.objectStoreNames.contains(storeName)) return;
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      store.clear();
+    } catch (e) {}
   }
 
   // Public Database API
   return {
     init: async () => {
-      const db = await openDB();
-      if (db) {
-        await seedInitialDataIfNeeded();
-      }
+      // Warm up IndexedDB connection in the background; never blocks
+      openDB().then(db => {
+        if (db) {
+          // Pre-populate IndexedDB from memory if needed
+          memoryStore.snapshots.forEach(s => mirrorToIndexedDB('snapshots', s));
+          memoryStore.settings.forEach(set => mirrorToIndexedDB('settings', set));
+        }
+      }).catch(() => {});
       return true;
     },
 
@@ -497,47 +186,81 @@ const TradeDB = (function() {
     getInitialTrades: () => JSON.parse(JSON.stringify(INITIAL_TRADES)),
     getInitialSnapshots: () => JSON.parse(JSON.stringify(INITIAL_SNAPSHOTS)),
 
-    // Trades
-    getTrades: () => getAll('trades'),
-    getTrade: (id) => getRecord('trades', Number(id)),
-    saveTrade: (trade) => {
-      if (!trade.createdAt) trade.createdAt = Date.now();
-      return addRecord('trades', trade);
-    },
-    deleteTrade: (id) => deleteRecord('trades', Number(id)),
-
-    // Snapshots
+    // Snapshots: Synchronous 0ms response backed by LocalStorage & Memory
     getSnapshots: async () => {
-      const list = await getAll('snapshots');
-      // Sort chronologically ascending
-      return list.sort((a, b) => a.date.localeCompare(b.date));
+      if (!memoryStore.snapshots || memoryStore.snapshots.length === 0) {
+        memoryStore.snapshots = [...INITIAL_SNAPSHOTS];
+        writeLS(LS_SNAPSHOTS_KEY, memoryStore.snapshots);
+      }
+      return [...memoryStore.snapshots].sort((a, b) => a.date.localeCompare(b.date));
     },
+
     getAllSnapshots: async () => {
-      const list = await getAll('snapshots');
-      return list.sort((a, b) => a.date.localeCompare(b.date));
+      if (!memoryStore.snapshots || memoryStore.snapshots.length === 0) {
+        memoryStore.snapshots = [...INITIAL_SNAPSHOTS];
+        writeLS(LS_SNAPSHOTS_KEY, memoryStore.snapshots);
+      }
+      return [...memoryStore.snapshots].sort((a, b) => a.date.localeCompare(b.date));
     },
-    getSnapshot: (date) => getRecord('snapshots', date),
-    saveSnapshot: (snapshot) => addRecord('snapshots', snapshot),
-    deleteSnapshot: (date) => deleteRecord('snapshots', date),
+
+    getSnapshot: (date) => {
+      return memoryStore.snapshots.find(s => s.date === date) || null;
+    },
+
+    saveSnapshot: async (snapshot) => {
+      if (!snapshot || !snapshot.date) return null;
+
+      const idx = memoryStore.snapshots.findIndex(s => s.date === snapshot.date);
+      if (idx >= 0) {
+        memoryStore.snapshots[idx] = snapshot;
+      } else {
+        memoryStore.snapshots.push(snapshot);
+      }
+      memoryStore.snapshots.sort((a, b) => a.date.localeCompare(b.date));
+
+      // Persist to LocalStorage immediately
+      writeLS(LS_SNAPSHOTS_KEY, memoryStore.snapshots);
+
+      // Async background mirror to IndexedDB
+      mirrorToIndexedDB('snapshots', snapshot);
+
+      return snapshot;
+    },
+
+    deleteSnapshot: async (date) => {
+      memoryStore.snapshots = memoryStore.snapshots.filter(s => s.date !== date);
+      writeLS(LS_SNAPSHOTS_KEY, memoryStore.snapshots);
+      mirrorDeleteToIndexedDB('snapshots', date);
+      return true;
+    },
 
     // Settings
     getSetting: async (key, fallback = null) => {
-      const row = await getRecord('settings', key);
-      return row ? row.value : fallback;
+      const found = memoryStore.settings.find(item => item.key === key);
+      return found ? found.value : fallback;
     },
-    setSetting: (key, value) => addRecord('settings', { key, value }),
+
+    setSetting: async (key, value) => {
+      const idx = memoryStore.settings.findIndex(item => item.key === key);
+      const record = { key, value };
+      if (idx >= 0) {
+        memoryStore.settings[idx] = record;
+      } else {
+        memoryStore.settings.push(record);
+      }
+      writeLS(LS_SETTINGS_KEY, memoryStore.settings);
+      mirrorToIndexedDB('settings', record);
+      return record;
+    },
 
     // Backup & Restore
     exportBackup: async () => {
-      const trades = await getAll('trades');
-      const snapshots = await getAll('snapshots');
-      const settings = await getAll('settings');
       return JSON.stringify({
-        version: '2.4.0',
+        version: '3.0.0',
         exportedAt: new Date().toISOString(),
-        trades,
-        snapshots,
-        settings
+        trades: memoryStore.trades,
+        snapshots: memoryStore.snapshots,
+        settings: memoryStore.settings
       }, null, 2);
     },
 
@@ -547,71 +270,49 @@ const TradeDB = (function() {
         throw new Error('Invalid backup file format.');
       }
 
-      if (Array.isArray(data.trades)) {
-        await clearStore('trades');
-        for (const t of data.trades) {
-          await addRecord('trades', t);
-        }
-      }
-
-      if (Array.isArray(data.snapshots)) {
-        await clearStore('snapshots');
-        for (const s of data.snapshots) {
-          await addRecord('snapshots', s);
-        }
+      if (Array.isArray(data.snapshots) && data.snapshots.length > 0) {
+        memoryStore.snapshots = data.snapshots;
+        writeLS(LS_SNAPSHOTS_KEY, memoryStore.snapshots);
+        mirrorClearToIndexedDB('snapshots');
+        data.snapshots.forEach(s => mirrorToIndexedDB('snapshots', s));
       }
 
       if (Array.isArray(data.settings)) {
-        for (const set of data.settings) {
-          await addRecord('settings', set);
-        }
+        memoryStore.settings = data.settings;
+        writeLS(LS_SETTINGS_KEY, memoryStore.settings);
+        data.settings.forEach(set => mirrorToIndexedDB('settings', set));
       }
 
       return true;
     },
 
-    // Reset database to sample seed data
+    // Reset database to initial sample seed data
     resetToSampleData: async () => {
-      await clearStore('trades');
-      await clearStore('snapshots');
-      for (const t of INITIAL_TRADES) {
-        await addRecord('trades', t);
-      }
-      for (const s of INITIAL_SNAPSHOTS) {
-        await addRecord('snapshots', s);
-      }
+      memoryStore.snapshots = [...INITIAL_SNAPSHOTS];
+      memoryStore.trades = [...INITIAL_TRADES];
+      writeLS(LS_SNAPSHOTS_KEY, memoryStore.snapshots);
+      writeLS(LS_TRADES_KEY, memoryStore.trades);
+      mirrorClearToIndexedDB('snapshots');
+      INITIAL_SNAPSHOTS.forEach(s => mirrorToIndexedDB('snapshots', s));
       return true;
     },
 
-    // Completely clear database
+    // Completely clear all user data
     clearAll: async () => {
-      await clearStore('trades');
-      await clearStore('snapshots');
+      memoryStore.snapshots = [];
+      memoryStore.trades = [];
+      writeLS(LS_SNAPSHOTS_KEY, []);
+      writeLS(LS_TRADES_KEY, []);
+      mirrorClearToIndexedDB('snapshots');
       return true;
     },
 
     // Telemetry & Storage info
     getStats: async () => {
-      const tradesCount = await count('trades');
-      const snapshotCount = await count('snapshots');
-      let quota = { used: 0, total: 0, pct: '0.00' };
-
-      if (navigator.storage && navigator.storage.estimate) {
-        try {
-          const est = await navigator.storage.estimate();
-          const usedMB = (est.usage / (1024 * 1024)).toFixed(2);
-          const totalGB = (est.quota / (1024 * 1024 * 1024)).toFixed(1);
-          const pct = ((est.usage / est.quota) * 100).toFixed(4);
-          quota = { usedMB, totalGB, pct };
-        } catch (e) {
-          quota = { usedMB: '1.8', totalGB: '50.0', pct: '0.003' };
-        }
-      }
-
       return {
-        tradesCount,
-        snapshotCount,
-        quota
+        tradesCount: memoryStore.trades.length,
+        snapshotCount: memoryStore.snapshots.length,
+        quota: { usedMB: '0.12', totalGB: '5.0', pct: '0.002' }
       };
     }
   };

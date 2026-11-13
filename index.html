@@ -110,10 +110,17 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    button, a, input, select, [role="button"], [data-action], [data-path] {
+    button, a, [role="button"], [data-action], [data-path], .nav-tab-item {
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
-      cursor: pointer;
+      cursor: pointer !important;
+    }
+    input, select, textarea {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      cursor: text;
+      -webkit-user-select: text !important;
+      user-select: text !important;
     }
     button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
       opacity: 0.72 !important;
@@ -287,7 +294,7 @@
   <!-- Core App Stylesheet -->
   <link rel="stylesheet" href="css/app.css"/>
 </head>
-<body class="bg-[#0D1527] text-[#F4EDE0] antialiased m-0 p-0 font-sans selection:bg-[#F4EDE0] selection:text-[#14213D] select-none" style="background-color: #0D1527 !important; color: #F4EDE0 !important;">
+<body class="bg-[#0D1527] text-[#F4EDE0] antialiased m-0 p-0 font-sans selection:bg-[#F4EDE0] selection:text-[#14213D]" style="background-color: #0D1527 !important; color: #F4EDE0 !important; cursor: pointer;">
 
   <!-- LAYER 1: FIXED TOP HEADER -->
   <header class="app-header fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2.5 bg-[#14213D] border-b border-[rgba(244,237,224,0.14)] max-w-[480px] mx-auto" style="padding-top: max(env(safe-area-inset-top, 44px), 14px);">
@@ -836,8 +843,8 @@
   </div>
 
   <!-- Application Engine Scripts (Cache-Busted for Guaranteed Immediate Update) -->
-  <script src="js/calculator.js?v=20261113_2200"></script>
-  <script src="js/db.js?v=20261113_2200"></script>
-  <script src="js/app.js?v=20261113_2200"></script>
+  <script src="js/calculator.js?v=20261113_2220"></script>
+  <script src="js/db.js?v=20261113_2220"></script>
+  <script src="js/app.js?v=20261113_2220"></script>
 </body>
 </html>

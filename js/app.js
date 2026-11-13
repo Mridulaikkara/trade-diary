@@ -947,95 +947,122 @@
   }
 
   /* ==========================================================================
-     UNIFIED EVENT DELEGATION — SINGLE CLICK LISTENER
-     This is the ONLY event handler for all button/action interactions.
-     No inline onclick handlers exist anywhere in the HTML.
+     RESILIENT ZERO-LATENCY EVENT ENGINE
+     Supports both touch (pointerup) and click with automatic 300ms de-duplication.
+     Guarantees instant touch response on iOS Safari and Android without dropped events.
      ========================================================================== */
   function setupEventDelegation() {
-    document.addEventListener('click', (e) => {
+    let lastActionKey = '';
+    let lastActionTime = 0;
+
+    function dispatchAction(action, actionBtn) {
+      switch (action) {
+        // Navigation
+        case 'go-home':
+          switchView('dashboard');
+          break;
+        case 'open-settings':
+          switchView('settings-and-backup');
+          break;
+
+        // Calculator
+        case 'run-calc':
+          calculateAllCalculator();
+          showToast('Calculated Brokerage & Net P&L', 'success');
+          break;
+        case 'set-broker-groww':
+          setCalculatorBroker('groww');
+          showToast('Switched to Groww', 'info');
+          break;
+        case 'set-broker-zerodha':
+          setCalculatorBroker('zerodha');
+          showToast('Switched to Zerodha Kite', 'info');
+          break;
+        case 'set-seg-delivery':
+          setCalculatorSegment('delivery');
+          break;
+        case 'set-seg-intraday':
+          setCalculatorSegment('intraday');
+          break;
+        case 'set-seg-futures':
+          setCalculatorSegment('futures');
+          break;
+        case 'set-seg-options':
+          setCalculatorSegment('options');
+          break;
+        case 'copy-calc':
+          copyCalculatorSummary();
+          break;
+
+        // Portfolio
+        case 'save-snapshot':
+          handleSaveSnapshot();
+          break;
+        case 'export-portfolio-csv':
+          exportPortfolioCSV();
+          break;
+        case 'delete-snapshot': {
+          const dateStr = actionBtn.getAttribute('data-snapshot-date');
+          if (dateStr) confirmDeleteSnapshot(dateStr);
+          break;
+        }
+        case 'cancel-delete-snapshot':
+          closeDeleteSnapshotModal();
+          break;
+        case 'confirm-delete-snapshot':
+          executeDeleteSnapshot();
+          break;
+
+        // Settings
+        case 'save-preferences':
+          savePreferences();
+          break;
+        case 'export-backup':
+          downloadFullBackup();
+          break;
+        case 'reload-sample':
+          handleResetToSampleData();
+          break;
+        case 'clear-all':
+          handleClearAllDatabase();
+          break;
+      }
+    }
+
+    function handleInteraction(e) {
       // 1. Navigation tabs (data-path)
       const navBtn = e.target.closest('[data-path]');
       if (navBtn) {
         const path = navBtn.getAttribute('data-path');
-        if (path) switchView(path);
-        return;
+        if (path) {
+          const key = 'nav:' + path;
+          const now = Date.now();
+          if (key === lastActionKey && (now - lastActionTime) < 300) return;
+          lastActionKey = key;
+          lastActionTime = now;
+          switchView(path);
+          return;
+        }
       }
 
       // 2. Action buttons (data-action)
       const actionBtn = e.target.closest('[data-action]');
       if (actionBtn) {
         const action = actionBtn.getAttribute('data-action');
-
-        switch (action) {
-          // Navigation
-          case 'go-home':
-            switchView('dashboard');
-            break;
-          case 'open-settings':
-            switchView('settings-and-backup');
-            break;
-
-          // Calculator
-          case 'run-calc':
-            calculateAllCalculator();
-            break;
-          case 'set-broker-groww':
-            setCalculatorBroker('groww');
-            break;
-          case 'set-broker-zerodha':
-            setCalculatorBroker('zerodha');
-            break;
-          case 'set-seg-delivery':
-            setCalculatorSegment('delivery');
-            break;
-          case 'set-seg-intraday':
-            setCalculatorSegment('intraday');
-            break;
-          case 'set-seg-futures':
-            setCalculatorSegment('futures');
-            break;
-          case 'set-seg-options':
-            setCalculatorSegment('options');
-            break;
-          case 'copy-calc':
-            copyCalculatorSummary();
-            break;
-
-          // Portfolio
-          case 'save-snapshot':
-            handleSaveSnapshot();
-            break;
-          case 'export-portfolio-csv':
-            exportPortfolioCSV();
-            break;
-          case 'delete-snapshot': {
-            const dateStr = actionBtn.getAttribute('data-snapshot-date');
-            if (dateStr) confirmDeleteSnapshot(dateStr);
-            break;
-          }
-          case 'cancel-delete-snapshot':
-            closeDeleteSnapshotModal();
-            break;
-          case 'confirm-delete-snapshot':
-            executeDeleteSnapshot();
-            break;
-
-          // Settings
-          case 'save-preferences':
-            savePreferences();
-            break;
-          case 'export-backup':
-            downloadFullBackup();
-            break;
-          case 'reload-sample':
-            handleResetToSampleData();
-            break;
-          case 'clear-all':
-            handleClearAllDatabase();
-            break;
+        if (action) {
+          const key = 'act:' + action;
+          const now = Date.now();
+          if (key === lastActionKey && (now - lastActionTime) < 300) return;
+          lastActionKey = key;
+          lastActionTime = now;
+          dispatchAction(action, actionBtn);
         }
       }
-    });
+    }
+
+    // Attach both pointerup (instant mobile touch) and click (mouse/fallback)
+    document.addEventListener('pointerup', handleInteraction, { passive: true });
+    document.addEventListener('click', handleInteraction);
 
     // File restore input — handled via change event on the hidden file input
     const restoreInput = document.getElementById('restore-file-input');
@@ -1082,6 +1109,11 @@
 
   // App Initialization
   function initApp() {
+    const dateInput = document.getElementById('snapshot-date');
+    if (dateInput && !dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+
     setupEventDelegation();
     setupFormEvents();
     initConnectivityMonitor();
