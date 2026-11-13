@@ -1,6 +1,9 @@
 /**
  * Trade Diary — Core Application Engine
  * High-performance, offline-first portfolio tracker and deterministic NSE brokerage calculator.
+ *
+ * ALL interactivity is handled via a single delegated 'click' listener on document.
+ * NO inline onclick handlers are used anywhere. This eliminates iOS Safari event conflicts.
  */
 
 (function() {
@@ -648,7 +651,7 @@
             </span>
           </td>
           <td class="p-2.5 text-right whitespace-nowrap">
-            <button class="p-1 rounded text-[#F4EDE0]/60 hover:text-[#F87171] transition-colors" onclick="window.App.confirmDeleteSnapshot('${s.date}')" title="Delete Record">
+            <button class="p-1 rounded text-[#F4EDE0]/60 hover:text-[#F87171] transition-colors" data-action="delete-snapshot" data-snapshot-date="${s.date}" title="Delete Record">
               <span class="material-symbols-outlined text-[15px]">delete</span>
             </button>
           </td>
@@ -660,15 +663,17 @@
   function confirmDeleteSnapshot(date) {
     AppState.deletingSnapshotDate = date;
     const modal = document.getElementById('delete-snapshot-modal');
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+      modal.style.display = 'flex';
+      modal.style.pointerEvents = 'auto';
+    }
   }
 
   async function executeDeleteSnapshot() {
     if (!AppState.deletingSnapshotDate) return;
     await TradeDB.deleteSnapshot(AppState.deletingSnapshotDate);
     AppState.deletingSnapshotDate = null;
-    const modal = document.getElementById('delete-snapshot-modal');
-    if (modal) modal.classList.add('hidden');
+    closeDeleteSnapshotModal();
 
     showToast('Snapshot deleted', 'success');
     await reloadAllData();
@@ -679,7 +684,10 @@
   function closeDeleteSnapshotModal() {
     AppState.deletingSnapshotDate = null;
     const modal = document.getElementById('delete-snapshot-modal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+      modal.style.display = 'none';
+      modal.style.pointerEvents = 'none';
+    }
   }
 
   function exportPortfolioCSV() {
@@ -752,14 +760,6 @@
         btn.className = 'px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap';
       }
     });
-    calculateAllCalculator();
-  }
-
-  function adjustCalculatorQty(delta) {
-    const input = document.getElementById('calc-trade-qty');
-    if (!input) return;
-    const current = parseInt(input.value, 10) || 0;
-    input.value = Math.max(1, current + delta);
     calculateAllCalculator();
   }
 
@@ -852,12 +852,12 @@
   }
 
   function copyCalculatorSummary() {
-    const buyPrice = document.getElementById('calc-buy-price').value;
-    const sellPrice = document.getElementById('calc-sell-price').value;
-    const qty = document.getElementById('calc-trade-qty').value;
-    const netPnL = document.getElementById('metric-net-pnl').textContent;
-    const totalCharges = document.getElementById('cell-total-deductions').textContent;
-    const bePrice = document.getElementById('breakeven-price').textContent;
+    const buyPrice = document.getElementById('calc-buy-price')?.value || '0';
+    const sellPrice = document.getElementById('calc-sell-price')?.value || '0';
+    const qty = document.getElementById('calc-trade-qty')?.value || '0';
+    const netPnL = document.getElementById('metric-net-pnl')?.textContent || '₹0';
+    const totalCharges = document.getElementById('cell-total-deductions')?.textContent || '₹0';
+    const bePrice = document.getElementById('breakeven-price')?.textContent || '₹0';
 
     const summaryText = `[Trade Diary NSE Calculator]\nBroker: ${AppState.calculatorState.broker.toUpperCase()} | Segment: ${AppState.calculatorState.segment.toUpperCase()}\nBuy Price: ₹${buyPrice} | Sell Price: ₹${sellPrice} | Qty: ${qty}\nTotal Charges: ${totalCharges}\nNet Realized P&L: ${netPnL}\nBreak-Even Target: ${bePrice}`;
 
@@ -896,8 +896,7 @@
     }
   }
 
-  async function handleRestoreBackup(event) {
-    const file = event.target.files && event.target.files[0];
+  async function handleRestoreBackup(file) {
     if (!file) return;
 
     const reader = new FileReader();
@@ -912,7 +911,6 @@
       }
     };
     reader.readAsText(file);
-    event.target.value = '';
   }
 
   async function handleResetToSampleData() {
@@ -948,47 +946,36 @@
     showToast('Preferences saved', 'success');
   }
 
-  // Universal Global Event Delegation
+  /* ==========================================================================
+     UNIFIED EVENT DELEGATION — SINGLE CLICK LISTENER
+     This is the ONLY event handler for all button/action interactions.
+     No inline onclick handlers exist anywhere in the HTML.
+     ========================================================================== */
   function setupEventDelegation() {
     document.addEventListener('click', (e) => {
+      // 1. Navigation tabs (data-path)
       const navBtn = e.target.closest('[data-path]');
       if (navBtn) {
-        e.preventDefault();
         const path = navBtn.getAttribute('data-path');
         if (path) switchView(path);
         return;
       }
 
+      // 2. Action buttons (data-action)
       const actionBtn = e.target.closest('[data-action]');
       if (actionBtn) {
         const action = actionBtn.getAttribute('data-action');
-        e.preventDefault();
 
         switch (action) {
+          // Navigation
+          case 'go-home':
+            switchView('dashboard');
+            break;
           case 'open-settings':
             switchView('settings-and-backup');
             break;
-          case 'save-preferences':
-            savePreferences();
-            break;
-          case 'export-backup':
-            downloadFullBackup();
-            break;
-          case 'reload-sample':
-            handleResetToSampleData();
-            break;
-          case 'clear-all':
-            handleClearAllDatabase();
-            break;
-          case 'save-snapshot':
-            handleSaveSnapshot();
-            break;
-          case 'export-portfolio-csv':
-            exportPortfolioCSV();
-            break;
-          case 'copy-calc':
-            copyCalculatorSummary();
-            break;
+
+          // Calculator
           case 'run-calc':
             calculateAllCalculator();
             break;
@@ -1010,9 +997,57 @@
           case 'set-seg-options':
             setCalculatorSegment('options');
             break;
+          case 'copy-calc':
+            copyCalculatorSummary();
+            break;
+
+          // Portfolio
+          case 'save-snapshot':
+            handleSaveSnapshot();
+            break;
+          case 'export-portfolio-csv':
+            exportPortfolioCSV();
+            break;
+          case 'delete-snapshot': {
+            const dateStr = actionBtn.getAttribute('data-snapshot-date');
+            if (dateStr) confirmDeleteSnapshot(dateStr);
+            break;
+          }
+          case 'cancel-delete-snapshot':
+            closeDeleteSnapshotModal();
+            break;
+          case 'confirm-delete-snapshot':
+            executeDeleteSnapshot();
+            break;
+
+          // Settings
+          case 'save-preferences':
+            savePreferences();
+            break;
+          case 'export-backup':
+            downloadFullBackup();
+            break;
+          case 'reload-sample':
+            handleResetToSampleData();
+            break;
+          case 'clear-all':
+            handleClearAllDatabase();
+            break;
         }
       }
     });
+
+    // File restore input — handled via change event on the hidden file input
+    const restoreInput = document.getElementById('restore-file-input');
+    if (restoreInput) {
+      restoreInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          handleRestoreBackup(file);
+          e.target.value = ''; // reset so same file can be re-selected
+        }
+      });
+    }
   }
 
   // Form input listeners
@@ -1022,7 +1057,6 @@
       if (el) {
         el.addEventListener('input', updateSnapshotFormCalculations);
         el.addEventListener('change', updateSnapshotFormCalculations);
-        el.addEventListener('keyup', updateSnapshotFormCalculations);
       }
     });
 
@@ -1031,7 +1065,6 @@
       if (el) {
         el.addEventListener('input', calculateAllCalculator);
         el.addEventListener('change', calculateAllCalculator);
-        el.addEventListener('keyup', calculateAllCalculator);
       }
     });
   }
@@ -1077,7 +1110,7 @@
     })();
   }
 
-  // Connect hook for inline view switcher
+  // Connect hook for inline view switcher (the minimal stub in <head>)
   window.App = window.App || {};
   window.App._onViewSwitch = function(viewName) {
     if (viewName === 'dashboard') renderDashboard();
@@ -1086,7 +1119,7 @@
     if (viewName === 'settings-and-backup') renderSettings();
   };
 
-  // Expose global methods
+  // Expose global methods (for the inline <head> stub and potential debugging)
   Object.assign(window.App, {
     init: initApp,
     switchView,
@@ -1101,7 +1134,6 @@
     // Calculator
     setCalculatorBroker,
     setCalculatorSegment,
-    adjustCalculatorQty,
     calculateAllCalculator,
     copyCalculatorSummary,
     // Settings
