@@ -6,8 +6,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0D1527",
-  "theme_color": "#14213D",
+  "background_color": "#F8FAFC",
+  "theme_color": "#FFFFFF",
   "categories": ["finance", "productivity", "utilities"],
   "icons": [
     {
@@ -27,12 +27,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "icons/icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ],
   "shortcuts": [
