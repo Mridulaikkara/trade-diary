@@ -202,13 +202,23 @@
     const latestSnapshot = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
     const prevSnapshot = snapshots.length > 1 ? snapshots[snapshots.length - 2] : null;
 
+    // Toggle Empty State Banner
+    const emptyBanner = document.getElementById('dash-empty-state-banner');
+    if (emptyBanner) {
+      emptyBanner.style.display = snapshots.length === 0 ? 'block' : 'none';
+    }
+
     // 1. Hero Total Valuation
     const totalVal = latestSnapshot ? (Number(latestSnapshot.combinedTotal) || 0) : 0;
     const totalValEl = document.getElementById('dash-total-val');
     const headerValEl = document.getElementById('header-total-valuation');
 
-    if (totalValEl) totalValEl.innerHTML = fmtINR(totalVal);
-    if (headerValEl) headerValEl.textContent = fmtINR(totalVal);
+    if (totalValEl) {
+      totalValEl.innerHTML = snapshots.length > 0 ? fmtINR(totalVal) : '₹ 0.00';
+    }
+    if (headerValEl) {
+      headerValEl.textContent = snapshots.length > 0 ? fmtINR(totalVal) : '₹ 0.00';
+    }
 
     // 2. Dual Broker Cards (Groww & Zerodha Kite)
     const gShareEl = document.getElementById('dash-groww-share');
@@ -227,7 +237,108 @@
     const totalInvEl = document.getElementById('dash-total-inv');
     const totalCashEl = document.getElementById('dash-total-cash');
 
-    if (latestSnapshot) {
+    const todayDeltaEl = document.getElementById('dash-today-delta');
+    const todayDeltaPctEl = document.getElementById('dash-today-delta-pct');
+    const prevCloseEl = document.getElementById('dash-prev-close');
+    const organicTodayEl = document.getElementById('dash-organic-today');
+
+    const monthlyValEl = document.getElementById('dash-monthly-val');
+    const monthlyPctEl = document.getElementById('dash-monthly-pct');
+    const monthlyDepEl = document.getElementById('dash-monthly-deposits');
+    const monthlyOrgEl = document.getElementById('dash-monthly-organic');
+
+    if (snapshots.length === 0) {
+      // Clean Empty State: No dummy or fabricated values
+      if (gShareEl) gShareEl.textContent = '—';
+      if (gValEl) gValEl.innerHTML = '<span class="text-sm text-slate-400 font-sans font-normal">No data recorded</span>';
+      if (gInvEl) gInvEl.innerHTML = '—';
+      if (gCashEl) gCashEl.innerHTML = '—';
+
+      if (kShareEl) kShareEl.textContent = '—';
+      if (kValEl) kValEl.innerHTML = '<span class="text-sm text-slate-400 font-sans font-normal">No data recorded</span>';
+      if (kInvEl) kInvEl.innerHTML = '—';
+      if (kCashEl) kCashEl.innerHTML = '—';
+
+      if (ratioEl) ratioEl.textContent = 'No data recorded';
+      if (barInvEl) barInvEl.style.width = '0%';
+      if (barCashEl) barCashEl.style.width = '0%';
+      if (totalInvEl) totalInvEl.textContent = '—';
+      if (totalCashEl) totalCashEl.textContent = '—';
+
+      if (todayDeltaEl) todayDeltaEl.textContent = 'Not available';
+      if (todayDeltaPctEl) {
+        todayDeltaPctEl.className = 'text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200 px-2.5 py-0.5 rounded-full';
+        todayDeltaPctEl.textContent = 'Not available';
+      }
+      if (prevCloseEl) prevCloseEl.textContent = 'Prev Close: —';
+      if (organicTodayEl) organicTodayEl.textContent = 'Investment return: Not available';
+
+      if (monthlyValEl) monthlyValEl.textContent = 'Not available';
+      if (monthlyPctEl) {
+        monthlyPctEl.className = 'text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200 px-2.5 py-0.5 rounded-full';
+        monthlyPctEl.textContent = 'Not available';
+      }
+      if (monthlyDepEl) monthlyDepEl.textContent = '—';
+      if (monthlyOrgEl) {
+        monthlyOrgEl.className = 'font-semibold text-slate-400';
+        monthlyOrgEl.textContent = 'Not available';
+      }
+
+    } else if (snapshots.length === 1) {
+      // Single Initial Baseline Entry
+      const s = snapshots[0];
+      const gVal = Number(s.growwTotal) || 0;
+      const kVal = Number(s.kiteTotal) || 0;
+      const gInv = Number(s.growwInvested) || 0;
+      const kInv = Number(s.kiteInvested) || 0;
+      const gCash = Number(s.growwCash) || 0;
+      const kCash = Number(s.kiteCash) || 0;
+
+      const gShare = totalVal > 0 ? ((gVal / totalVal) * 100).toFixed(1) : '0.0';
+      const kShare = totalVal > 0 ? ((kVal / totalVal) * 100).toFixed(1) : '0.0';
+
+      if (gShareEl) gShareEl.textContent = `${gShare}%`;
+      if (gValEl) gValEl.innerHTML = fmtINR(gVal);
+      if (gInvEl) gInvEl.innerHTML = fmtINR(gInv);
+      if (gCashEl) gCashEl.innerHTML = fmtINR(gCash);
+
+      if (kShareEl) kShareEl.textContent = `${kShare}%`;
+      if (kValEl) kValEl.innerHTML = fmtINR(kVal);
+      if (kInvEl) kInvEl.innerHTML = fmtINR(kInv);
+      if (kCashEl) kCashEl.innerHTML = fmtINR(kCash);
+
+      const totalInv = gInv + kInv;
+      const totalCash = gCash + kCash;
+      const invPct = totalVal > 0 ? ((totalInv / totalVal) * 100).toFixed(1) : '0.0';
+      const cashPct = totalVal > 0 ? ((totalCash / totalVal) * 100).toFixed(1) : '0.0';
+
+      if (ratioEl) ratioEl.textContent = `Invested ${invPct}% · Cash ${cashPct}%`;
+      if (barInvEl) barInvEl.style.width = `${invPct}%`;
+      if (barCashEl) barCashEl.style.width = `${cashPct}%`;
+      if (totalInvEl) totalInvEl.textContent = fmtINR(totalInv);
+      if (totalCashEl) totalCashEl.textContent = fmtINR(totalCash);
+
+      if (todayDeltaEl) todayDeltaEl.textContent = 'Initial Entry';
+      if (todayDeltaPctEl) {
+        todayDeltaPctEl.className = 'text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200 px-2.5 py-0.5 rounded-full';
+        todayDeltaPctEl.textContent = 'Baseline';
+      }
+      if (prevCloseEl) prevCloseEl.textContent = 'Prev Close: First record';
+      if (organicTodayEl) organicTodayEl.textContent = 'Investment return: Baseline recorded';
+
+      if (monthlyValEl) monthlyValEl.textContent = `Baseline: ${fmtINR(totalVal)}`;
+      if (monthlyPctEl) {
+        monthlyPctEl.className = 'text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200 px-2.5 py-0.5 rounded-full';
+        monthlyPctEl.textContent = 'Current Month';
+      }
+      if (monthlyDepEl) monthlyDepEl.textContent = fmtINR(s.deposit || 0);
+      if (monthlyOrgEl) {
+        monthlyOrgEl.className = 'font-semibold text-sky-700';
+        monthlyOrgEl.textContent = 'Baseline recorded';
+      }
+
+    } else {
+      // 2+ Snapshots: Full Live Historical Comparison
       const gVal = Number(latestSnapshot.growwTotal) || 0;
       const kVal = Number(latestSnapshot.kiteTotal) || 0;
       const gInv = Number(latestSnapshot.growwInvested) || 0;
@@ -248,7 +359,6 @@
       if (kInvEl) kInvEl.innerHTML = fmtINR(kInv);
       if (kCashEl) kCashEl.innerHTML = fmtINR(kCash);
 
-      // Asset Allocation Breakdown
       const totalInv = gInv + kInv;
       const totalCash = gCash + kCash;
       const invPct = totalVal > 0 ? ((totalInv / totalVal) * 100).toFixed(1) : '0.0';
@@ -259,126 +369,53 @@
       if (barCashEl) barCashEl.style.width = `${cashPct}%`;
       if (totalInvEl) totalInvEl.textContent = fmtINR(totalInv);
       if (totalCashEl) totalCashEl.textContent = fmtINR(totalCash);
-    } else {
-      if (gShareEl) gShareEl.textContent = '0.0%';
-      if (gValEl) gValEl.innerHTML = fmtINR(0);
-      if (gInvEl) gInvEl.innerHTML = fmtINR(0);
-      if (gCashEl) gCashEl.innerHTML = fmtINR(0);
 
-      if (kShareEl) kShareEl.textContent = '0.0%';
-      if (kValEl) kValEl.innerHTML = fmtINR(0);
-      if (kInvEl) kInvEl.innerHTML = fmtINR(0);
-      if (kCashEl) kCashEl.innerHTML = fmtINR(0);
-
-      if (ratioEl) ratioEl.textContent = 'Invested 0.0% · Cash 0.0%';
-      if (barInvEl) barInvEl.style.width = '0%';
-      if (barCashEl) barCashEl.style.width = '0%';
-      if (totalInvEl) totalInvEl.textContent = fmtINR(0);
-      if (totalCashEl) totalCashEl.textContent = fmtINR(0);
-    }
-
-    // 3. Daily Performance (DoD)
-    let deltaVal = 0;
-    let deltaPct = '0.00';
-    let depositToday = 0;
-    let organicToday = 0;
-
-    if (latestSnapshot && prevSnapshot) {
-      deltaVal = Number(latestSnapshot.combinedTotal) - Number(prevSnapshot.combinedTotal);
-      deltaPct = prevSnapshot.combinedTotal > 0
-        ? ((deltaVal / prevSnapshot.combinedTotal) * 100).toFixed(2)
-        : '0.00';
-      depositToday = Number(latestSnapshot.deposit || 0);
-      organicToday = deltaVal - depositToday;
-    } else if (latestSnapshot) {
-      deltaVal = Number(latestSnapshot.dodDelta || 0);
-      deltaPct = Number(latestSnapshot.dodDeltaPct || 0).toFixed(2);
-      depositToday = Number(latestSnapshot.deposit || 0);
-      organicToday = deltaVal - depositToday;
-    }
-
-    const todayDeltaEl = document.getElementById('dash-today-delta');
-    const todayDeltaPctEl = document.getElementById('dash-today-delta-pct');
-    const prevCloseEl = document.getElementById('dash-prev-close');
-    const organicTodayEl = document.getElementById('dash-organic-today');
-
-    if (todayDeltaEl) {
-      todayDeltaEl.textContent = (deltaVal >= 0 ? '+' : '') + fmtINR(deltaVal);
-    }
-    if (todayDeltaPctEl) {
+      const prevTotal = Number(prevSnapshot.combinedTotal) || 0;
+      const deltaVal = totalVal - prevTotal;
+      const deltaPct = prevTotal > 0 ? ((deltaVal / prevTotal) * 100).toFixed(2) : '0.00';
       const isUp = deltaVal >= 0;
-      todayDeltaPctEl.className = isUp
-        ? 'text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full'
-        : 'text-xs font-bold bg-red-50 text-red-700 border border-red-200/80 px-2.5 py-0.5 rounded-full';
-      todayDeltaPctEl.textContent = (isUp ? '+' : '') + deltaPct + '%';
-    }
-    if (prevCloseEl) {
-      prevCloseEl.textContent = prevSnapshot ? `Prev Close: ${fmtINR(prevSnapshot.combinedTotal)}` : 'Prev Close: ₹ 0.00';
-    }
-    if (organicTodayEl) {
-      if (latestSnapshot && depositToday !== 0) {
-        organicTodayEl.textContent = `Capital Inflow: ${fmtINR(depositToday)} | Market Gain: ${(organicToday >= 0 ? '+' : '')}${fmtINR(organicToday)}`;
-      } else if (latestSnapshot) {
-        organicTodayEl.textContent = `Organic Market Return: ${(organicToday >= 0 ? '+' : '')}${fmtINR(organicToday)}`;
-      } else {
-        organicTodayEl.textContent = 'Organic Market Return: ₹ 0.00';
+      const depositToday = Number(latestSnapshot.deposit || 0);
+      const organicToday = deltaVal - depositToday;
+
+      if (todayDeltaEl) todayDeltaEl.textContent = `${isUp ? '+' : ''}${fmtINR(deltaVal)}`;
+      if (todayDeltaPctEl) {
+        todayDeltaPctEl.className = isUp
+          ? 'text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full'
+          : 'text-xs font-bold bg-red-50 text-red-700 border border-red-200/80 px-2.5 py-0.5 rounded-full';
+        todayDeltaPctEl.textContent = `${isUp ? '+' : ''}${deltaPct}%`;
       }
-    }
+      if (prevCloseEl) prevCloseEl.textContent = `Prev Close: ${fmtINR(prevTotal)}`;
+      if (organicTodayEl) {
+        if (depositToday !== 0) {
+          organicTodayEl.textContent = `Capital Inflow: ${fmtINR(depositToday)} | Market Gain: ${(organicToday >= 0 ? '+' : '')}${fmtINR(organicToday)}`;
+        } else {
+          organicTodayEl.textContent = `Organic Market Return: ${(organicToday >= 0 ? '+' : '')}${fmtINR(organicToday)}`;
+        }
+      }
 
-    // 4. Monthly Performance (MTD / 30-Day Growth & Capital Inflows)
-    const monthlyValEl = document.getElementById('dash-monthly-val');
-    const monthlyPctEl = document.getElementById('dash-monthly-pct');
-    const monthlyDepEl = document.getElementById('dash-monthly-deposits');
-    const monthlyOrgEl = document.getElementById('dash-monthly-organic');
-
-    if (snapshots.length >= 2) {
-      const latestDate = new Date(latestSnapshot.date);
-      const currentMonth = latestDate.getMonth();
-      const currentYear = latestDate.getFullYear();
-
-      // Find earliest snapshot in this month (or earliest in dataset)
-      const monthSnaps = snapshots.filter(s => {
-        const d = new Date(s.date);
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-      });
-
-      const baseSnap = monthSnaps.length > 0 ? monthSnaps[0] : snapshots[0];
-      const monthlyTotalGrowth = Number(latestSnapshot.combinedTotal) - Number(baseSnap.combinedTotal);
+      // Monthly MTD calculation
+      const currentMonthPrefix = latestSnapshot.date.substring(0, 7);
+      const monthSnaps = snapshots.filter(s => s.date.startsWith(currentMonthPrefix));
+      const baseSnap = monthSnaps[0] || snapshots[0];
+      const monthlyTotalGrowth = totalVal - (Number(baseSnap.combinedTotal) || 0);
       const monthlyGrowthPct = baseSnap.combinedTotal > 0
         ? ((monthlyTotalGrowth / baseSnap.combinedTotal) * 100).toFixed(1)
         : '0.0';
-
-      // Sum all recorded deposits in this period
-      let monthlyDeposits = 0;
-      (monthSnaps.length > 0 ? monthSnaps : snapshots).forEach(s => {
-        monthlyDeposits += Number(s.deposit || 0);
-      });
-
+      const monthlyDeposits = monthSnaps.reduce((acc, s) => acc + (Number(s.deposit) || 0), 0);
       const monthlyOrganic = monthlyTotalGrowth - monthlyDeposits;
+      const isMonthUp = monthlyTotalGrowth >= 0;
 
-      if (monthlyValEl) monthlyValEl.textContent = (monthlyTotalGrowth >= 0 ? '+' : '') + fmtINR(monthlyTotalGrowth);
+      if (monthlyValEl) monthlyValEl.textContent = `${isMonthUp ? '+' : ''}${fmtINR(monthlyTotalGrowth)}`;
       if (monthlyPctEl) {
-        const isUp = monthlyTotalGrowth >= 0;
-        monthlyPctEl.className = isUp
+        monthlyPctEl.className = isMonthUp
           ? 'text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full'
           : 'text-xs font-bold bg-red-50 text-red-700 border border-red-200/80 px-2.5 py-0.5 rounded-full';
-        monthlyPctEl.textContent = `${(isUp ? '+' : '')}${monthlyGrowthPct}% MTD`;
+        monthlyPctEl.textContent = `${isMonthUp ? '+' : ''}${monthlyGrowthPct}% MTD`;
       }
       if (monthlyDepEl) monthlyDepEl.textContent = fmtINR(monthlyDeposits);
       if (monthlyOrgEl) {
         monthlyOrgEl.className = monthlyOrganic >= 0 ? 'font-semibold text-emerald-600' : 'font-semibold text-red-600';
-        monthlyOrgEl.textContent = (monthlyOrganic >= 0 ? '+' : '') + fmtINR(monthlyOrganic);
-      }
-    } else {
-      if (monthlyValEl) monthlyValEl.textContent = '₹ 0.00';
-      if (monthlyPctEl) {
-        monthlyPctEl.className = 'text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200 px-2.5 py-0.5 rounded-full';
-        monthlyPctEl.textContent = '0.0% MTD';
-      }
-      if (monthlyDepEl) monthlyDepEl.textContent = '₹ 0.00';
-      if (monthlyOrgEl) {
-        monthlyOrgEl.className = 'font-semibold text-slate-400';
-        monthlyOrgEl.textContent = '₹ 0.00';
+        monthlyOrgEl.textContent = `${monthlyOrganic >= 0 ? '+' : ''}${fmtINR(monthlyOrganic)}`;
       }
     }
 
@@ -394,20 +431,42 @@
     const snapshots = AppState.snapshots || [];
     const W = 1000;
     const H = 220;
-    const padX = 20;
-    const padY = 20;
+    const padX = 30;
+    const padY = 25;
 
-    if (snapshots.length < 2) {
+    if (snapshots.length === 0) {
       svg.innerHTML = `
         <line x1="20" y1="110" x2="980" y2="110" stroke="rgba(226, 232, 240, 0.9)" stroke-width="1.5" stroke-dasharray="4 4"/>
-        <text x="500" y="115" fill="#94A3B8" font-size="15" text-anchor="middle" font-family="sans-serif">
-          Record at least 2 daily valuations in Portfolio to plot trend
+        <text x="500" y="115" fill="#94A3B8" font-size="14" font-weight="500" text-anchor="middle" font-family="sans-serif">
+          Your portfolio is ready. Add your first daily valuation to start tracking your growth.
         </text>
       `;
       if (labelsEl) {
         labelsEl.innerHTML = `
-          <span>No historical records yet</span>
-          <span>Add records in Portfolio tab</span>
+          <span class="text-slate-400">No records yet</span>
+          <span class="text-slate-400">Portfolio empty</span>
+        `;
+      }
+      return;
+    }
+
+    if (snapshots.length === 1) {
+      const s = snapshots[0];
+      const val = Number(s.combinedTotal) || 0;
+      svg.innerHTML = `
+        <line x1="20" y1="110" x2="980" y2="110" stroke="rgba(226, 232, 240, 0.9)" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <circle cx="500" cy="110" r="7" fill="#0F172A" stroke="#FFFFFF" stroke-width="2.5"/>
+        <text x="500" y="85" fill="#0F172A" font-size="14" font-weight="600" text-anchor="middle" font-family="sans-serif">
+          ${s.date}: ${fmtINR(val)} (Baseline)
+        </text>
+        <text x="500" y="145" fill="#94A3B8" font-size="12" text-anchor="middle" font-family="sans-serif">
+          Add another day's valuation in Portfolio to plot growth trend
+        </text>
+      `;
+      if (labelsEl) {
+        labelsEl.innerHTML = `
+          <span class="text-slate-500 font-semibold">Baseline: ${s.date}</span>
+          <span class="text-slate-400">Awaiting next entry</span>
         `;
       }
       return;
@@ -477,7 +536,7 @@
       labelsEl.innerHTML = `
         <span>${first.date} (${fmtINR(first.combinedTotal, false)})</span>
         <span>${mid.date} (${fmtINR(mid.combinedTotal, false)})</span>
-        <span class="font-semibold text-[#F4EDE0]">${last.date} (${fmtINR(last.combinedTotal, false)})</span>
+        <span class="font-semibold text-slate-800">${last.date} (${fmtINR(last.combinedTotal, false)})</span>
       `;
     }
   }
@@ -492,6 +551,38 @@
     }
     updateSnapshotFormCalculations();
     renderSnapshotTable();
+  }
+
+  // Recalculates chronological DoD deltas, percentages, and true organic returns across all records
+  async function recalculateSnapshotsChrono(snapshots) {
+    if (!snapshots || snapshots.length === 0) return [];
+    const sorted = [...snapshots].sort((a, b) => a.date.localeCompare(b.date));
+    for (let i = 0; i < sorted.length; i++) {
+      const curr = sorted[i];
+      const gCash = Number(curr.growwCash) || 0;
+      const gInv = Number(curr.growwInvested) || 0;
+      const kCash = Number(curr.kiteCash) || 0;
+      const kInv = Number(curr.kiteInvested) || 0;
+      const dep = Number(curr.deposit) || 0;
+
+      curr.growwTotal = gCash + gInv;
+      curr.kiteTotal = kCash + kInv;
+      curr.combinedTotal = curr.growwTotal + curr.kiteTotal;
+
+      if (i === 0) {
+        curr.dodDelta = 0;
+        curr.dodDeltaPct = 0;
+        curr.organicReturn = 0;
+      } else {
+        const prev = sorted[i - 1];
+        const prevTotal = Number(prev.combinedTotal) || 0;
+        curr.dodDelta = curr.combinedTotal - prevTotal;
+        curr.dodDeltaPct = prevTotal > 0 ? parseFloat(((curr.dodDelta / prevTotal) * 100).toFixed(2)) : 0;
+        curr.organicReturn = curr.dodDelta - dep;
+      }
+      await TradeDB.saveSnapshot(curr);
+    }
+    return sorted;
   }
 
   function updateSnapshotFormCalculations() {
@@ -515,30 +606,86 @@
     if (kSubEl) kSubEl.textContent = fmtINR(kSub);
     if (combEl) combEl.textContent = fmtINR(comb);
 
-    // Delta estimation vs previous recorded snapshot
-    let diff = 0;
-    let pct = '0.00';
-    if (AppState.snapshots.length > 0) {
-      const prev = AppState.snapshots[AppState.snapshots.length - 1];
-      diff = comb - prev.combinedTotal;
-      pct = prev.combinedTotal > 0 ? ((diff / prev.combinedTotal) * 100).toFixed(2) : '0.00';
+    const selectedDate = document.getElementById('snapshot-date')?.value || new Date().toISOString().split('T')[0];
+    const priorSnapshots = (AppState.snapshots || []).filter(s => s.date < selectedDate);
+
+    // If completely empty inputs and no existing records
+    if (comb === 0 && (AppState.snapshots || []).length === 0) {
+      if (deltaEl) {
+        deltaEl.className = 'text-xs font-semibold text-slate-400 tabular-nums';
+        deltaEl.textContent = '—';
+      }
+      if (organicEl) {
+        organicEl.className = 'font-semibold text-slate-400 tabular-nums';
+        organicEl.textContent = '—';
+      }
+      return;
     }
 
-    if (deltaEl) {
-      deltaEl.className = diff >= 0
-        ? 'text-xs font-bold text-emerald-600 tabular-nums'
-        : 'text-xs font-bold text-red-600 tabular-nums';
-      deltaEl.textContent = `${diff >= 0 ? '+' : ''}${fmtINR(diff)} (${diff >= 0 ? '+' : ''}${pct}%)`;
+    if (priorSnapshots.length === 0) {
+      if (deltaEl) {
+        deltaEl.className = 'text-xs font-bold text-sky-600 tabular-nums';
+        deltaEl.textContent = 'First Valuation (Baseline)';
+      }
+      if (organicEl) {
+        organicEl.className = 'font-bold text-sky-600 tabular-nums';
+        organicEl.textContent = 'Baseline';
+      }
+    } else {
+      const prev = priorSnapshots[priorSnapshots.length - 1];
+      const diff = comb - prev.combinedTotal;
+      const pct = prev.combinedTotal > 0 ? ((diff / prev.combinedTotal) * 100).toFixed(2) : '0.00';
+      const isUp = diff >= 0;
+
+      if (deltaEl) {
+        deltaEl.className = isUp
+          ? 'text-xs font-bold text-emerald-600 tabular-nums'
+          : 'text-xs font-bold text-red-600 tabular-nums';
+        deltaEl.textContent = `${isUp ? '+' : ''}${fmtINR(diff)} (${isUp ? '+' : ''}${pct}%)`;
+      }
+
+      // True Organic Market Return = Total Value Change - Net Deposit
+      const organicReturn = diff - deposit;
+      const isOrgUp = organicReturn >= 0;
+      if (organicEl) {
+        organicEl.className = isOrgUp
+          ? 'font-bold text-emerald-600 tabular-nums'
+          : 'font-bold text-red-600 tabular-nums';
+        organicEl.textContent = `${isOrgUp ? '+' : ''}${fmtINR(organicReturn)}`;
+      }
+    }
+  }
+
+  function editSnapshot(date) {
+    const snapshot = (AppState.snapshots || []).find(s => s.date === date);
+    if (!snapshot) return;
+
+    const dateInput = document.getElementById('snapshot-date');
+    const gCashInput = document.getElementById('groww-cash');
+    const gInvInput = document.getElementById('groww-invested');
+    const kCashInput = document.getElementById('kite-cash');
+    const kInvInput = document.getElementById('kite-invested');
+    const depInput = document.getElementById('snapshot-deposit');
+
+    if (dateInput) dateInput.value = snapshot.date;
+    if (gCashInput) gCashInput.value = snapshot.growwCash || '';
+    if (gInvInput) gInvInput.value = snapshot.growwInvested || '';
+    if (kCashInput) kCashInput.value = snapshot.kiteCash || '';
+    if (kInvInput) kInvInput.value = snapshot.kiteInvested || '';
+    if (depInput) depInput.value = snapshot.deposit || '';
+
+    updateSnapshotFormCalculations();
+
+    const saveBtn = document.getElementById('save-snapshot-btn');
+    if (saveBtn) {
+      saveBtn.innerHTML = `
+        <span class="material-symbols-outlined text-[16px]">edit</span>
+        <span>Update Valuation (${snapshot.date})</span>
+      `;
     }
 
-    // True Organic Market Return = Total Value Change - Net Deposit
-    const organicReturn = diff - deposit;
-    if (organicEl) {
-      organicEl.className = organicReturn >= 0
-        ? 'font-bold text-emerald-600 tabular-nums'
-        : 'font-bold text-red-600 tabular-nums';
-      organicEl.textContent = `${organicReturn >= 0 ? '+' : ''}${fmtINR(organicReturn)}`;
-    }
+    dateInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showToast(`Editing valuation for ${snapshot.date}`, 'info');
   }
 
   async function handleSaveSnapshot() {
@@ -563,17 +710,19 @@
       const kTotal = kCash + kInv;
       const combinedTotal = gTotal + kTotal;
 
-      // Calculate DoD delta vs previous chronologically
-      let dodDelta = 0;
-      let dodDeltaPct = 0;
-      const prevSnapshots = (AppState.snapshots || []).filter(s => s.date < date);
-      if (prevSnapshots.length > 0) {
-        const lastPrev = prevSnapshots[prevSnapshots.length - 1];
-        dodDelta = combinedTotal - lastPrev.combinedTotal;
-        dodDeltaPct = lastPrev.combinedTotal > 0 ? (dodDelta / lastPrev.combinedTotal) * 100 : 0;
+      if (combinedTotal === 0 && gCash === 0 && gInv === 0 && kCash === 0 && kInv === 0) {
+        showToast('Please enter cash or invested amounts to record valuation', 'warning');
+        return;
       }
 
-      const organicReturn = dodDelta - deposit;
+      const saveBtn = document.getElementById('save-snapshot-btn');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `
+          <span class="material-symbols-outlined text-[18px] animate-spin">refresh</span>
+          <span>Recording Valuation...</span>
+        `;
+      }
 
       const snapshot = {
         date,
@@ -584,38 +733,15 @@
         growwTotal: gTotal,
         kiteTotal: kTotal,
         combinedTotal,
-        dodDelta,
-        dodDeltaPct: parseFloat(dodDeltaPct.toFixed(2)),
+        dodDelta: 0,
+        dodDeltaPct: 0,
         deposit,
-        organicReturn
+        organicReturn: 0
       };
 
-      const saveBtn = document.getElementById('save-snapshot-btn');
-      if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = `
-          <span class="material-symbols-outlined text-[18px] animate-spin">refresh</span>
-          <span>Saving Valuation...</span>
-        `;
-      }
-
-      // Immediately record into memory for zero latency
-      if (!AppState.snapshots) AppState.snapshots = [];
-      const existingIdx = AppState.snapshots.findIndex(s => s.date === date);
-      if (existingIdx >= 0) {
-        AppState.snapshots[existingIdx] = snapshot;
-      } else {
-        AppState.snapshots.push(snapshot);
-      }
-      AppState.snapshots.sort((a, b) => a.date.localeCompare(b.date));
-
-      try {
-        await TradeDB.saveSnapshot(snapshot);
-      } catch (dbErr) {
-        console.warn('Snapshot storage:', dbErr);
-      }
-
-      await reloadAllData();
+      await TradeDB.saveSnapshot(snapshot);
+      const all = await TradeDB.getSnapshots();
+      AppState.snapshots = await recalculateSnapshotsChrono(all);
 
       if (saveBtn) {
         saveBtn.innerHTML = `
@@ -631,9 +757,24 @@
         }, 1500);
       }
 
+      // Clear input fields for next entry
+      const gCashIn = document.getElementById('groww-cash');
+      const gInvIn = document.getElementById('groww-invested');
+      const kCashIn = document.getElementById('kite-cash');
+      const kInvIn = document.getElementById('kite-invested');
+      const depIn = document.getElementById('snapshot-deposit');
+      if (gCashIn) gCashIn.value = '';
+      if (gInvIn) gInvIn.value = '';
+      if (kCashIn) kCashIn.value = '';
+      if (kInvIn) kInvIn.value = '';
+      if (depIn) depIn.value = '';
+
       showToast(`Valuation for ${date} recorded in ledger`, 'success');
       renderSnapshotTable();
       renderDashboard();
+      updateSnapshotFormCalculations();
+    } catch (err) {
+      showToast('Failed to save valuation: ' + err.message, 'error');
     } finally {
       AppState._isSavingSnapshot = false;
     }
@@ -644,14 +785,14 @@
     const countBadge = document.getElementById('snapshot-count-badge');
     if (!tbody) return;
 
-    const list = [...AppState.snapshots].sort((a, b) => b.date.localeCompare(a.date));
+    const list = [...(AppState.snapshots || [])].sort((a, b) => b.date.localeCompare(a.date));
     if (countBadge) countBadge.textContent = `${list.length} Records`;
 
     if (list.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="p-6 text-center text-slate-400 text-xs font-medium">
-            No snapshots recorded yet. Record your daily valuation above.
+          <td colspan="7" class="p-8 text-center text-slate-400 text-xs font-medium">
+            No valuation snapshots recorded yet. Enter your daily figures above to build your ledger.
           </td>
         </tr>
       `;
@@ -690,7 +831,10 @@
             </span>
           </td>
           <td class="p-2.5 text-right whitespace-nowrap">
-            <button class="p-1 rounded text-slate-400 hover:text-red-600 transition-colors" data-action="delete-snapshot" data-snapshot-date="${s.date}" title="Delete Record">
+            <button class="p-1 rounded text-slate-400 hover:text-slate-800 transition-colors mr-1 cursor-pointer" onclick="window.App.editSnapshot('${s.date}')" data-action="edit-snapshot" data-date="${s.date}" title="Edit Valuation" aria-label="Edit">
+              <span class="material-symbols-outlined text-[15px]">edit</span>
+            </button>
+            <button class="p-1 rounded text-slate-400 hover:text-red-600 transition-colors cursor-pointer" onclick="window.App.confirmDeleteSnapshot('${s.date}')" data-action="delete-snapshot" data-snapshot-date="${s.date}" title="Delete Record" aria-label="Delete">
               <span class="material-symbols-outlined text-[15px]">delete</span>
             </button>
           </td>
@@ -711,14 +855,18 @@
 
   async function executeDeleteSnapshot() {
     if (!AppState.deletingSnapshotDate) return;
-    await TradeDB.deleteSnapshot(AppState.deletingSnapshotDate);
+    const targetDate = AppState.deletingSnapshotDate;
     AppState.deletingSnapshotDate = null;
     closeDeleteSnapshotModal();
 
-    showToast('Snapshot deleted', 'success');
-    await reloadAllData();
+    await TradeDB.deleteSnapshot(targetDate);
+    const remaining = (AppState.snapshots || []).filter(s => s.date !== targetDate);
+    AppState.snapshots = await recalculateSnapshotsChrono(remaining);
+
+    showToast(`Valuation for ${targetDate} deleted`, 'success');
     renderSnapshotTable();
     renderDashboard();
+    updateSnapshotFormCalculations();
   }
 
   function closeDeleteSnapshotModal() {
@@ -809,6 +957,61 @@
     const sellPrice = parseFloat(document.getElementById('calc-sell-price')?.value) || 0;
     const qty = parseInt(document.getElementById('calc-trade-qty')?.value, 10) || 0;
 
+    // Populate Table Cells helper
+    const setCell = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = fmtINR(val);
+    };
+
+    const turnEl = document.getElementById('calc-turnover-display');
+    const grossEl = document.getElementById('metric-gross-pnl');
+    const netEl = document.getElementById('metric-net-pnl');
+    const netRoiEl = document.getElementById('metric-net-roi');
+    const chargesEl = document.getElementById('metric-total-charges');
+    const pillEl = document.getElementById('pnl-status-pill');
+    const bePriceEl = document.getElementById('breakeven-price');
+    const beGapEl = document.getElementById('breakeven-gap');
+    const brokFormula = document.getElementById('row-brokerage-formula');
+
+    // If inputs are empty or 0, display clean neutral initial state (no fabricated results)
+    if (buyPrice <= 0 || qty <= 0) {
+      setCell('cell-brokerage', 0);
+      setCell('cell-stt', 0);
+      setCell('cell-stamp', 0);
+      setCell('cell-exch', 0);
+      setCell('cell-sebi', 0);
+      setCell('cell-ipft', 0);
+      setCell('cell-dp', 0);
+      setCell('cell-gst', 0);
+      setCell('cell-total-deductions', 0);
+
+      if (turnEl) turnEl.innerHTML = 'Buy: ₹0.00 | Sell: ₹0.00 | Total: ₹0.00';
+      if (grossEl) grossEl.textContent = '₹0.00';
+      if (chargesEl) chargesEl.textContent = '₹0.00';
+      if (netEl) {
+        netEl.className = 'font-serif text-[18px] font-semibold text-slate-600 tabular-nums mt-0.5';
+        netEl.textContent = '₹0.00';
+      }
+      if (netRoiEl) {
+        netRoiEl.className = 'text-[10px] font-semibold text-slate-400';
+        netRoiEl.textContent = '0.00% ROI';
+      }
+      if (pillEl) {
+        pillEl.textContent = 'READY';
+        pillEl.className = 'text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded';
+      }
+      if (bePriceEl) bePriceEl.textContent = '₹0.00';
+      if (beGapEl) beGapEl.textContent = '+₹0.00 / share buffer';
+      if (brokFormula) {
+        if (AppState.calculatorState.broker === 'zerodha' && AppState.calculatorState.segment === 'delivery') {
+          brokFormula.textContent = 'Zero Brokerage for Equity Delivery (Kite)';
+        } else {
+          brokFormula.textContent = '₹20 or 0.05% whichever lower';
+        }
+      }
+      return;
+    }
+
     const res = NSECalculator.calculate({
       broker: AppState.calculatorState.broker,
       segment: AppState.calculatorState.segment,
@@ -817,12 +1020,6 @@
       qty,
       customDp: AppState.settings.customDp
     });
-
-    // Populate Table Cells
-    const setCell = (id, val) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = fmtINR(val);
-    };
 
     setCell('cell-brokerage', res.totalBrokerage);
     setCell('cell-stt', res.stt);
@@ -834,14 +1031,10 @@
     setCell('cell-gst', res.gst);
     setCell('cell-total-deductions', res.totalCharges);
 
-    // Turnover display
-    const turnEl = document.getElementById('calc-turnover-display');
     if (turnEl) {
       turnEl.innerHTML = `Buy: ${fmtINR(res.buyTurnover)} | Sell: ${fmtINR(res.sellTurnover)} | Total: ${fmtINR(res.totalTurnover)}`;
     }
 
-    // Formulas Text
-    const brokFormula = document.getElementById('row-brokerage-formula');
     if (brokFormula) {
       if (AppState.calculatorState.broker === 'zerodha' && AppState.calculatorState.segment === 'delivery') {
         brokFormula.textContent = 'Zero Brokerage for Equity Delivery (Kite)';
@@ -849,13 +1042,6 @@
         brokFormula.textContent = `₹20 or 0.05% whichever lower (Buy ₹${res.buyBrokerage.toFixed(2)} + Sell ₹${res.sellBrokerage.toFixed(2)})`;
       }
     }
-
-    // Metric Cards
-    const grossEl = document.getElementById('metric-gross-pnl');
-    const netEl = document.getElementById('metric-net-pnl');
-    const netRoiEl = document.getElementById('metric-net-roi');
-    const chargesEl = document.getElementById('metric-total-charges');
-    const pillEl = document.getElementById('pnl-status-pill');
 
     if (grossEl) grossEl.textContent = (res.grossPnL >= 0 ? '+' : '') + fmtINR(res.grossPnL);
     if (chargesEl) chargesEl.textContent = '-' + fmtINR(res.totalCharges);
@@ -873,18 +1059,18 @@
     }
 
     if (pillEl) {
-      if (res.netPnL >= 0) {
+      if (res.netPnL > 0) {
         pillEl.textContent = 'WIN';
         pillEl.className = 'text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded';
-      } else {
+      } else if (res.netPnL < 0) {
         pillEl.textContent = 'LOSS';
         pillEl.className = 'text-[9px] font-bold text-red-700 bg-red-50 px-1.5 py-0.5 rounded';
+      } else {
+        pillEl.textContent = 'EVEN';
+        pillEl.className = 'text-[9px] font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded';
       }
     }
 
-    // Breakeven display
-    const bePriceEl = document.getElementById('breakeven-price');
-    const beGapEl = document.getElementById('breakeven-gap');
     if (bePriceEl) bePriceEl.textContent = fmtINR(res.bePrice);
     if (beGapEl) {
       const diff = res.bePrice - buyPrice;
@@ -1042,8 +1228,13 @@
         case 'export-portfolio-csv':
           exportPortfolioCSV();
           break;
+        case 'edit-snapshot': {
+          const dateStr = actionBtn.getAttribute('data-date') || actionBtn.getAttribute('data-snapshot-date');
+          if (dateStr) editSnapshot(dateStr);
+          break;
+        }
         case 'delete-snapshot': {
-          const dateStr = actionBtn.getAttribute('data-snapshot-date');
+          const dateStr = actionBtn.getAttribute('data-snapshot-date') || actionBtn.getAttribute('data-date');
           if (dateStr) confirmDeleteSnapshot(dateStr);
           break;
         }
@@ -1220,6 +1411,7 @@
   window.App._calculateAllCalculator = calculateAllCalculator;
   window.App._updateSnapshotFormCalculations = updateSnapshotFormCalculations;
   window.App._handleSaveSnapshot = handleSaveSnapshot;
+  window.App._editSnapshot = editSnapshot;
   window.App._copyCalculatorSummary = copyCalculatorSummary;
   window.App._exportPortfolioCSV = exportPortfolioCSV;
   window.App._closeDeleteSnapshotModal = closeDeleteSnapshotModal;
@@ -1236,6 +1428,7 @@
     showToast,
     // Portfolio
     handleSaveSnapshot,
+    editSnapshot,
     updateSnapshotFormCalculations,
     confirmDeleteSnapshot,
     executeDeleteSnapshot,

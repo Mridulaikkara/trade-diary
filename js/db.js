@@ -16,18 +16,21 @@ const TradeDB = (function() {
 
   let dbInstance = null;
 
-  // Initial Datasets: Reference sample values for user reference
-  const INITIAL_SNAPSHOTS = [
-    { date: '2026-11-09', growwCash: 22000, growwInvested: 188500, kiteCash: 35000, kiteInvested: 18200, growwTotal: 210500, kiteTotal: 53200, combinedTotal: 263700, dodDelta: 0, dodDeltaPct: 0, deposit: 0, organicReturn: 0 },
-    { date: '2026-11-10', growwCash: 22000, growwInvested: 190450, kiteCash: 35000, kiteInvested: 18480, growwTotal: 212450, kiteTotal: 53480, combinedTotal: 265930, dodDelta: 2230, dodDeltaPct: 0.85, deposit: 0, organicReturn: 2230 },
-    { date: '2026-11-11', growwCash: 22000, growwInvested: 192100, kiteCash: 35000, kiteInvested: 18620, growwTotal: 214100, kiteTotal: 53620, combinedTotal: 267720, dodDelta: 1790, dodDeltaPct: 0.67, deposit: 0, organicReturn: 1790 },
-    { date: '2026-11-12', growwCash: 22000, growwInvested: 194800, kiteCash: 35000, kiteInvested: 18940, growwTotal: 216800, kiteTotal: 53940, combinedTotal: 270740, dodDelta: 3020, dodDeltaPct: 1.13, deposit: 0, organicReturn: 3020 },
-    { date: '2026-11-13', growwCash: 22000, growwInvested: 196200, kiteCash: 35000, kiteInvested: 19150, growwTotal: 218200, kiteTotal: 54150, combinedTotal: 272350, dodDelta: 1610, dodDeltaPct: 0.59, deposit: 0, organicReturn: 1610 },
-    { date: '2026-11-14', growwCash: 22000, growwInvested: 198400, kiteCash: 35000, kiteInvested: 19450, growwTotal: 220400, kiteTotal: 54450, combinedTotal: 274850, dodDelta: 2500, dodDeltaPct: 0.92, deposit: 0, organicReturn: 2500 }
-  ];
+  // Initial Datasets: Clean, empty starting state (zero demo data)
+  const INITIAL_SNAPSHOTS = [];
   const INITIAL_TRADES = [];
 
   // Helper functions for safe LocalStorage access (works across normal and Private Browsing)
+  function isDemoSnapshot(item) {
+    if (!item || !item.date) return false;
+    // Known demo dates and values used during development
+    if (item.date.startsWith('2025-05-') || item.date === '2024-10-24') return true;
+    if (item.combinedTotal === 274850 || item.combinedTotal === 263700 || item.combinedTotal === 273088 || item.combinedTotal === 265930 || item.combinedTotal === 267720 || item.combinedTotal === 270740 || item.combinedTotal === 272350) return true;
+    if (item.growwCash === 22000 && item.kiteCash === 35000 && item.growwInvested === 198400) return true;
+    if (item.growwCash === 20000 && item.kiteCash === 33070 && item.growwInvested === 204228) return true;
+    return false;
+  }
+
   function readLS(key, fallback) {
     try {
       if (typeof localStorage !== 'undefined') {
@@ -35,11 +38,16 @@ const TradeDB = (function() {
         if (raw) {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed)) {
-            // Automatically purge legacy sample seed data (all starting with 2025-05-)
-            const isLegacySample = parsed.length > 0 && parsed.every(item => item.date && (item.date.startsWith('2025-05-') || item.date === '2024-10-24'));
-            if (isLegacySample) {
-              localStorage.removeItem(key);
-              return fallback;
+            // Automatically purge development demo data
+            const cleanRecords = parsed.filter(item => !isDemoSnapshot(item));
+            if (cleanRecords.length !== parsed.length) {
+              if (cleanRecords.length === 0) {
+                localStorage.removeItem(key);
+                return fallback;
+              } else {
+                localStorage.setItem(key, JSON.stringify(cleanRecords));
+                return cleanRecords;
+              }
             }
             if (parsed.length > 0) return parsed;
             return fallback;
@@ -154,7 +162,7 @@ const TradeDB = (function() {
   // Public Database API
   return {
     init: async () => {
-      // Warm up IndexedDB connection in the background; purge legacy sample data if present
+      // Warm up IndexedDB connection in the background; purge legacy/demo sample data if present
       openDB().then(async (db) => {
         if (db && db.objectStoreNames.contains('snapshots')) {
           try {
@@ -163,10 +171,11 @@ const TradeDB = (function() {
             const getAllReq = store.getAll();
             getAllReq.onsuccess = () => {
               const items = getAllReq.result || [];
-              const isLegacy = items.length > 0 && items.every(item => item.date && (item.date.startsWith('2025-05-') || item.date === '2024-10-24'));
-              if (isLegacy) {
+              const demoItems = items.filter(isDemoSnapshot);
+              if (demoItems.length > 0) {
                 const clearTx = db.transaction('snapshots', 'readwrite');
-                clearTx.objectStore('snapshots').clear();
+                const writeStore = clearTx.objectStore('snapshots');
+                demoItems.forEach(item => writeStore.delete(item.date));
               }
             };
           } catch (e) {}
@@ -176,33 +185,32 @@ const TradeDB = (function() {
     },
 
     // Synchronous initial data getters (guaranteed instant availability)
-    getInitialTrades: () => JSON.parse(JSON.stringify(INITIAL_TRADES)),
-    getInitialSnapshots: () => JSON.parse(JSON.stringify(INITIAL_SNAPSHOTS)),
+    getInitialTrades: () => [],
+    getInitialSnapshots: () => [],
 
-    // Snapshots: Synchronous 0ms response backed by LocalStorage & Memory
+    // Snapshots: Clean retrieval backed by LocalStorage & Memory (zero auto-seeding)
     getSnapshots: async () => {
-      if (!memoryStore.snapshots || memoryStore.snapshots.length === 0) {
-        memoryStore.snapshots = [...INITIAL_SNAPSHOTS];
-        writeLS(LS_SNAPSHOTS_KEY, memoryStore.snapshots);
+      if (!memoryStore.snapshots) {
+        memoryStore.snapshots = [];
       }
       return [...memoryStore.snapshots].sort((a, b) => a.date.localeCompare(b.date));
     },
 
     getAllSnapshots: async () => {
-      if (!memoryStore.snapshots || memoryStore.snapshots.length === 0) {
-        memoryStore.snapshots = [...INITIAL_SNAPSHOTS];
-        writeLS(LS_SNAPSHOTS_KEY, memoryStore.snapshots);
+      if (!memoryStore.snapshots) {
+        memoryStore.snapshots = [];
       }
       return [...memoryStore.snapshots].sort((a, b) => a.date.localeCompare(b.date));
     },
 
     getSnapshot: (date) => {
-      return memoryStore.snapshots.find(s => s.date === date) || null;
+      return (memoryStore.snapshots || []).find(s => s.date === date) || null;
     },
 
     saveSnapshot: async (snapshot) => {
       if (!snapshot || !snapshot.date) return null;
 
+      if (!memoryStore.snapshots) memoryStore.snapshots = [];
       const idx = memoryStore.snapshots.findIndex(s => s.date === snapshot.date);
       if (idx >= 0) {
         memoryStore.snapshots[idx] = snapshot;
@@ -221,6 +229,7 @@ const TradeDB = (function() {
     },
 
     deleteSnapshot: async (date) => {
+      if (!memoryStore.snapshots) memoryStore.snapshots = [];
       memoryStore.snapshots = memoryStore.snapshots.filter(s => s.date !== date);
       writeLS(LS_SNAPSHOTS_KEY, memoryStore.snapshots);
       mirrorDeleteToIndexedDB('snapshots', date);
@@ -251,9 +260,9 @@ const TradeDB = (function() {
       return JSON.stringify({
         version: '3.0.0',
         exportedAt: new Date().toISOString(),
-        trades: memoryStore.trades,
-        snapshots: memoryStore.snapshots,
-        settings: memoryStore.settings
+        trades: memoryStore.trades || [],
+        snapshots: memoryStore.snapshots || [],
+        settings: memoryStore.settings || []
       }, null, 2);
     },
 
@@ -263,7 +272,7 @@ const TradeDB = (function() {
         throw new Error('Invalid backup file format.');
       }
 
-      if (Array.isArray(data.snapshots) && data.snapshots.length > 0) {
+      if (Array.isArray(data.snapshots)) {
         memoryStore.snapshots = data.snapshots;
         writeLS(LS_SNAPSHOTS_KEY, memoryStore.snapshots);
         mirrorClearToIndexedDB('snapshots');
@@ -279,14 +288,13 @@ const TradeDB = (function() {
       return true;
     },
 
-    // Reset database to initial sample seed data
+    // Clean reset to empty state (zero demo data)
     resetToSampleData: async () => {
-      memoryStore.snapshots = [...INITIAL_SNAPSHOTS];
-      memoryStore.trades = [...INITIAL_TRADES];
-      writeLS(LS_SNAPSHOTS_KEY, memoryStore.snapshots);
-      writeLS(LS_TRADES_KEY, memoryStore.trades);
+      memoryStore.snapshots = [];
+      memoryStore.trades = [];
+      writeLS(LS_SNAPSHOTS_KEY, []);
+      writeLS(LS_TRADES_KEY, []);
       mirrorClearToIndexedDB('snapshots');
-      INITIAL_SNAPSHOTS.forEach(s => mirrorToIndexedDB('snapshots', s));
       return true;
     },
 
