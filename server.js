@@ -5,6 +5,20 @@ const path = require('path');
 const PORT = process.env.PORT || 3000;
 const root = __dirname;
 
+// Static path hints for Vercel NFT (Node File Trace) bundler
+try {
+  path.join(__dirname, 'icons', 'header-brand.png');
+  path.join(__dirname, 'icons', 'header-logo.png');
+  path.join(__dirname, 'icons', 'icon-192.png');
+  path.join(__dirname, 'icons', 'icon-512.png');
+  path.join(__dirname, 'icons', 'apple-touch-icon.png');
+  path.join(__dirname, 'icons', 'favicon-32.png');
+  path.join(__dirname, 'icons', 'favicon-16.png');
+  path.join(__dirname, 'icons', 'favicon-64.png');
+  path.join(__dirname, 'favicon.png');
+  path.join(__dirname, 'manifest.json');
+} catch (e) {}
+
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
