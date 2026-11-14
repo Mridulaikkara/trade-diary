@@ -198,12 +198,12 @@
      VIEW 1: DASHBOARD (PORTFOLIO VALUE & GROWTH INSIGHTS)
      ========================================================================== */
   function renderDashboard() {
-    const snapshots = AppState.snapshots;
+    const snapshots = AppState.snapshots || [];
     const latestSnapshot = snapshots.length > 0 ? snapshots[snapshots.length - 1] : null;
     const prevSnapshot = snapshots.length > 1 ? snapshots[snapshots.length - 2] : null;
 
     // 1. Hero Total Valuation
-    const totalVal = latestSnapshot ? (Number(latestSnapshot.combinedTotal) || 0) : 273088;
+    const totalVal = latestSnapshot ? (Number(latestSnapshot.combinedTotal) || 0) : 0;
     const totalValEl = document.getElementById('dash-total-val');
     const headerValEl = document.getElementById('header-total-valuation');
 
@@ -211,6 +211,22 @@
     if (headerValEl) headerValEl.textContent = fmtINR(totalVal);
 
     // 2. Dual Broker Cards (Groww & Zerodha Kite)
+    const gShareEl = document.getElementById('dash-groww-share');
+    const gValEl = document.getElementById('dash-groww-val');
+    const gInvEl = document.getElementById('dash-groww-inv');
+    const gCashEl = document.getElementById('dash-groww-cash');
+
+    const kShareEl = document.getElementById('dash-kite-share');
+    const kValEl = document.getElementById('dash-kite-val');
+    const kInvEl = document.getElementById('dash-kite-inv');
+    const kCashEl = document.getElementById('dash-kite-cash');
+
+    const ratioEl = document.getElementById('dash-allocation-ratio');
+    const barInvEl = document.getElementById('dash-alloc-bar-inv');
+    const barCashEl = document.getElementById('dash-alloc-bar-cash');
+    const totalInvEl = document.getElementById('dash-total-inv');
+    const totalCashEl = document.getElementById('dash-total-cash');
+
     if (latestSnapshot) {
       const gVal = Number(latestSnapshot.growwTotal) || 0;
       const kVal = Number(latestSnapshot.kiteTotal) || 0;
@@ -222,20 +238,10 @@
       const gShare = totalVal > 0 ? ((gVal / totalVal) * 100).toFixed(1) : '0.0';
       const kShare = totalVal > 0 ? ((kVal / totalVal) * 100).toFixed(1) : '0.0';
 
-      const gShareEl = document.getElementById('dash-groww-share');
-      const gValEl = document.getElementById('dash-groww-val');
-      const gInvEl = document.getElementById('dash-groww-inv');
-      const gCashEl = document.getElementById('dash-groww-cash');
-
       if (gShareEl) gShareEl.textContent = `${gShare}%`;
       if (gValEl) gValEl.innerHTML = fmtINR(gVal);
       if (gInvEl) gInvEl.innerHTML = fmtINR(gInv);
       if (gCashEl) gCashEl.innerHTML = fmtINR(gCash);
-
-      const kShareEl = document.getElementById('dash-kite-share');
-      const kValEl = document.getElementById('dash-kite-val');
-      const kInvEl = document.getElementById('dash-kite-inv');
-      const kCashEl = document.getElementById('dash-kite-cash');
 
       if (kShareEl) kShareEl.textContent = `${kShare}%`;
       if (kValEl) kValEl.innerHTML = fmtINR(kVal);
@@ -248,17 +254,27 @@
       const invPct = totalVal > 0 ? ((totalInv / totalVal) * 100).toFixed(1) : '0.0';
       const cashPct = totalVal > 0 ? ((totalCash / totalVal) * 100).toFixed(1) : '0.0';
 
-      const ratioEl = document.getElementById('dash-allocation-ratio');
-      const barInvEl = document.getElementById('dash-alloc-bar-inv');
-      const barCashEl = document.getElementById('dash-alloc-bar-cash');
-      const totalInvEl = document.getElementById('dash-total-inv');
-      const totalCashEl = document.getElementById('dash-total-cash');
-
       if (ratioEl) ratioEl.textContent = `Invested ${invPct}% · Cash ${cashPct}%`;
       if (barInvEl) barInvEl.style.width = `${invPct}%`;
       if (barCashEl) barCashEl.style.width = `${cashPct}%`;
       if (totalInvEl) totalInvEl.textContent = fmtINR(totalInv);
       if (totalCashEl) totalCashEl.textContent = fmtINR(totalCash);
+    } else {
+      if (gShareEl) gShareEl.textContent = '0.0%';
+      if (gValEl) gValEl.innerHTML = fmtINR(0);
+      if (gInvEl) gInvEl.innerHTML = fmtINR(0);
+      if (gCashEl) gCashEl.innerHTML = fmtINR(0);
+
+      if (kShareEl) kShareEl.textContent = '0.0%';
+      if (kValEl) kValEl.innerHTML = fmtINR(0);
+      if (kInvEl) kInvEl.innerHTML = fmtINR(0);
+      if (kCashEl) kCashEl.innerHTML = fmtINR(0);
+
+      if (ratioEl) ratioEl.textContent = 'Invested 0.0% · Cash 0.0%';
+      if (barInvEl) barInvEl.style.width = '0%';
+      if (barCashEl) barCashEl.style.width = '0%';
+      if (totalInvEl) totalInvEl.textContent = fmtINR(0);
+      if (totalCashEl) totalCashEl.textContent = fmtINR(0);
     }
 
     // 3. Daily Performance (DoD)
@@ -296,18 +312,25 @@
         : 'text-xs font-bold bg-[#0D1527] text-[#F87171] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full';
       todayDeltaPctEl.textContent = (isUp ? '+' : '') + deltaPct + '%';
     }
-    if (prevCloseEl && prevSnapshot) {
-      prevCloseEl.textContent = `Prev Close: ${fmtINR(prevSnapshot.combinedTotal)}`;
+    if (prevCloseEl) {
+      prevCloseEl.textContent = prevSnapshot ? `Prev Close: ${fmtINR(prevSnapshot.combinedTotal)}` : 'Prev Close: ₹ 0.00';
     }
     if (organicTodayEl) {
-      if (depositToday !== 0) {
+      if (latestSnapshot && depositToday !== 0) {
         organicTodayEl.textContent = `Capital Inflow: ${fmtINR(depositToday)} | Market Gain: ${(organicToday >= 0 ? '+' : '')}${fmtINR(organicToday)}`;
-      } else {
+      } else if (latestSnapshot) {
         organicTodayEl.textContent = `Organic Market Return: ${(organicToday >= 0 ? '+' : '')}${fmtINR(organicToday)}`;
+      } else {
+        organicTodayEl.textContent = 'Organic Market Return: ₹ 0.00';
       }
     }
 
     // 4. Monthly Performance (MTD / 30-Day Growth & Capital Inflows)
+    const monthlyValEl = document.getElementById('dash-monthly-val');
+    const monthlyPctEl = document.getElementById('dash-monthly-pct');
+    const monthlyDepEl = document.getElementById('dash-monthly-deposits');
+    const monthlyOrgEl = document.getElementById('dash-monthly-organic');
+
     if (snapshots.length >= 2) {
       const latestDate = new Date(latestSnapshot.date);
       const currentMonth = latestDate.getMonth();
@@ -333,11 +356,6 @@
 
       const monthlyOrganic = monthlyTotalGrowth - monthlyDeposits;
 
-      const monthlyValEl = document.getElementById('dash-monthly-val');
-      const monthlyPctEl = document.getElementById('dash-monthly-pct');
-      const monthlyDepEl = document.getElementById('dash-monthly-deposits');
-      const monthlyOrgEl = document.getElementById('dash-monthly-organic');
-
       if (monthlyValEl) monthlyValEl.textContent = (monthlyTotalGrowth >= 0 ? '+' : '') + fmtINR(monthlyTotalGrowth);
       if (monthlyPctEl) {
         const isUp = monthlyTotalGrowth >= 0;
@@ -351,6 +369,17 @@
         monthlyOrgEl.className = monthlyOrganic >= 0 ? 'font-semibold text-[#7AD9A5]' : 'font-semibold text-[#F87171]';
         monthlyOrgEl.textContent = (monthlyOrganic >= 0 ? '+' : '') + fmtINR(monthlyOrganic);
       }
+    } else {
+      if (monthlyValEl) monthlyValEl.textContent = '₹ 0.00';
+      if (monthlyPctEl) {
+        monthlyPctEl.className = 'text-xs font-bold bg-[#0D1527] text-[#F4EDE0]/70 border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full';
+        monthlyPctEl.textContent = '0.0% MTD';
+      }
+      if (monthlyDepEl) monthlyDepEl.textContent = '₹ 0.00';
+      if (monthlyOrgEl) {
+        monthlyOrgEl.className = 'font-semibold text-[#F4EDE0]/70';
+        monthlyOrgEl.textContent = '₹ 0.00';
+      }
     }
 
     // 5. Render SVG Growth Curve
@@ -362,22 +391,27 @@
     const labelsEl = document.getElementById('dash-chart-labels');
     if (!svg) return;
 
-    let snapshots = AppState.snapshots;
-    if (!snapshots || snapshots.length < 2) {
-      snapshots = [
-        { date: '01 May', combinedTotal: 240488 },
-        { date: '05 May', combinedTotal: 244350 },
-        { date: '08 May', combinedTotal: 247120 },
-        { date: '12 May', combinedTotal: 253000 },
-        { date: '14 May', combinedTotal: 269528 },
-        { date: '16 May', combinedTotal: 273088 }
-      ];
-    }
-
+    const snapshots = AppState.snapshots || [];
     const W = 1000;
     const H = 220;
     const padX = 20;
     const padY = 20;
+
+    if (snapshots.length < 2) {
+      svg.innerHTML = `
+        <line x1="20" y1="110" x2="980" y2="110" stroke="rgba(244, 237, 224, 0.12)" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <text x="500" y="115" fill="rgba(244, 237, 224, 0.45)" font-size="16" text-anchor="middle" font-family="sans-serif">
+          Record at least 2 daily valuations in Portfolio to plot trend
+        </text>
+      `;
+      if (labelsEl) {
+        labelsEl.innerHTML = `
+          <span>No historical records yet</span>
+          <span>Add records in Portfolio tab</span>
+        `;
+      }
+      return;
+    }
 
     const values = snapshots.map(s => Number(s.combinedTotal) || 0);
     const minVal = Math.min(...values) * 0.98;

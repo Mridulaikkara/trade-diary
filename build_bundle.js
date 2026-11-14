@@ -22,12 +22,20 @@ console.log(`  App JS size: ${(appJs.length / 1024).toFixed(1)} KB`);
 console.log('3. Reading template index.html...');
 let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 
-// Replace external stylesheet link with embedded <style>
-const styleTag = `<style id="app-compiled-styles">\n${cssContent}\n</style>`;
-html = html.replace(/<link rel="stylesheet" href="css\/styles\.css[^"]*"\/>/, styleTag);
+// Strip previous compiled styles if present
+html = html.replace(/<style id="app-compiled-styles">[\s\S]*?<\/style>\s*/, '');
+html = html.replace(/<link rel="stylesheet" href="css\/styles\.css[^"]*"\/>\s*/, '');
 
-// Remove the external script tags in head
-html = html.replace(/<script src="js\/calculator\.js[^"]*"><\/script>\s*<script src="js\/db\.js[^"]*"><\/script>\s*<script src="js\/app\.js[^"]*"><\/script>/, '');
+// Inject updated compiled styles before </head>
+const styleTag = `  <style id="app-compiled-styles">\n${cssContent}\n  </style>\n</head>`;
+html = html.replace('</head>', styleTag);
+
+// Remove external script tags if present
+html = html.replace(/<script src="js\/calculator\.js[^"]*"><\/script>\s*<script src="js\/db\.js[^"]*"><\/script>\s*<script src="js\/app\.js[^"]*"><\/script>\s*/, '');
+
+// Strip previous bundled script if present
+html = html.replace(/\s*<!-- Self-Contained Atomic Application Engine[\s\S]*?<\/script>\s*<\/body>/, '\n</body>');
+html = html.replace(/\s*<script id="app-bundle-engine">[\s\S]*?<\/script>\s*<\/body>/, '\n</body>');
 
 // Append self-contained bundle at the end of body before </body>
 const bundledScript = `
