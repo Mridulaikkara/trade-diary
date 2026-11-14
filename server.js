@@ -74,7 +74,7 @@ const server = http.createServer(requestHandler);
 
 if (require.main === module || !process.env.VERCEL) {
   server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Trade Diary running at: http://localhost:${PORT}`);
+    console.log(`Trade Journal running at: http://localhost:${PORT}`);
   });
 }
 

@@ -1,6 +1,6 @@
 {
-  "name": "Trade Diary",
-  "short_name": "Trade Diary",
+  "name": "Trade Journal",
+  "short_name": "Trade Journal",
   "description": "Deterministic NSE brokerage tariff calculator, EOD portfolio tracker and performance analytics with 100% offline IndexedDB persistence.",
   "start_url": "./",
   "scope": "./",
