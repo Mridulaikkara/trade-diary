@@ -1,5 +1,5 @@
 /**
- * Trade Journal — Core Application Engine
+ * Trade Diary — Core Application Engine
  * High-performance, offline-first portfolio tracker and deterministic NSE brokerage calculator.
  *
  * ALL interactivity is handled via a single delegated 'click' listener on document.
@@ -756,7 +756,7 @@
     const encoded = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encoded);
-    link.setAttribute('download', `TradeJournal_Portfolio_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `TradeDiary_Portfolio_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -899,7 +899,7 @@
     const totalCharges = document.getElementById('cell-total-deductions')?.textContent || '₹0';
     const bePrice = document.getElementById('breakeven-price')?.textContent || '₹0';
 
-    const summaryText = `[Trade Journal NSE Calculator]\nBroker: ${AppState.calculatorState.broker.toUpperCase()} | Segment: ${AppState.calculatorState.segment.toUpperCase()}\nBuy Price: ₹${buyPrice} | Sell Price: ₹${sellPrice} | Qty: ${qty}\nTotal Charges: ${totalCharges}\nNet Realized P&L: ${netPnL}\nBreak-Even Target: ${bePrice}`;
+    const summaryText = `[Trade Diary NSE Calculator]\nBroker: ${AppState.calculatorState.broker.toUpperCase()} | Segment: ${AppState.calculatorState.segment.toUpperCase()}\nBuy Price: ₹${buyPrice} | Sell Price: ₹${sellPrice} | Qty: ${qty}\nTotal Charges: ${totalCharges}\nNet Realized P&L: ${netPnL}\nBreak-Even Target: ${bePrice}`;
 
     navigator.clipboard.writeText(summaryText).then(() => {
       showToast('Calculator parameters copied to clipboard', 'success');
@@ -925,7 +925,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `TradeJournal_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `TradeDiary_Backup_${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
