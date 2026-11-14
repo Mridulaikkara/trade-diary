@@ -33,7 +33,8 @@ function requestHandler(req, res) {
   }
 
   const urlPath = req.url.split('?')[0];
-  let filePath = path.join(root, urlPath === '/' ? 'index.html' : urlPath);
+  const relativePath = urlPath === '/' ? 'index.html' : urlPath.replace(/^\/+/, '');
+  let filePath = path.join(root, relativePath);
 
   // Normalize path security
   if (!filePath.startsWith(root)) {

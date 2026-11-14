@@ -1,6 +1,32 @@
 {
   "version": 2,
   "cleanUrls": false,
+  "functions": {
+    "server.js": {
+      "includeFiles": "icons/**"
+    }
+  },
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/icons/(.*)",
+      "dest": "/icons/$1"
+    },
+    {
+      "src": "/favicon.png",
+      "dest": "/favicon.png"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/manifest.json"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -20,15 +46,24 @@
       ]
     },
     {
-      "source": "/sw.js",
+      "source": "/icons/(.*)",
       "headers": [
         {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
+          "key": "Content-Type",
+          "value": "image/png"
         },
         {
-          "key": "Service-Worker-Allowed",
-          "value": "/"
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/favicon.png",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/png"
         }
       ]
     },
