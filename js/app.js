@@ -308,8 +308,8 @@
     if (todayDeltaPctEl) {
       const isUp = deltaVal >= 0;
       todayDeltaPctEl.className = isUp
-        ? 'text-xs font-bold bg-[#0D1527] text-[#7AD9A5] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full'
-        : 'text-xs font-bold bg-[#0D1527] text-[#F87171] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full';
+        ? 'text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full'
+        : 'text-xs font-bold bg-red-50 text-red-700 border border-red-200/80 px-2.5 py-0.5 rounded-full';
       todayDeltaPctEl.textContent = (isUp ? '+' : '') + deltaPct + '%';
     }
     if (prevCloseEl) {
@@ -360,24 +360,24 @@
       if (monthlyPctEl) {
         const isUp = monthlyTotalGrowth >= 0;
         monthlyPctEl.className = isUp
-          ? 'text-xs font-bold bg-[#0D1527] text-[#7AD9A5] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full'
-          : 'text-xs font-bold bg-[#0D1527] text-[#F87171] border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full';
+          ? 'text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full'
+          : 'text-xs font-bold bg-red-50 text-red-700 border border-red-200/80 px-2.5 py-0.5 rounded-full';
         monthlyPctEl.textContent = `${(isUp ? '+' : '')}${monthlyGrowthPct}% MTD`;
       }
       if (monthlyDepEl) monthlyDepEl.textContent = fmtINR(monthlyDeposits);
       if (monthlyOrgEl) {
-        monthlyOrgEl.className = monthlyOrganic >= 0 ? 'font-semibold text-[#7AD9A5]' : 'font-semibold text-[#F87171]';
+        monthlyOrgEl.className = monthlyOrganic >= 0 ? 'font-semibold text-emerald-600' : 'font-semibold text-red-600';
         monthlyOrgEl.textContent = (monthlyOrganic >= 0 ? '+' : '') + fmtINR(monthlyOrganic);
       }
     } else {
       if (monthlyValEl) monthlyValEl.textContent = '₹ 0.00';
       if (monthlyPctEl) {
-        monthlyPctEl.className = 'text-xs font-bold bg-[#0D1527] text-[#F4EDE0]/70 border border-[rgba(244,237,224,0.12)] px-2 py-0.5 rounded-full';
+        monthlyPctEl.className = 'text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200 px-2.5 py-0.5 rounded-full';
         monthlyPctEl.textContent = '0.0% MTD';
       }
       if (monthlyDepEl) monthlyDepEl.textContent = '₹ 0.00';
       if (monthlyOrgEl) {
-        monthlyOrgEl.className = 'font-semibold text-[#F4EDE0]/70';
+        monthlyOrgEl.className = 'font-semibold text-slate-400';
         monthlyOrgEl.textContent = '₹ 0.00';
       }
     }
@@ -399,8 +399,8 @@
 
     if (snapshots.length < 2) {
       svg.innerHTML = `
-        <line x1="20" y1="110" x2="980" y2="110" stroke="rgba(244, 237, 224, 0.12)" stroke-width="1.5" stroke-dasharray="4 4"/>
-        <text x="500" y="115" fill="rgba(244, 237, 224, 0.45)" font-size="16" text-anchor="middle" font-family="sans-serif">
+        <line x1="20" y1="110" x2="980" y2="110" stroke="rgba(226, 232, 240, 0.9)" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <text x="500" y="115" fill="#94A3B8" font-size="15" text-anchor="middle" font-family="sans-serif">
           Record at least 2 daily valuations in Portfolio to plot trend
         </text>
       `;
@@ -440,7 +440,7 @@
     let gridLines = '';
     for (let i = 1; i <= 3; i++) {
       const yLine = padY + (i / 4) * (H - 2 * padY);
-      gridLines += `<line x1="0" x2="${W}" y1="${yLine}" y2="${yLine}" stroke="rgba(244, 237, 224, 0.08)" stroke-width="1" stroke-dasharray="3 3"/>`;
+      gridLines += `<line x1="0" x2="${W}" y1="${yLine}" y2="${yLine}" stroke="rgba(226, 232, 240, 0.85)" stroke-width="1" stroke-dasharray="3 3"/>`;
     }
 
     // Circles
@@ -448,9 +448,10 @@
     points.forEach((p, i) => {
       const isLast = (i === points.length - 1);
       const r = isLast ? 6 : 4;
-      const stroke = isLast ? 'stroke="#0D1527" stroke-width="2.5"' : '';
+      const fill = isLast ? '#0F172A' : '#0284C7';
+      const stroke = 'stroke="#FFFFFF" stroke-width="2"';
       circlesSvg += `
-        <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="#F4EDE0" ${stroke} class="chart-point" data-idx="${i}">
+        <circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${fill}" ${stroke} class="chart-point" data-idx="${i}">
           <title>${p.date}: ${fmtINR(p.val)}</title>
         </circle>
       `;
@@ -459,13 +460,13 @@
     svg.innerHTML = `
       <defs>
         <linearGradient id="dashGrowthGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stop-color="#F4EDE0" stop-opacity="0.25"/>
-          <stop offset="100%" stop-color="#F4EDE0" stop-opacity="0.02"/>
+          <stop offset="0%" stop-color="#0284C7" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="#0284C7" stop-opacity="0.01"/>
         </linearGradient>
       </defs>
       ${gridLines}
       <path d="${areaD}" fill="url(#dashGrowthGrad)"/>
-      <path d="${pathD}" fill="none" stroke="#F4EDE0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="${pathD}" fill="none" stroke="#0284C7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
       ${circlesSvg}
     `;
 
@@ -525,8 +526,8 @@
 
     if (deltaEl) {
       deltaEl.className = diff >= 0
-        ? 'text-xs font-bold text-[#7AD9A5] tabular-nums'
-        : 'text-xs font-bold text-[#F87171] tabular-nums';
+        ? 'text-xs font-bold text-emerald-600 tabular-nums'
+        : 'text-xs font-bold text-red-600 tabular-nums';
       deltaEl.textContent = `${diff >= 0 ? '+' : ''}${fmtINR(diff)} (${diff >= 0 ? '+' : ''}${pct}%)`;
     }
 
@@ -534,8 +535,8 @@
     const organicReturn = diff - deposit;
     if (organicEl) {
       organicEl.className = organicReturn >= 0
-        ? 'font-bold text-[#7AD9A5] tabular-nums'
-        : 'font-bold text-[#F87171] tabular-nums';
+        ? 'font-bold text-emerald-600 tabular-nums'
+        : 'font-bold text-red-600 tabular-nums';
       organicEl.textContent = `${organicReturn >= 0 ? '+' : ''}${fmtINR(organicReturn)}`;
     }
   }
@@ -649,7 +650,7 @@
     if (list.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="p-6 text-center text-[#F4EDE0]/50 text-xs">
+          <td colspan="7" class="p-6 text-center text-slate-400 text-xs font-medium">
             No snapshots recorded yet. Record your daily valuation above.
           </td>
         </tr>
@@ -659,24 +660,24 @@
 
     tbody.innerHTML = list.map(s => {
       const isUp = (s.dodDelta || 0) >= 0;
-      const deltaColor = isUp ? 'text-[#7AD9A5]' : 'text-[#F87171]';
+      const deltaColor = isUp ? 'text-emerald-600' : 'text-red-600';
       const organic = s.organicReturn !== undefined ? s.organicReturn : s.dodDelta;
       const isOrgUp = (organic || 0) >= 0;
-      const orgColor = isOrgUp ? 'text-[#7AD9A5]' : 'text-[#F87171]';
+      const orgColor = isOrgUp ? 'text-emerald-600' : 'text-red-600';
 
       return `
-        <tr class="hover:bg-white/5 transition-colors border-b border-[rgba(244,237,224,0.08)]">
-          <td class="p-2.5 text-[#F4EDE0]/65 whitespace-nowrap text-[11px]">
+        <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+          <td class="p-2.5 text-slate-600 whitespace-nowrap text-[11px] font-medium">
             ${s.date}
           </td>
           <td class="p-2.5 text-right tabular-nums">
-            <div class="text-[#F4EDE0] text-[11px]">${fmtINR(s.growwTotal)}</div>
+            <div class="text-slate-800 text-[11px] font-medium">${fmtINR(s.growwTotal)}</div>
           </td>
           <td class="p-2.5 text-right tabular-nums">
-            <div class="text-[#F4EDE0] text-[11px]">${fmtINR(s.kiteTotal)}</div>
+            <div class="text-slate-800 text-[11px] font-medium">${fmtINR(s.kiteTotal)}</div>
           </td>
           <td class="p-2.5 text-right tabular-nums">
-            <div class="font-serif text-[#F4EDE0] font-semibold text-[13px]">${fmtINR(s.combinedTotal)}</div>
+            <div class="font-serif text-[#0F172A] font-semibold text-[13px]">${fmtINR(s.combinedTotal)}</div>
           </td>
           <td class="p-2.5 text-right tabular-nums whitespace-nowrap">
             <span class="text-[10px] font-bold ${deltaColor}">
@@ -689,7 +690,7 @@
             </span>
           </td>
           <td class="p-2.5 text-right whitespace-nowrap">
-            <button class="p-1 rounded text-[#F4EDE0]/60 hover:text-[#F87171] transition-colors" data-action="delete-snapshot" data-snapshot-date="${s.date}" title="Delete Record">
+            <button class="p-1 rounded text-slate-400 hover:text-red-600 transition-colors" data-action="delete-snapshot" data-snapshot-date="${s.date}" title="Delete Record">
               <span class="material-symbols-outlined text-[15px]">delete</span>
             </button>
           </td>
@@ -775,15 +776,15 @@
     const zDot = document.getElementById('broker-zerodha-dot');
 
     if (broker === 'groww') {
-      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5 shadow-sm';
-      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#F4EDE0]/70 transition-all flex items-center justify-center gap-1.5';
-      if (gDot) gDot.className = 'w-2 h-2 rounded-full bg-[#7AD9A5]';
-      if (zDot) zDot.className = 'w-2 h-2 rounded-full bg-neutral-500';
+      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#0F172A] text-white transition-all flex items-center justify-center gap-1.5 shadow-sm';
+      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center gap-1.5';
+      if (gDot) gDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+      if (zDot) zDot.className = 'w-2 h-2 rounded-full bg-slate-400';
     } else {
-      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#F4EDE0] text-[#14213D] transition-all flex items-center justify-center gap-1.5 shadow-sm';
-      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold text-[#F4EDE0]/70 transition-all flex items-center justify-center gap-1.5';
-      if (zDot) zDot.className = 'w-2 h-2 rounded-full bg-[#7AD9A5]';
-      if (gDot) gDot.className = 'w-2 h-2 rounded-full bg-neutral-500';
+      if (zBtn) zBtn.className = 'py-2 rounded-xl text-xs font-semibold bg-[#0F172A] text-white transition-all flex items-center justify-center gap-1.5 shadow-sm';
+      if (gBtn) gBtn.className = 'py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center gap-1.5';
+      if (zDot) zDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+      if (gDot) gDot.className = 'w-2 h-2 rounded-full bg-slate-400';
     }
     calculateAllCalculator();
   }
@@ -795,9 +796,9 @@
       const btn = document.getElementById(`seg-${seg}`);
       if (!btn) return;
       if (seg === segment) {
-        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#F4EDE0] text-[#14213D] font-bold whitespace-nowrap shadow-sm';
+        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#0F172A] text-white font-bold whitespace-nowrap shadow-sm';
       } else {
-        btn.className = 'px-3.5 py-1.5 rounded-full bg-[#1C2C4E] text-[#F4EDE0]/70 whitespace-nowrap';
+        btn.className = 'px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-600 hover:text-slate-900 whitespace-nowrap font-medium';
       }
     });
     calculateAllCalculator();
@@ -860,24 +861,24 @@
     if (chargesEl) chargesEl.textContent = '-' + fmtINR(res.totalCharges);
     if (netEl) {
       netEl.className = res.netPnL >= 0
-        ? 'font-serif text-[17px] font-semibold text-[#7AD9A5] tabular-nums mt-0.5'
-        : 'font-serif text-[17px] font-semibold text-[#F87171] tabular-nums mt-0.5';
+        ? 'font-serif text-[18px] font-semibold text-emerald-600 tabular-nums mt-0.5'
+        : 'font-serif text-[18px] font-semibold text-red-600 tabular-nums mt-0.5';
       netEl.textContent = (res.netPnL >= 0 ? '+' : '') + fmtINR(res.netPnL);
     }
     if (netRoiEl) {
       netRoiEl.className = res.netPnL >= 0
-        ? 'text-[10px] font-bold text-[#7AD9A5]'
-        : 'text-[10px] font-bold text-[#F87171]';
+        ? 'text-[10px] font-bold text-emerald-600'
+        : 'text-[10px] font-bold text-red-600';
       netRoiEl.textContent = (res.netRoi >= 0 ? '+' : '') + res.netRoi.toFixed(2) + '% ROI';
     }
 
     if (pillEl) {
       if (res.netPnL >= 0) {
         pillEl.textContent = 'WIN';
-        pillEl.className = 'text-[9px] font-bold text-[#7AD9A5]';
+        pillEl.className = 'text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded';
       } else {
         pillEl.textContent = 'LOSS';
-        pillEl.className = 'text-[9px] font-bold text-[#F87171]';
+        pillEl.className = 'text-[9px] font-bold text-red-700 bg-red-50 px-1.5 py-0.5 rounded';
       }
     }
 

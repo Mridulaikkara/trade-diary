@@ -1,35 +1,31 @@
 /* ==========================================================================
-   Trade Diary — Ultra-Premium Navy & Cream Native Mobile Stylesheet
-   Palette:
-     Brand Navy:       #14213D (Deep Sophisticated Royal Navy)
-     Brand Cream:      #F4EDE0 (Warm Luxury Alabaster / Ivory)
-     Canvas:           #0D1527 (Midnight Navy Base)
-     Navy Card:        #14213D (Primary Surface)
-     Navy Elevated:    #1C2C4E (Secondary Surface / Buttons)
-     Navy Input:       #0B1220 (Deep Inset Input Surface)
-     Cream Hover:      #E8DFCF (Cream State Tint)
-     Border Subtle:    rgba(244, 237, 224, 0.14)
-     Border Focus:     rgba(244, 237, 224, 0.30)
-     Text Primary:     #F4EDE0 (Crisp Warm Cream)
-     Text Muted:       rgba(244, 237, 224, 0.70)
-     Text Subtle:      rgba(244, 237, 224, 0.45)
-     Gain Accent:      #7AD9A5 (Refined Sage Mint)
-     Loss Accent:      #F87171 (Refined Soft Coral)
+   Trade Diary — Ethereal Classy Cloud & Sky Aesthetic Stylesheet
+   Inspired by modern luxury editorial Web3/Fintech aesthetics:
+     Canvas:           #F8FAFC (Soft Luminous Cloud Mist)
+     Surface:          #FFFFFF (Pure Pristine Card White)
+     Surface Tint:     #F0F7FD (Delicate Sky Tint Surface)
+     Brand Dark:       #0F172A (Deep Slate 900 for High-Class Typography)
+     Brand Slate:      #475569 (Refined Slate 600 for Secondary Copy)
+     Brand Muted:      #94A3B8 (Slate 400 for Captions / Subtle Meta)
+     Brand Orange:     #EA580C (Warm Terracotta / Amber Accent Pill)
+     Brand Sky Accent: #0284C7 (Crisp Sky 600 for Metrics & Gradients)
+     Card Border:      rgba(226, 232, 240, 0.85) (Delicate Frosted Edge)
+     Gain Accent:      #059669 (Emerald 600)
+     Loss Accent:      #DC2626 (Red 600)
    ========================================================================== */
 
 :root {
-  --canvas: #0D1527;
-  --navy: #14213D;
-  --navy-card: #14213D;
-  --navy-elevated: #1C2C4E;
-  --navy-input: #0B1220;
-  --cream: #F4EDE0;
-  --cream-hover: #E8DFCF;
-  --cream-muted: rgba(244, 237, 224, 0.70);
-  --cream-subtle: rgba(244, 237, 224, 0.45);
-  --card-border: rgba(244, 237, 224, 0.14);
-  --gain: #7AD9A5;
-  --loss: #F87171;
+  --canvas: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-tint: #F0F7FD;
+  --brand-dark: #0F172A;
+  --brand-slate: #475569;
+  --brand-muted: #94A3B8;
+  --brand-orange: #EA580C;
+  --brand-sky: #0284C7;
+  --card-border: rgba(226, 232, 240, 0.85);
+  --gain: #059669;
+  --loss: #DC2626;
 }
 
 *, *::before, *::after {
@@ -37,8 +33,8 @@
 }
 
 html {
-  background-color: #0D1527 !important;
-  color: #F4EDE0 !important;
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
   min-height: 100%;
 }
 
@@ -46,8 +42,10 @@ body {
   margin: 0 !important;
   padding: 0 !important;
   min-height: 100% !important;
-  background-color: #0D1527 !important;
-  color: #F4EDE0 !important;
+  background-color: #F8FAFC !important;
+  background: radial-gradient(circle at 50% -10%, #E0F2FE 0%, #F8FAFC 55%, #FFFFFF 100%) !important;
+  background-attachment: fixed !important;
+  color: #0F172A !important;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -73,7 +71,7 @@ input, select, textarea {
 }
 
 button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
-  opacity: 0.72 !important;
+  opacity: 0.75 !important;
   transform: none !important;
 }
 
@@ -104,11 +102,11 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
   margin: 0 auto !important;
   z-index: 99999 !important;
   pointer-events: auto !important;
-  background-color: #14213D !important;
-  background: rgba(20, 33, 61, 0.95) !important;
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
   -webkit-backdrop-filter: blur(20px) !important;
   backdrop-filter: blur(20px) !important;
-  border-bottom: 1px solid rgba(244, 237, 224, 0.14) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9) !important;
   padding-top: max(env(safe-area-inset-top, 44px), 14px) !important;
   padding-bottom: 10px !important;
   padding-left: 16px !important;
@@ -116,6 +114,7 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
+  box-shadow: 0 1px 12px rgba(15, 23, 42, 0.03) !important;
 }
 
 /* ─── LAYER 3: Permanently Fixed Bottom Navigation Bar (3 Tabs: Home, Portfolio, Calculator) ─── */
@@ -129,11 +128,11 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
   margin: 0 auto !important;
   z-index: 99999 !important;
   pointer-events: auto !important;
-  background-color: #0E182B !important;
-  background: rgba(14, 24, 43, 0.96) !important;
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
   -webkit-backdrop-filter: blur(24px) !important;
   backdrop-filter: blur(24px) !important;
-  border-top: 1px solid rgba(244, 237, 224, 0.14) !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.9) !important;
   padding-top: 8px !important;
   padding-bottom: max(env(safe-area-inset-bottom, 20px), 16px) !important;
   padding-left: 20px !important;
@@ -141,7 +140,7 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
   display: flex !important;
   align-items: center !important;
   justify-content: space-around !important;
-  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.05) !important;
 }
 
 /* ─── LAYER 2: Scrollable Main Content ─── */
@@ -167,7 +166,7 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  color: rgba(244, 237, 224, 0.45);
+  color: #64748B;
   background: transparent;
   border: none;
   outline: none;
@@ -183,7 +182,7 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
 }
 
 .nav-tab-item.active {
-  color: #F4EDE0;
+  color: #0F172A;
 }
 
 .nav-tab-item.active .nav-tab-label {
@@ -199,8 +198,8 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: #F4EDE0;
-  box-shadow: 0 0 8px #F4EDE0;
+  background-color: #EA580C;
+  box-shadow: 0 0 6px rgba(234, 88, 12, 0.5);
 }
 
 /* ─── View Panels ─── */
@@ -229,9 +228,10 @@ button:active, [data-action]:active, [data-path]:active, .nav-tab-item:active {
   z-index: 10001;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
   white-space: nowrap;
-  background-color: #14213D;
-  border: 1px solid rgba(244, 237, 224, 0.25);
-  color: #F4EDE0;
+  background-color: #0F172A;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  color: #FFFFFF;
+  box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.25);
 }
 
 .toast-container.show {
