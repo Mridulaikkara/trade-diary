@@ -109,6 +109,9 @@
       showToast('Connection restored: IndexedDB storage synchronized', 'success');
     });
     window.addEventListener('offline', updateStatus);
+    if (!navigator.onLine) {
+      setTimeout(updateStatus, 500);
+    }
   }
 
   // Synchronous State Reload from IndexedDB

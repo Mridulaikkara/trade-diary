@@ -17,6 +17,7 @@ try {
   path.join(__dirname, 'icons', 'favicon-64.png');
   path.join(__dirname, 'favicon.png');
   path.join(__dirname, 'manifest.json');
+  path.join(__dirname, 'sw.js');
 } catch (e) {}
 
 const mimeTypes = {
