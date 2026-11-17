@@ -8,7 +8,7 @@
  * 3. External Web Fonts (Google Fonts & Material Symbols): Cache-First with runtime caching
  */
 
-const CACHE_VERSION = 'trade-diary-v1.3.0';
+const CACHE_VERSION = 'trade-diary-v1.3.1';
 const STATIC_CACHE = `trade-diary-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `trade-diary-runtime-${CACHE_VERSION}`;
 

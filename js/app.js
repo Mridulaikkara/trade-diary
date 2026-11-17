@@ -821,7 +821,7 @@
             <div class="text-slate-800 text-[11px] font-medium">${fmtINR(s.kiteTotal)}</div>
           </td>
           <td class="p-2.5 text-right tabular-nums">
-            <div class="font-serif text-[#0F172A] font-semibold text-[13px]">${fmtINR(s.combinedTotal)}</div>
+            <div class="font-sans text-[#0F172A] font-semibold text-[13px] tabular-nums">${fmtINR(s.combinedTotal)}</div>
           </td>
           <td class="p-2.5 text-right tabular-nums whitespace-nowrap">
             <span class="text-[10px] font-bold ${deltaColor}">
@@ -992,7 +992,7 @@
       if (grossEl) grossEl.textContent = '₹0.00';
       if (chargesEl) chargesEl.textContent = '₹0.00';
       if (netEl) {
-        netEl.className = 'font-serif text-[18px] font-semibold text-slate-600 tabular-nums mt-0.5';
+        netEl.className = 'font-sans text-[18px] font-semibold text-slate-600 tabular-nums mt-0.5';
         netEl.textContent = '₹0.00';
       }
       if (netRoiEl) {
@@ -1050,8 +1050,8 @@
     if (chargesEl) chargesEl.textContent = '-' + fmtINR(res.totalCharges);
     if (netEl) {
       netEl.className = res.netPnL >= 0
-        ? 'font-serif text-[18px] font-semibold text-emerald-600 tabular-nums mt-0.5'
-        : 'font-serif text-[18px] font-semibold text-red-600 tabular-nums mt-0.5';
+        ? 'font-sans text-[18px] font-semibold text-emerald-600 tabular-nums mt-0.5'
+        : 'font-sans text-[18px] font-semibold text-red-600 tabular-nums mt-0.5';
       netEl.textContent = (res.netPnL >= 0 ? '+' : '') + fmtINR(res.netPnL);
     }
     if (netRoiEl) {
